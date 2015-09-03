@@ -117,6 +117,15 @@ class ProjectionFilesystem(Operations):
                 return content
 
 
+    def open(self, path, flags):
+        logging.info('Opening file on path: %s with flags^ %s', path, flags)
+        path = path[1:]
+        if self.projection_manager.is_managing_path(path):
+            logging.debug('Opening resource at path: %s', path)
+            return self.projection_manager.get_resource(path)
+        else:
+            return os.open(self._extend_data_path(path), flags)
+
     # Projection methods. Will be moved to separate class
     # def get_projections(self):
     #

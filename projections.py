@@ -1,5 +1,6 @@
 __author__ = 'abragin'
 
+import io
 import logging
 import stat
 import time
@@ -52,7 +53,7 @@ class ProjectionManager(object):
         projections = []
 
         # TODO: replace stub with real code here
-        projection = Projection('/projection', '/uri:parseq.pro/hello')
+        projection = Projection('/projection', 'uri:parseq.pro')
         projections.append(projection)
 
         return projections
@@ -70,6 +71,9 @@ class ProjectionManager(object):
         logging.info('Requesting resource for uri: %s', uri)
         return b'Hello world!\n'
 
+    def open_resource(self, uri):
+        return io.StringIO('Hello world!\n')
+
     def get_projections(self):
         logging.info('Requesting for projections')
         return self.projections.keys()
@@ -81,15 +85,17 @@ class ProjectionManager(object):
             return None
 
     def get_attributes(self, path):
+        logging.info('Request attributes on path: %s. Projections: %s, resources: %s', path, self.projections, self.resources)
         if path in self.projections:
             return self.get_projection_attributes(self.projections[path])
-        elif path in self.resources:
-            return self.get_resource_attributes(self.resources[path])
+        elif path[1:] in self.resources:
+            return self.get_resource_attributes(self.resources[path[1:]])
         else:
+            logging.info('No object for attributes found')
             return None
 
     def get_projection_attributes(self, projection):
-
+        logging.info('Get projection attributes')
         now = time.time()
         attributes = dict()
 
@@ -105,7 +111,7 @@ class ProjectionManager(object):
         attributes['st_size'] = 10
         # Set type to link anf grant full access to everyone
         # TODO: Check why links can't be readed
-        attributes['st_mode'] = (stat.S_IFREG | 0o0777)
+        attributes['st_mode'] = (stat.S_IFLNK | 0o0777)
         # Set number of hard links to 0
         attributes['st_nlink'] = 0
         # Set id as inode number.
@@ -114,7 +120,7 @@ class ProjectionManager(object):
         return attributes
 
     def get_resource_attributes(self, projection):
-
+        logging.info('Get resource attributes')
         now = time.time()
         attributes = dict()
 
