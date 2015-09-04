@@ -116,13 +116,12 @@ class ProjectionFilesystem(Operations):
                 logging.debug('Got content for uri: %s: %s', path, content)
                 return content
 
-
     def open(self, path, flags):
-        logging.info('Opening file on path: %s with flags^ %s', path, flags)
-        path = path[1:]
+        logging.info('Opening file on path: %s with flags: %s', path, flags)
         if self.projection_manager.is_managing_path(path):
-            logging.debug('Opening resource at path: %s', path)
-            return self.projection_manager.get_resource(path)
+            file_header = self.projection_manager.open_resource(path)
+            logging.debug('Opening resource at path: %s returned header: %s', path, file_header)
+            return file_header
         else:
             return os.open(self._extend_data_path(path), flags)
 

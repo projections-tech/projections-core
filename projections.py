@@ -20,12 +20,14 @@ class Projection(object):
         """
         self.path = path
         self.uri = uri
+        # TODO: this is demo implementation. There should be more elegant way to do the same, e.g. via special file types
+        # Set to nonzero to trigger projection reading
+        self.size = 1
+
+        # Other attributes as well as extended attributes may be stored here
 
     def __str__(self):
         return 'Projection from {} to {}'.format(self.uri, self.path)
-
-    def get_content(self):
-        return bytes('Hello world!')
 
 
 class ProjectionManager(object):
@@ -68,11 +70,30 @@ class ProjectionManager(object):
         :param uri: uri to get resource from.
         :return: resource content
         """
+        # TODO: implement resource downloading
+
+        content = b'Hello world!\n'
+
+        # if uri in self.projections:
+        #     self.projections[uri].size = len(content)
+        #
+        # logging.info('Resource content size for uri: %s set to: %s', uri, self.projections[uri].size)
+
         logging.info('Requesting resource for uri: %s', uri)
         return b'Hello world!\n'
 
     def open_resource(self, uri):
-        return io.StringIO('Hello world!\n')
+        # TODO: implement resource downloading
+
+        content = b'Hello world!\n'
+        file_handler = 3
+
+        if uri in self.projections:
+            self.projections[uri].size = len(content)
+
+        logging.info('Resource content size for uri: %s set to: %s', uri, self.projections[uri].size)
+
+        return file_handler
 
     def get_projections(self):
         logging.info('Requesting for projections')
@@ -108,10 +129,9 @@ class ProjectionManager(object):
         # On Unix this is time for metedata modification we can use the same conception
         attributes['st_ctime'] = now
         # If this is projection the size is zero
-        attributes['st_size'] = 10
+        attributes['st_size'] = projection.size
         # Set type to link anf grant full access to everyone
-        # TODO: Check why links can't be readed
-        attributes['st_mode'] = (stat.S_IFLNK | 0o0777)
+        attributes['st_mode'] = (stat.S_IFREG | 0o0777)
         # Set number of hard links to 0
         attributes['st_nlink'] = 0
         # Set id as inode number.
