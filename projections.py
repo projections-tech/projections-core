@@ -5,10 +5,14 @@ import logging
 import stat
 import time
 
+logger = logging.getLogger('projections')
+
 class Projection(object):
     """
     Class for holding projection data. May be subclassed for area-specific projection implementations
     """
+
+    #TODO: consider composite objects here (such as directories). Need to define schema for this.
 
     def __init__(self, path, uri):
         """
@@ -31,9 +35,12 @@ class Projection(object):
 
 
 class ProjectionManager(object):
+    """
+    Should be subclassed to provide real-life implementations.
+    """
 
     def __init__(self):
-        logging.info('Creating projection manager')
+        logger.info('Creating projection manager')
         self.projections = dict()
         self.resources = dict()
 
@@ -43,7 +50,7 @@ class ProjectionManager(object):
             self.projections[p.path] = p
             self.resources[p.uri] = p
 
-        logging.info('Projections: %s, resources: %s', self.projections, self.resources)
+        logger.debug('Projections: %s, resources: %s', self.projections, self.resources)
 
     def create_projections(self):
         """
@@ -67,37 +74,43 @@ class ProjectionManager(object):
         """
         This method should be overriden in implementation specific manner.
 
-        :param uri: uri to get resource from.
+        :param uri: resource identifier to get resource from.
         :return: resource content
         """
         # TODO: implement resource downloading
 
-        content = b'Hello world!\n'
+        content = b'Hello World!\n'
 
-        # if uri in self.projections:
-        #     self.projections[uri].size = len(content)
-        #
-        # logging.info('Resource content size for uri: %s set to: %s', uri, self.projections[uri].size)
+        logger.info('Requesting resource for uri: %s', uri)
+        return content
 
-        logging.info('Requesting resource for uri: %s', uri)
-        return b'Hello world!\n'
-
-    def open_resource(self, uri):
-        # TODO: implement resource downloading
+    def open_resource(self, path):
+        # TODO: implement file header operations
+        # TODO: implement resource downloading if not already opened (use header to check)!
 
         content = b'Hello world!\n'
+        resource_io = io.BytesIO(content)
+
+        if path in self.projections:
+            self.projections[path].size = len(content)
+
+        logger.info('Resource content size for uri: %s set to: %s', path, self.projections[path].size)
+
         file_handler = 3
 
-        if uri in self.projections:
-            self.projections[uri].size = len(content)
+        return file_handler, resource_io
 
-        logging.info('Resource content size for uri: %s set to: %s', uri, self.projections[uri].size)
+    def remove_resource(self, path):
+        if path in self.projections:
+            self.projections[path].size = 1
 
-        return file_handler
-
-    def get_projections(self):
-        logging.info('Requesting for projections')
-        return self.projections.keys()
+    def get_projections(self, path):
+        logger.info('Requesting for projections')
+        # TODO: this is hardcoded behavior with only one level of projections. Review it!
+        if path == '/':
+            return self.projections.keys()
+        else:
+            return []
 
     def get_link(self, path):
         if path in self.projections:
@@ -106,7 +119,7 @@ class ProjectionManager(object):
             return None
 
     def get_attributes(self, path):
-        logging.info('Request attributes on path: %s. Projections: %s, resources: %s', path, self.projections, self.resources)
+        logger.info('Request attributes on path: %s. Projections: %s, resources: %s', path, self.projections, self.resources)
         if path in self.projections:
             return self.get_projection_attributes(self.projections[path])
         elif path[1:] in self.resources:
@@ -116,7 +129,7 @@ class ProjectionManager(object):
             return None
 
     def get_projection_attributes(self, projection):
-        logging.info('Get projection attributes')
+        logger.info('Get projection attributes')
         now = time.time()
         attributes = dict()
 
@@ -140,7 +153,7 @@ class ProjectionManager(object):
         return attributes
 
     def get_resource_attributes(self, projection):
-        logging.info('Get resource attributes')
+        logger.info('Get resource attributes')
         now = time.time()
         attributes = dict()
 
