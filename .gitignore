@@ -2,3 +2,4 @@
 .idea
 mnt/*
 tests/mnt/*
+data/*

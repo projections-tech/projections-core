@@ -111,18 +111,22 @@ class ProjectionFilesystem(Operations):
             return ''
 
     def read(self, path, length, offset, fh):
+        # Request content from real data
+        data_path = self._extend_data_path(path)
+        if os.path.exists(data_path):
+            logger.debug('Reading projection resource from drive: %s', path)
+            with open(self._extend_data_path(path), 'rb') as f:
+                content = f.read(length)
+                logger.debug('Got content for uri from drive: %s: %s', path, content)
+                return content
+
+        # Looking fo data from projection manager
         logger.info('Reading file on path: %s. Length: %s, offset: %s, header: %s', path, length, offset, fh)
         if self.projection_manager.is_managing_path(path):
             logger.debug('Reading projection resource on path: %s', path)
             content = self.projection_manager.get_resource(path)
             logger.debug('Got content for uri: %s: %s', path, content)
             return content
-        else:
-            logger.debug('Reading projection resource from drive: %s', path)
-            with open(self._extend_data_path(path), 'rb') as f:
-                content = f.read(length)
-                logger.debug('Got content for uri: %s: %s', path, content)
-                return content
 
     def open(self, path, flags):
         logger.info('Opening file on path: %s with flags: %s', path, flags)
@@ -131,6 +135,14 @@ class ProjectionFilesystem(Operations):
             logger.debug('Opening resource at path: %s returned header: %s', path, file_header)
 
             logger.info('Saving resource content to local drive')
+            # Create folder if not exists
+            dirname = os.path.dirname(self._extend_data_path(path))
+
+            logger.debug('Creating directory if not exists: %s', dirname)
+            if not os.path.exists(dirname):
+                logger.debug('Creating directory: %s', dirname)
+                os.makedirs(dirname)
+
             with open(self._extend_data_path(path), 'wb') as f:
                 f.write(resource_io.read())
 
@@ -156,6 +168,13 @@ class ProjectionFilesystem(Operations):
                 self.projection_manager.remove_resource(path)
 
             return os.unlink(data_path)
+
+    # def getxattr(self, path, name, position=0):
+    #     logging.info('Get xattr \'%s\' from path: %s', name, path)
+    #
+    #     if self.projection_manager.is_managing_path(path):
+    #         logging.debug('Path is managed by projection manager')
+    #         return self.projection_manager.get_xattr()
 
 
 def main(mountpoint, data_folder, foregrount=True):

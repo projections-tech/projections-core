@@ -27,11 +27,14 @@ class Projection(object):
         # TODO: this is demo implementation. There should be more elegant way to do the same, e.g. via special file types
         # Set to nonzero to trigger projection reading
         self.size = 1
+        # File or folder type. Default is file
+        self.type = stat.S_IFREG
+        self.xattrs = {}
 
         # Other attributes as well as extended attributes may be stored here
 
     def __str__(self):
-        return 'Projection from {} to {}'.format(self.uri, self.path)
+        return 'Projection from {} to {} with xattrs: {}'.format(self.uri, self.path, self.xattrs)
 
 
 class ProjectionManager(object):
@@ -88,7 +91,7 @@ class ProjectionManager(object):
         # TODO: implement file header operations
         # TODO: implement resource downloading if not already opened (use header to check)!
 
-        content = b'Hello world!\n'
+        content = b'Hello World!\n'
         resource_io = io.BytesIO(content)
 
         if path in self.projections:
@@ -128,6 +131,10 @@ class ProjectionManager(object):
             logging.info('No object for attributes found')
             return None
 
+    def get_xattr(self, path, name):
+        logger.info('Requestin projections \'%s\' from path: %s', name, path)
+        return self.projections[path].xattrs[name]
+
     def get_projection_attributes(self, projection):
         logger.info('Get projection attributes')
         now = time.time()
@@ -144,7 +151,7 @@ class ProjectionManager(object):
         # If this is projection the size is zero
         attributes['st_size'] = projection.size
         # Set type to link anf grant full access to everyone
-        attributes['st_mode'] = (stat.S_IFREG | 0o0777)
+        attributes['st_mode'] = (projection.type | 0o0777)
         # Set number of hard links to 0
         attributes['st_nlink'] = 0
         # Set id as inode number.

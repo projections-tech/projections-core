@@ -10,6 +10,7 @@ import iontorrent
 logging.config.fileConfig('../logging.cfg')
 logger = logging.getLogger('test_filesystem')
 
+# TODO: remove connection parameters to configuration
 HOST = '10.5.20.17'
 USER = 'ionadmin'
 PASSWORD = '0ECu1lW'
