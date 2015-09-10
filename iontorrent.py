@@ -24,9 +24,8 @@ class IonTorrentProjection(ProjectionManager):
         self.api_url = 'http://{}/rundb/api/v1/'.format(host)
         self.authenticate(user, password)
 
+        # TODO: switch to tree-like structure instead of manual path parsing
         self.projections = {}
-        self.projections_tree = {}
-
         self.create_projections()
 
     def authenticate(self, user, password):
@@ -69,8 +68,6 @@ class IonTorrentProjection(ProjectionManager):
 
             logger.debug('Created experiment projection: %s', projection)
             projections.append(projection)
-
-            #self.projections_tree[]
 
             # Create experiment metadata file projection
             exp_meta_projection = Projection('/' + os.path.join(o['displayName'], 'metadata.json'), urljoin(self.api_url, o['resource_uri']))
@@ -163,7 +160,7 @@ class IonTorrentProjection(ProjectionManager):
 
         with urllib.request.urlopen(uri) as f:
             content = f.readall()
-        logger.info('Got path content: %s', path)
+        logger.info('Got path content: %s\n%s', path, content)
 
         self.projections[path].size = len(content)
 
@@ -178,7 +175,7 @@ def main(mountpoint, data_folder, foregrount=True):
     # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
-    projection_filesystem.projection_manager = IonTorrentProjection('10.5.20.17', 'ionadmin', '0ECu1lW')
+    projection_filesystem.projection_manager = IonTorrentProjection('10.5.20.16', 'ionadmin', 'ionadmin')
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foregrount)
     return fuse
 

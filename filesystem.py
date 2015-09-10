@@ -114,11 +114,9 @@ class ProjectionFilesystem(Operations):
         # Request content from real data
         data_path = self._extend_data_path(path)
         if os.path.exists(data_path):
-            logger.debug('Reading projection resource from drive: %s', path)
-            with open(self._extend_data_path(path), 'rb') as f:
-                content = f.read(length)
-                logger.debug('Got content for uri from drive: %s: %s', path, content)
-                return content
+            logger.debug('Requesting content from real path. Path: %s, length: %s, offset: %s, fh :%s', data_path, length, offset, fh)
+            os.lseek(fh, offset, os.SEEK_SET)
+            return os.read(fh, length)
 
         # Looking fo data from projection manager
         logger.info('Reading file on path: %s. Length: %s, offset: %s, header: %s', path, length, offset, fh)
@@ -130,6 +128,7 @@ class ProjectionFilesystem(Operations):
 
     def open(self, path, flags):
         logger.info('Opening file on path: %s with flags: %s', path, flags)
+        # If the path is managed by projection manager than it should place original resource on drive before opening
         if self.projection_manager.is_managing_path(path):
             file_header, resource_io = self.projection_manager.open_resource(path)
             logger.debug('Opening resource at path: %s returned header: %s', path, file_header)
@@ -143,12 +142,13 @@ class ProjectionFilesystem(Operations):
                 logger.debug('Creating directory: %s', dirname)
                 os.makedirs(dirname)
 
-            with open(self._extend_data_path(path), 'wb') as f:
+            data_path = self._extend_data_path(path)
+
+            with open(data_path, 'wb') as f:
                 f.write(resource_io.read())
 
-            return file_header
-        else:
-            return os.open(self._extend_data_path(path), flags)
+        # Opening real file that was created
+        return os.open(self._extend_data_path(path), flags)
 
     def rmdir(self, path):
         logging.info('Removing node on path: %s', path)
