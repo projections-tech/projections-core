@@ -169,13 +169,6 @@ class ProjectionFilesystem(Operations):
 
             return os.unlink(data_path)
 
-    # def getxattr(self, path, name, position=0):
-    #     logging.info('Get xattr \'%s\' from path: %s', name, path)
-    #
-    #     if self.projection_manager.is_managing_path(path):
-    #         logging.debug('Path is managed by projection manager')
-    #         return self.projection_manager.get_xattr()
-
 
 def main(mountpoint, data_folder, foregrount=True):
     # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True

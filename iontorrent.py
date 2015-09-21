@@ -97,12 +97,15 @@ class IonTorrentProjection(ProjectionManager):
                 s_projection = Projection('/' + s_path, urljoin(self.api_url, s['resource_uri']))
                 s_projection.type = stat.S_IFDIR
 
-                # Setting barcode as xattr
-                if s['name'] in barcodes:
-                    s_projection.xattrs['barcode'] = barcodes[s['name']][0]
+                # Add BAM file projection
+                s_bam_projection = Projection(os.path.join(s_projection.path, s['name'] + '.bam'), urljoin(self.api_url, s['resource_uri']))
+
+                s_meta_projection = Projection(os.path.join(s_projection.path, 'metadata.json'), urljoin(self.api_url, s['resource_uri']))
 
                 logging.debug('Created sample projection: %s', s_projection)
                 projections.append(s_projection)
+                projections.append(s_bam_projection)
+                projections.append(s_meta_projection)
 
         for p in projections:
             self.projections[p.path] = p
@@ -176,7 +179,7 @@ def main(mountpoint, data_folder, foregrount=True):
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
     projection_filesystem.projection_manager = IonTorrentProjection('10.5.20.16', 'ionadmin', 'ionadmin')
-    fuse = FUSE(projection_filesystem, mountpoint, foreground=foregrount)
+    fuse = FUSE(projection_filesystem, mountpoint, foreground=foregrount, nonempty=True)
     return fuse
 
 if __name__ == '__main__':
