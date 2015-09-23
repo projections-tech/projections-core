@@ -111,32 +111,44 @@ class ProjectionFilesystem(Operations):
             return ''
 
     def read(self, path, length, offset, fh):
+        # Request content from real data
+        data_path = self._extend_data_path(path)
+        if os.path.exists(data_path):
+            logger.debug('Requesting content from real path. Path: %s, length: %s, offset: %s, fh :%s', data_path, length, offset, fh)
+            os.lseek(fh, offset, os.SEEK_SET)
+            return os.read(fh, length)
+
+        # Looking fo data from projection manager
         logger.info('Reading file on path: %s. Length: %s, offset: %s, header: %s', path, length, offset, fh)
         if self.projection_manager.is_managing_path(path):
             logger.debug('Reading projection resource on path: %s', path)
             content = self.projection_manager.get_resource(path)
             logger.debug('Got content for uri: %s: %s', path, content)
             return content
-        else:
-            logger.debug('Reading projection resource from drive: %s', path)
-            with open(self._extend_data_path(path), 'rb') as f:
-                content = f.read(length)
-                logger.debug('Got content for uri: %s: %s', path, content)
-                return content
 
     def open(self, path, flags):
         logger.info('Opening file on path: %s with flags: %s', path, flags)
+        # If the path is managed by projection manager than it should place original resource on drive before opening
         if self.projection_manager.is_managing_path(path):
             file_header, resource_io = self.projection_manager.open_resource(path)
             logger.debug('Opening resource at path: %s returned header: %s', path, file_header)
 
             logger.info('Saving resource content to local drive')
-            with open(self._extend_data_path(path), 'wb') as f:
+            # Create folder if not exists
+            dirname = os.path.dirname(self._extend_data_path(path))
+
+            logger.debug('Creating directory if not exists: %s', dirname)
+            if not os.path.exists(dirname):
+                logger.debug('Creating directory: %s', dirname)
+                os.makedirs(dirname)
+
+            data_path = self._extend_data_path(path)
+
+            with open(data_path, 'wb') as f:
                 f.write(resource_io.read())
 
-            return file_header
-        else:
-            return os.open(self._extend_data_path(path), flags)
+        # Opening real file that was created
+        return os.open(self._extend_data_path(path), flags)
 
     def rmdir(self, path):
         logging.info('Removing node on path: %s', path)
