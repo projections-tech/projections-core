@@ -169,7 +169,7 @@ class IonTorrentProjection(ProjectionManager):
 
         with urllib.request.urlopen(uri) as f:
             content = f.readall()
-        logger.warning('Got path content: %s\n%s', path, content)
+        logger.info('Got path content: %s\n%s', path, content)
 
         self.projections[path].size = len(content)
 
