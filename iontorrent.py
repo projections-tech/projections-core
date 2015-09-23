@@ -21,6 +21,7 @@ class IonTorrentProjection(ProjectionManager):
 
     def __init__(self, host, user, password):
         logger.info('Creating Ion Torrent projection for host: %s', host)
+        self.host = 'http://{}'.format(host)
         self.api_url = 'http://{}/rundb/api/v1/'.format(host)
         self.authenticate(user, password)
 
@@ -59,7 +60,6 @@ class IonTorrentProjection(ProjectionManager):
         projections = []
 
         for o in experiments['objects']:
-
             # Create experiment directory projection
             logger.debug('Got experiments with id: %s, name: %s', o['id'], o['displayName'])
 
@@ -75,10 +75,10 @@ class IonTorrentProjection(ProjectionManager):
             exp_meta_projection.type = stat.S_IFREG
             projections.append(exp_meta_projection)
 
-            # Create experiment plan metedata projection
-            plannedexp_metedata_projection = Projection('/' + os.path.join(o['displayName'], 'plannedexperiment.json'), urljoin(self.api_url, o['plan']))
-            logger.debug('Created planned experiment metadata projection: %s', plannedexp_metedata_projection)
-            projections.append(plannedexp_metedata_projection)
+            # Create experiment plan metadata projection
+            plannedexp_metadata_projection = Projection('/' + os.path.join(o['displayName'], 'plannedexperiment.json'), urljoin(self.api_url, o['plan']))
+            logger.debug('Created planned experiment metadata projection: %s', plannedexp_metadata_projection)
+            projections.append(plannedexp_metadata_projection)
 
             if o['eas_set']:
                 barcoded_samples = o['eas_set'][0]['barcodedSamples']
@@ -88,6 +88,12 @@ class IonTorrentProjection(ProjectionManager):
                 for b in barcoded_samples:
                     barcodes[b] = barcoded_samples[b]['barcodes']
                 logger.debug('Barcodes: %s', barcodes)
+
+            for res_uri in o['results']:
+                with urllib.request.urlopen(urljoin(self.api_url, res_uri)) as f:
+                    exp_results = json.loads(f.readall().decode('utf-8'))
+                s_bam_projection = Projection('/' + os.path.join(o['displayName'], exp_results['resultsName'] + '.bam'), urljoin(self.host, exp_results['bamLink']))
+                projections.append(s_bam_projection)
 
             # Create samples projections
             for s in o['samples']:
@@ -163,7 +169,7 @@ class IonTorrentProjection(ProjectionManager):
 
         with urllib.request.urlopen(uri) as f:
             content = f.readall()
-        logger.info('Got path content: %s\n%s', path, content)
+        logger.warning('Got path content: %s\n%s', path, content)
 
         self.projections[path].size = len(content)
 
@@ -174,12 +180,12 @@ class IonTorrentProjection(ProjectionManager):
 
 
 # For smoke testing
-def main(mountpoint, data_folder, foregrount=True):
+def main(mountpoint, data_folder, foreground=True):
     # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
     projection_filesystem.projection_manager = IonTorrentProjection('10.5.20.16', 'ionadmin', 'ionadmin')
-    fuse = FUSE(projection_filesystem, mountpoint, foreground=foregrount, nonempty=True)
+    fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
     return fuse
 
 if __name__ == '__main__':
