@@ -21,8 +21,9 @@ class IonTorrentProjection(ProjectionManager):
 
     def __init__(self, host, user, password):
         logger.info('Creating Ion Torrent projection for host: %s', host)
-        self.host = 'http://{}'.format(host)
+        self.host_url = 'http://{}'.format(host)
         self.api_url = 'http://{}/rundb/api/v1/'.format(host)
+        self.files_url = urljoin(self.host_url, '/auth/output/')
         self.authenticate(user, password)
 
         # TODO: switch to tree-like structure instead of manual path parsing
@@ -89,16 +90,20 @@ class IonTorrentProjection(ProjectionManager):
                     barcodes[b] = barcoded_samples[b]['barcodes']
                 logger.debug('Barcodes: %s', barcodes)
 
-            for res_uri in o['results']:
-                with urllib.request.urlopen(urljoin(self.api_url, res_uri)) as f:
-                    exp_results = json.loads(f.readall().decode('utf-8'))
-                s_bam_projection = Projection('/' + os.path.join(o['displayName'], exp_results['resultsName'] + '.bam'), urljoin(self.host, exp_results['bamLink']))
-                projections.append(s_bam_projection)
+            results_dirs_paths = []
+            # Create experiment results directory projections
+            for r in o['results']:
+                with urllib.request.urlopen(urljoin(self.api_url, r)) as f:
+                    results = json.loads(f.readall().decode('utf-8'))
+                    path_to_files = os.path.basename(results['filesystempath'])
+                    results_dir_projection = Projection(os.path.join('/'+o['displayName'], path_to_files), urljoin(self.files_url, path_to_files))
+                    results_dir_projection.type = stat.S_IFDIR
+                    projections.append(results_dir_projection)
 
             # Create samples projections
             for s in o['samples']:
 
-                s_path = os.path.join(o['displayName'], s['name'])
+                s_path = os.path.join(o['displayName'], s['displayedName'])
 
                 s_projection = Projection('/' + s_path, urljoin(self.api_url, s['resource_uri']))
                 s_projection.type = stat.S_IFDIR
@@ -184,7 +189,7 @@ def main(mountpoint, data_folder, foreground=True):
     # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
-    projection_filesystem.projection_manager = IonTorrentProjection('10.5.20.16', 'ionadmin', 'ionadmin')
+    projection_filesystem.projection_manager = IonTorrentProjection('10.5.20.17', 'ionadmin', '0ECu1lW')
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
     return fuse
 
