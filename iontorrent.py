@@ -23,7 +23,7 @@ class IonTorrentProjection(ProjectionManager):
         logger.info('Creating Ion Torrent projection for host: %s', host)
         self.host_url = 'http://{}'.format(host)
         self.api_url = 'http://{}/rundb/api/v1/'.format(host)
-        self.files_url = urljoin(self.host_url, '/auth/output/')
+        self.files_url = urljoin(self.host_url, '/auth/output/Home/')
         self.authenticate(user, password)
 
         # TODO: switch to tree-like structure instead of manual path parsing
@@ -32,7 +32,7 @@ class IonTorrentProjection(ProjectionManager):
 
     def authenticate(self, user, password):
         password_manager = urllib.request.HTTPPasswordMgrWithDefaultRealm()
-        password_manager.add_password(None, self.api_url, user, password)
+        password_manager.add_password(None, self.host_url, user, password)
 
         handler = urllib.request.HTTPBasicAuthHandler(password_manager)
 
@@ -54,7 +54,7 @@ class IonTorrentProjection(ProjectionManager):
         :return: list of projections
         """
         # Select last five experiments that were finished (with 'run' status)
-        with urllib.request.urlopen(urljoin(self.api_url, 'experiment?status=run&limit=5&order_by=-id')) as f:
+        with urllib.request.urlopen(urljoin(self.api_url, 'experiment?status=run&limit=1&order_by=-id')) as f:
             experiments = json.loads(f.readall().decode('utf-8'))
         logger.info('Got experiments data: %s', experiments)
 
@@ -90,33 +90,45 @@ class IonTorrentProjection(ProjectionManager):
                     barcodes[b] = barcoded_samples[b]['barcodes']
                 logger.debug('Barcodes: %s', barcodes)
 
-            results_dirs_paths = []
+            # Get sample barcodes data
+            with urllib.request.urlopen(urljoin(self.api_url, o['plan'])) as p:
+                ex_plan = json.loads(p.readall().decode('utf-8'))
+                sample_barcodes = ex_plan['barcodedSamples']
+
             # Create experiment results directory projections
             for r in o['results']:
                 with urllib.request.urlopen(urljoin(self.api_url, r)) as f:
                     results = json.loads(f.readall().decode('utf-8'))
+
                     path_to_files = os.path.basename(results['filesystempath'])
-                    results_dir_projection = Projection(os.path.join('/'+o['displayName'], path_to_files), urljoin(self.files_url, path_to_files))
+
+                    path_to_results_dir = os.path.join(o['displayName'], path_to_files)
+                    results_dir_projection = Projection(os.path.join('/'+path_to_results_dir), urljoin(self.files_url, path_to_files))
                     results_dir_projection.type = stat.S_IFDIR
+
                     projections.append(results_dir_projection)
 
-            # Create samples projections
-            for s in o['samples']:
+                # Create samples projections
+                for s in o['samples']:
 
-                s_path = os.path.join(o['displayName'], s['displayedName'])
+                    s_path = os.path.join(path_to_results_dir, s['name'])
 
-                s_projection = Projection('/' + s_path, urljoin(self.api_url, s['resource_uri']))
-                s_projection.type = stat.S_IFDIR
+                    s_projection = Projection('/' + s_path, urljoin(self.api_url, s['resource_uri']))
+                    s_projection.type = stat.S_IFDIR
 
-                # Add BAM file projection
-                s_bam_projection = Projection(os.path.join(s_projection.path, s['name'] + '.bam'), urljoin(self.api_url, s['resource_uri']))
+                    # Add BAM file projection
 
-                s_meta_projection = Projection(os.path.join(s_projection.path, 'metadata.json'), urljoin(self.api_url, s['resource_uri']))
+                    sample_bam_name = sample_barcodes[s['name']]['barcodes'][0]+'_rawlib.bam'
+                    sample_bam_uri = urljoin(self.files_url, path_to_files+'/'+sample_bam_name)
 
-                logging.debug('Created sample projection: %s', s_projection)
-                projections.append(s_projection)
-                projections.append(s_bam_projection)
-                projections.append(s_meta_projection)
+                    s_bam_projection = Projection(os.path.join(s_projection.path, s['name'] + '.bam'), sample_bam_uri)
+
+                    s_meta_projection = Projection(os.path.join(s_projection.path, 'metadata.json'), urljoin(self.api_url, s['resource_uri']))
+
+                    logging.debug('Created sample projection: %s', s_projection)
+                    projections.append(s_projection)
+                    projections.append(s_bam_projection)
+                    projections.append(s_meta_projection)
 
         for p in projections:
             self.projections[p.path] = p
@@ -174,7 +186,7 @@ class IonTorrentProjection(ProjectionManager):
 
         with urllib.request.urlopen(uri) as f:
             content = f.readall()
-        logger.info('Got path content: %s\n%s', path, content)
+        logger.info('Got path content: %s\n', path)
 
         self.projections[path].size = len(content)
 
