@@ -106,7 +106,7 @@ class IonTorrentProjection(ProjectionManager):
                     results_dir_projection.type = stat.S_IFDIR
 
                     projections.append(results_dir_projection)
-
+                # Dict stores each variant calling run with result variant call directory as key
                 variant_calls = dict()
                 with urllib.request.urlopen(urljoin(self.api_url, 'pluginresult?result={}'.format(results['id']))) as f:
                     plugin_res = json.loads(f.readall().decode('utf-8'))
@@ -114,8 +114,11 @@ class IonTorrentProjection(ProjectionManager):
                         if 'variantCaller' in p['pluginName']:
                             variant_calls[p['path']] = {'barcodes': results['pluginStore'][p['pluginName']]['barcodes'].keys(),
                                                         'resource_uri': p['resource_uri']}
+                            # If there is bed file in "target_bed" field, create it`s projection
                             if 'targets_bed' in results['pluginStore'][p['pluginName']]:
+                                # Bed file base name
                                 bed_file_name = os.path.basename(results['pluginStore'][p['pluginName']]['targets_bed'])
+                                # Setting up bed file URI
                                 bed_file_path = os.path.join(path_to_files, 'plugin_out',
                                                         os.path.basename(p['path']), bed_file_name)
                                 bed_file_projection = Projection(os.path.join('/'+path_to_results_dir, os.path.basename(bed_file_path)),
@@ -126,40 +129,42 @@ class IonTorrentProjection(ProjectionManager):
                 for s in o['samples']:
 
                     s_path = os.path.join(path_to_results_dir, s['name'])
-
+                    # Creating sample directory projection
                     s_projection = Projection('/' + s_path, urljoin(self.api_url, s['resource_uri']))
                     s_projection.type = stat.S_IFDIR
 
-                    # Add BAM file projection
-
+                    # Getting sample barcode
                     sample_barcode = sample_barcodes[s['name']]['barcodes'][0]
+                    # Adding sample BAM file suffix
                     sample_bam_name = sample_barcode + '_rawlib.bam'
-
+                    # Joining sample uri
                     sample_bam_uri = urljoin(self.files_url, os.path.join(path_to_files, sample_bam_name))
-
+                    # Creating sample BAM file projection
                     s_bam_projection = Projection(os.path.join(s_projection.path, s['name'] + '.bam'), sample_bam_uri)
-
+                    # Creating sample metadata projection
                     s_meta_projection = Projection(os.path.join(s_projection.path, 'metadata.json'), urljoin(self.api_url, s['resource_uri']))
 
                     for vc_path, item in variant_calls.items():
+                        # Joining path to variant call directory for sample
                         vc_dir_path = os.path.join(s_projection.path, os.path.basename(vc_path))
+                        # Creating variant call directory
                         vc_dir_projection = Projection(vc_dir_path, item['resource_uri'])
                         vc_dir_projection.type = stat.S_IFDIR
                         projections.append(vc_dir_projection)
-
+                        # Joining variant call settings URI
                         vc_settings_path = os.path.join(path_to_files, 'plugin_out',
                                                         os.path.basename(vc_path),
                                                         'local_parameters.json')
-
+                        # Creating variant call settings projection in variant call dir
                         vc_settings_projection = Projection(os.path.join(vc_dir_path, 'variant_caller_settings.json'),
                                                             urljoin(self.files_url, vc_settings_path))
                         projections.append(vc_settings_projection)
-
+                        # If current sample barcode in variant calling run barcodes
                         if sample_barcode in item['barcodes']:
+                            # Setting up base URI to variant calling directory
                             base_vcf_file_projection_path = os.path.join(path_to_files, 'plugin_out',
                                                                     os.path.basename(vc_path),
                                                                     sample_barcode)
-
                             for variant_file_name in ['TSVC_variants.vcf', 'all.merged.vcf', 'indel_assembly.vcf',
                                                       'indel_variants.vcf', 'small_variants.left.vcf',
                                                       'small_variants.vcf', 'small_variants_filtered.vcf',
