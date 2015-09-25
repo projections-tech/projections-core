@@ -115,9 +115,11 @@ class IonTorrentProjection(ProjectionManager):
                             variant_calls[p['path']] = {'barcodes':results['pluginStore'][p['pluginName']]['barcodes'].keys(),
                                                         'resource_uri':p['resource_uri']}
                             if 'targets_bed' in results['pluginStore'][p['pluginName']]:
-                                bed_file_path = results['pluginStore'][p['pluginName']]['targets_bed']
+                                bed_file_name = os.path.basename(results['pluginStore'][p['pluginName']]['targets_bed'])
+                                bed_file_path = os.path.join(path_to_files,'plugin_out',
+                                                        os.path.basename(p['path']), bed_file_name)
                                 bed_file_projection = Projection(os.path.join('/'+path_to_results_dir, os.path.basename(bed_file_path)),
-                                                                 urljoin(self.host_url+'/auth/', bed_file_path))
+                                                                 urljoin(self.files_url, bed_file_path))
                                 projections.append(bed_file_projection)
 
                 # Create samples projections
@@ -152,7 +154,6 @@ class IonTorrentProjection(ProjectionManager):
                         vc_settings_projection = Projection(os.path.join(vc_dir_path, 'variant_caller_settings.json'),
                                                             urljoin(self.files_url, vc_settings_path))
                         projections.append(vc_settings_projection)
-
 
                         if sample_barcode in item['barcodes']:
                             base_vcf_file_projection_path = os.path.join(path_to_files,'plugin_out',
