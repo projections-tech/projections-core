@@ -46,7 +46,6 @@ class IonTorrentProjection(ProjectionManager):
         # Now all calls to urllib.request.urlopen use our opener.
         urllib.request.install_opener(opener)
 
-
     def create_projections(self):
         """
         STUB implementation that requests predefined number of experiments.
@@ -103,10 +102,23 @@ class IonTorrentProjection(ProjectionManager):
                     path_to_files = os.path.basename(results['filesystempath'])
 
                     path_to_results_dir = os.path.join(o['displayName'], path_to_files)
-                    results_dir_projection = Projection(os.path.join('/'+path_to_results_dir), urljoin(self.files_url, path_to_files))
+                    results_dir_projection = Projection('/'+path_to_results_dir, urljoin(self.files_url, path_to_files))
                     results_dir_projection.type = stat.S_IFDIR
 
                     projections.append(results_dir_projection)
+
+                variant_calls = dict()
+                with urllib.request.urlopen(urljoin(self.api_url, 'pluginresult?result={}'.format(results['id']))) as f:
+                    plugin_res = json.loads(f.readall().decode('utf-8'))
+                    for p in plugin_res['objects']:
+                        if 'variantCaller' in p['pluginName']:
+                            variant_calls[p['path']] = {'barcodes':results['pluginStore'][p['pluginName']]['barcodes'].keys(),
+                                                        'resource_uri':p['resource_uri']}
+                            if 'targets_bed' in results['pluginStore'][p['pluginName']]:
+                                bed_file_path = results['pluginStore'][p['pluginName']]['targets_bed']
+                                bed_file_projection = Projection(os.path.join('/'+path_to_results_dir, os.path.basename(bed_file_path)),
+                                                                 urljoin(self.host_url+'/auth/', bed_file_path))
+                                projections.append(bed_file_projection)
 
                 # Create samples projections
                 for s in o['samples']:
@@ -118,12 +130,43 @@ class IonTorrentProjection(ProjectionManager):
 
                     # Add BAM file projection
 
-                    sample_bam_name = sample_barcodes[s['name']]['barcodes'][0]+'_rawlib.bam'
-                    sample_bam_uri = urljoin(self.files_url, path_to_files+'/'+sample_bam_name)
+                    sample_barcode = sample_barcodes[s['name']]['barcodes'][0]
+                    sample_bam_name = sample_barcode + '_rawlib.bam'
+
+                    sample_bam_uri = urljoin(self.files_url, os.path.join(path_to_files, sample_bam_name))
 
                     s_bam_projection = Projection(os.path.join(s_projection.path, s['name'] + '.bam'), sample_bam_uri)
 
                     s_meta_projection = Projection(os.path.join(s_projection.path, 'metadata.json'), urljoin(self.api_url, s['resource_uri']))
+
+                    for vc_path, item in variant_calls.items():
+                        vc_dir_path = os.path.join(s_projection.path, os.path.basename(vc_path))
+                        vc_dir_projection = Projection(vc_dir_path, item['resource_uri'])
+                        vc_dir_projection.type = stat.S_IFDIR
+                        projections.append(vc_dir_projection)
+
+                        vc_settings_path = os.path.join(path_to_files,'plugin_out',
+                                                        os.path.basename(vc_path),
+                                                        'local_parameters.json')
+
+                        vc_settings_projection = Projection(os.path.join(vc_dir_path, 'variant_caller_settings.json'),
+                                                            urljoin(self.files_url, vc_settings_path))
+                        projections.append(vc_settings_projection)
+
+
+                        if sample_barcode in item['barcodes']:
+                            base_vcf_file_projection_path = os.path.join(path_to_files,'plugin_out',
+                                                                    os.path.basename(vc_path),
+                                                                    sample_barcode)
+
+                            for variant_file_name in ['TSVC_variants.vcf', 'all.merged.vcf', 'indel_assembly.vcf',
+                                                      'indel_variants.vcf', 'small_variants.left.vcf',
+                                                      'small_variants.vcf', 'small_variants_filtered.vcf',
+                                                      'small_variants.sorted.vcf', 'SNP_variants.vcf']:
+                                vc_file_path = os.path.join(base_vcf_file_projection_path, variant_file_name)
+                                vc_file_projection = Projection(os.path.join(vc_dir_path, variant_file_name),
+                                                                 urljoin(self.files_url, vc_file_path))
+                                projections.append(vc_file_projection)
 
                     logging.debug('Created sample projection: %s', s_projection)
                     projections.append(s_projection)
@@ -152,7 +195,6 @@ class IonTorrentProjection(ProjectionManager):
 
         logger.debug('Returning projections: %s', projections)
         return projections
-
 
     def get_attributes(self, path):
         assert path in self.projections
