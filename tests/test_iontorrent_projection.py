@@ -28,8 +28,12 @@ class TestIonTorrentProjection(TestCase):
         self.iontorrent = iontorrent.IonTorrentProjection(HOST, USER, PASSWORD)
 
     def tearDown(self):
-        Popen(['fusermount', '-u', MOUNT_POINT])
+        logger.info('Unmounting testing Projections filesystem')
 
     def test_create_projections(self):
+        """
+        Tests if ion torrent projection manager creates projections
+        """
         self.iontorrent.create_projections()
         self.assertGreater(len(self.iontorrent.projections), 1)
+        # TODO rewrite tests to use mock data
