@@ -2,10 +2,7 @@ __author__ = 'abragin'
 
 import logging
 import logging.config
-import os
-import time
 from unittest import TestCase, skip
-from subprocess import Popen
 
 import iontorrent
 
@@ -26,9 +23,6 @@ class TestIonTorrentProjection(TestCase):
 
     def setUp(self):
         self.iontorrent = iontorrent.IonTorrentProjection(HOST, USER, PASSWORD)
-
-    def tearDown(self):
-        logger.info('Unmounting testing Projections filesystem')
 
     def test_create_projections(self):
         """
