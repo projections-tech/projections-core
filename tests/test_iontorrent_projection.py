@@ -2,10 +2,9 @@ __author__ = 'abragin'
 
 import logging
 import logging.config
-import os
-import time
 from unittest import TestCase, skip
-from subprocess import Popen
+from .resource_pretender import Mock_Resource
+
 
 import iontorrent
 
@@ -17,18 +16,16 @@ logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('test_iontorrent_projection')
 
 # TODO: remove connection parameters to configuration
-HOST = '10.5.20.17'
 USER = 'ionadmin'
 PASSWORD = '0ECu1lW'
 
 
 class TestIonTorrentProjection(TestCase):
-
     def setUp(self):
-        self.iontorrent = iontorrent.IonTorrentProjection(HOST, USER, PASSWORD)
+        self.mock_resource = Mock_Resource()
+        self.mock_url = self.mock_resource.mock_url+'/'
+        self.iontorrent = iontorrent.IonTorrentProjection(self.mock_url, USER, PASSWORD)
 
-    def tearDown(self):
-        logger.info('Unmounting testing Projections filesystem')
 
     def test_create_projections(self):
         """
@@ -36,4 +33,3 @@ class TestIonTorrentProjection(TestCase):
         """
         self.iontorrent.create_projections()
         self.assertGreater(len(self.iontorrent.projections), 1)
-        # TODO rewrite tests to use mock data
