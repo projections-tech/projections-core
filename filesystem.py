@@ -58,9 +58,8 @@ class ProjectionFilesystem(Operations):
 
         if st:
             logger.debug('Data stats received: %s', st)
-            return dict((key, getattr(st, key)) for key in ('st_atime', 'st_ctime',
-                                                            'st_gid', 'st_mode', 'st_mtime', 'st_nlink', 'st_size',
-                                                            'st_uid'))
+            return dict((key, getattr(st, key)) for key in ('st_atime', 'st_ctime', 'st_gid', 'st_mode',
+                                                            'st_mtime', 'st_nlink', 'st_size', 'st_uid'))
         # If nobody manages this path than raise exception
         raise RuntimeWarning('Resource on {} have no associated attributes'.format(path))
 
@@ -114,7 +113,8 @@ class ProjectionFilesystem(Operations):
         # Request content from real data
         data_path = self._extend_data_path(path)
         if os.path.exists(data_path):
-            logger.debug('Requesting content from real path. Path: %s, length: %s, offset: %s, fh :%s', data_path, length, offset, fh)
+            logger.debug('Requesting content from real path. Path: %s, length: %s, offset: %s, fh :%s',
+                         data_path, length, offset, fh)
             os.lseek(fh, offset, os.SEEK_SET)
             return os.read(fh, length)
 

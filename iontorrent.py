@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 __author__ = 'abragin'
 
 import logging
@@ -111,7 +112,7 @@ class IonTorrentProjection(ProjectionManager):
                 with urllib.request.urlopen(urljoin(self.api_url, 'pluginresult?result={}'.format(results['id']))) as f:
                     plugin_res = json.loads(f.readall().decode('utf-8'))
                     for p in plugin_res['objects']:
-                        if 'variantCaller' in p['pluginName']:
+                        if 'variantCaller' in p['pluginName'] and not 'VFNA' in p['pluginName']:
                             variant_calls[p['path']] = {'barcodes': results['pluginStore'][p['pluginName']]['barcodes'].keys(),
                                                         'resource_uri': p['resource_uri']}
                             # If there is bed file in "target_bed" field, create it`s projection
@@ -127,7 +128,6 @@ class IonTorrentProjection(ProjectionManager):
 
                 # Create samples projections
                 for s in o['samples']:
-
                     s_path = os.path.join(path_to_results_dir, s['name'])
                     # Creating sample directory projection
                     s_projection = Projection('/' + s_path, urljoin(self.api_url, s['resource_uri']))
