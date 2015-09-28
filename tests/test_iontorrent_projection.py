@@ -23,7 +23,7 @@ PASSWORD = '0ECu1lW'
 class TestIonTorrentProjection(TestCase):
     def setUp(self):
         self.mock_resource = Mock_Resource()
-        self.mock_url = self.mock_resource.mock_url+'/'
+        self.mock_url = self.mock_resource.mock_url
         self.iontorrent = iontorrent.IonTorrentProjection(self.mock_url, USER, PASSWORD)
 
 
