@@ -18,8 +18,8 @@ from fuse import FUSE
 
 logger = logging.getLogger('iontorrent_projection')
 
-class IonTorrentProjection(ProjectionManager):
 
+class IonTorrentProjection(ProjectionManager):
     def __init__(self, host, user, password):
         logger.info('Creating Ion Torrent projection for host: %s', host)
         self.host_url = 'http://{}'.format(host)
@@ -71,13 +71,15 @@ class IonTorrentProjection(ProjectionManager):
             projections.append(projection)
 
             # Create experiment metadata file projection
-            exp_meta_projection = Projection('/' + os.path.join(o['displayName'], 'metadata.json'), urljoin(self.api_url, o['resource_uri']))
+            exp_meta_projection = Projection('/' + os.path.join(o['displayName'], 'metadata.json'),
+                                             self.host_url + o['resource_uri'])
             logger.debug('Created experiment metadata projection: %s', exp_meta_projection)
             exp_meta_projection.type = stat.S_IFREG
             projections.append(exp_meta_projection)
 
             # Create experiment plan metadata projection
-            plannedexp_metadata_projection = Projection('/' + os.path.join(o['displayName'], 'plannedexperiment.json'), urljoin(self.api_url, o['plan']))
+            plannedexp_metadata_projection = Projection('/' + os.path.join(o['displayName'], 'plannedexperiment.json'),
+                                                        self.host_url+o['plan'])
             logger.debug('Created planned experiment metadata projection: %s', plannedexp_metadata_projection)
             projections.append(plannedexp_metadata_projection)
 
@@ -107,7 +109,8 @@ class IonTorrentProjection(ProjectionManager):
                     results_dir_projection.type = stat.S_IFDIR
 
                     projections.append(results_dir_projection)
-                    results_metadata_projection = Projection(os.path.join('/'+path_to_results_dir, path_to_files+'.json'), self.host_url+results['resource_uri'])
+                    results_metadata_projection = Projection(os.path.join('/'+path_to_results_dir, path_to_files+'.json'),
+                                                             self.host_url+results['resource_uri'])
                     projections.append(results_metadata_projection)
 
                 # Dict stores each variant calling run with result variant call directory as key
@@ -115,7 +118,7 @@ class IonTorrentProjection(ProjectionManager):
                 with urllib.request.urlopen(urljoin(self.api_url, 'pluginresult?result={}'.format(results['id']))) as f:
                     plugin_res = json.loads(f.readall().decode('utf-8'))
                     for p in plugin_res['objects']:
-                        if 'variantCaller' in p['pluginName'] and not 'VFNA' in p['pluginName']:
+                        if 'variantCaller' in p['pluginName'] and 'VFNA' not in p['pluginName']:
                             variant_calls[p['path']] = {'barcodes': results['pluginStore'][p['pluginName']]['barcodes'].keys(),
                                                         'resource_uri': p['resource_uri']}
                             # If there is bed file in "target_bed" field, create it`s projection
@@ -124,8 +127,9 @@ class IonTorrentProjection(ProjectionManager):
                                 bed_file_name = os.path.basename(results['pluginStore'][p['pluginName']]['targets_bed'])
                                 # Setting up bed file URI
                                 bed_file_path = os.path.join(path_to_files, 'plugin_out',
-                                                        os.path.basename(p['path']), bed_file_name)
-                                bed_file_projection = Projection(os.path.join('/'+path_to_results_dir, os.path.basename(bed_file_path)),
+                                                             os.path.basename(p['path']), bed_file_name)
+                                bed_file_projection = Projection(os.path.join('/'+path_to_results_dir,
+                                                                              os.path.basename(bed_file_path)),
                                                                  urljoin(self.files_url, bed_file_path))
                                 projections.append(bed_file_projection)
                 logger.debug('Variant Calls: %s', variant_calls)
@@ -166,15 +170,14 @@ class IonTorrentProjection(ProjectionManager):
                         if sample_barcode in item['barcodes']:
                             # Setting up base URI to variant calling directory
                             base_vcf_file_projection_path = os.path.join(path_to_files, 'plugin_out',
-                                                                    os.path.basename(vc_path),
-                                                                    sample_barcode)
+                                                                         os.path.basename(vc_path), sample_barcode)
                             for variant_file_name in ['TSVC_variants.vcf', 'all.merged.vcf', 'indel_assembly.vcf',
                                                       'indel_variants.vcf', 'small_variants.left.vcf',
                                                       'small_variants.vcf', 'small_variants_filtered.vcf',
                                                       'small_variants.sorted.vcf', 'SNP_variants.vcf']:
                                 vc_file_path = os.path.join(base_vcf_file_projection_path, variant_file_name)
                                 vc_file_projection = Projection(os.path.join(vc_dir_path, variant_file_name),
-                                                                 urljoin(self.files_url, vc_file_path))
+                                                                urljoin(self.files_url, vc_file_path))
                                 projections.append(vc_file_projection)
 
                     logging.debug('Created sample projection: %s', s_projection)
