@@ -27,7 +27,7 @@ class Mock_Resource(object):
         self.mock_url = ''.join(parse_mock_url)
         logger.debug('Mock resource URL: %s',self.mock_url)
         self.content_dir = content_dir
-        #self.mock_auth_response()
+        self.mock_auth_response()
         self.prepare_responses()
         logger.debug('Mock resource contents: %s', os.listdir(content_dir))
 
@@ -35,7 +35,7 @@ class Mock_Resource(object):
         return self.mock.get_request(0)
 
     def mock_auth_response(self):
-        return self.mock.when(rule='GET /').reply(status=200, times=FOREVER)
+        return self.mock.when(rule='GET /').reply(status=200, times=1)
 
     def prepare_responses(self):
         pass
@@ -45,15 +45,16 @@ class Torrent_Suite_Mock(Mock_Resource):
     def prepare_responses(self):
         rule = 'GET /rundb/api/v1/experiment\?status\=run\&limit\=1\&order_by\=-id'
         logger.debug('Experiments rule: %s',rule)
-        with open(os.path.join(self.content_dir, 'experiments_metadata.json'), 'rb') as e_m:
-            experiment_json = e_m.read()
-            self.mock.when(rule).reply(body=experiment_json, headers={'Content-Type': 'application/json'}, times=FOREVER)
-
+        with open(os.path.join(self.content_dir, 'experiments_metadata.json')) as e_m:
+            experiment_json = json.load(e_m)
+            ex_m =json.dumps(experiment_json)
+            self.mock.when(rule).reply(body=ex_m.encode(),
+                                       headers={'Content-Type': 'application/json'},
+                                       times=FOREVER)
 
 if __name__=='__main__':
     mocker = Torrent_Suite_Mock('mock_resource')
     url_p = 'http://{}/rundb/api/v1/experiment?status=run&limit=1&order_by=-id'.format(mocker.mock_url)
     logger.debug(url_p)
     with urllib.request.urlopen(url_p) as f:
-        logger.debug('JSON contents: %s', f.readall().decode('utf-8'))
         experiments = json.loads(f.readall().decode('utf-8'))
