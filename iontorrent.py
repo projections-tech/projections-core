@@ -22,9 +22,9 @@ class IonTorrentProjection(ProjectionManager):
 
     def __init__(self, host, user, password):
         logger.info('Creating Ion Torrent projection for host: %s', host)
-        self.host_url = 'http://{}/'.format(host)
-        self.api_url = '{}rundb/api/v1/'.format(self.host_url)
-        self.files_url = urljoin(self.host_url, 'auth/output/Home/')
+        self.host_url = 'http://{}'.format(host)
+        self.api_url = 'http://{}/rundb/api/v1/'.format(host)
+        self.files_url = urljoin(self.host_url, '/auth/output/Home/')
         self.authenticate(user, password)
 
         # TODO: switch to tree-like structure instead of manual path parsing
@@ -39,9 +39,9 @@ class IonTorrentProjection(ProjectionManager):
 
         # create "opener" (OpenerDirector instance)
         opener = urllib.request.build_opener(handler)
-        logger.debug('Host URL: %s', self.host_url)
+
         # use the opener to fetch a URL
-        opener.open(self.host_url)
+        opener.open(self.api_url)
 
         # Install the opener.
         # Now all calls to urllib.request.urlopen use our opener.
@@ -53,9 +53,8 @@ class IonTorrentProjection(ProjectionManager):
 
         :return: list of projections
         """
-        logger.debug('Experiments url: %s', urljoin(self.api_url, 'experiment?status=run&limit=1&order_by=-id'))
         # Select last five experiments that were finished (with 'run' status)
-        with urllib.request.urlopen(urljoin(self.api_url, 'experiment?status=run&limit=1&order_by=-id')) as f:
+        with urllib.request.urlopen(self.api_url+'experiment?status=run&limit=1&order_by=-id') as f:
             experiments = json.loads(f.readall().decode('utf-8'))
         logger.info('Got experiments data: %s', len(experiments['objects']))
 
@@ -65,7 +64,7 @@ class IonTorrentProjection(ProjectionManager):
             # Create experiment directory projection
             logger.debug('Got experiments with id: %s, name: %s', o['id'], o['displayName'])
 
-            projection = Projection('/' + o['displayName'], urljoin(self.api_url, o['resource_uri']))
+            projection = Projection('/' + o['displayName'], self.host_url+o['resource_uri'])
             projection.type = stat.S_IFDIR
 
             logger.debug('Created experiment projection: %s', projection)
@@ -92,13 +91,13 @@ class IonTorrentProjection(ProjectionManager):
                 logger.debug('Barcodes: %s', barcodes)
 
             # Get sample barcodes data
-            with urllib.request.urlopen(urljoin(self.api_url, o['plan'])) as p:
+            with urllib.request.urlopen(self.host_url+o['plan']) as p:
                 ex_plan = json.loads(p.readall().decode('utf-8'))
                 sample_barcodes = ex_plan['barcodedSamples']
 
             # Create experiment results directory projections
             for r in o['results']:
-                with urllib.request.urlopen(urljoin(self.api_url, r)) as f:
+                with urllib.request.urlopen(self.host_url + r) as f:
                     results = json.loads(f.readall().decode('utf-8'))
 
                     path_to_files = os.path.basename(results['filesystempath'])
@@ -108,6 +107,9 @@ class IonTorrentProjection(ProjectionManager):
                     results_dir_projection.type = stat.S_IFDIR
 
                     projections.append(results_dir_projection)
+                    results_metadata_projection = Projection(os.path.join('/'+path_to_results_dir, path_to_files+'.json'), self.host_url+results['resource_uri'])
+                    projections.append(results_metadata_projection)
+
                 # Dict stores each variant calling run with result variant call directory as key
                 variant_calls = dict()
                 with urllib.request.urlopen(urljoin(self.api_url, 'pluginresult?result={}'.format(results['id']))) as f:

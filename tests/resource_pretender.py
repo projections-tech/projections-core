@@ -1,14 +1,11 @@
 __author__ = 'vsvekolkin'
 
 import os
-import io
-import re
 import json
 import logging
 import logging.config
 import urllib.request
 from urllib.parse import urljoin, urlparse
-import requests
 from pretenders.client.http import HTTPMock
 from pretenders.common.constants import FOREVER
 
@@ -35,7 +32,7 @@ class Mock_Resource(object):
         return self.mock.get_request(0)
 
     def mock_auth_response(self):
-        return self.mock.when(rule='GET /').reply(status=200, times=1)
+        return self.mock.reply(status=200, times=1)
 
     def prepare_responses(self):
         pass
@@ -43,14 +40,18 @@ class Mock_Resource(object):
 
 class Torrent_Suite_Mock(Mock_Resource):
     def prepare_responses(self):
-        rule = 'GET /rundb/api/v1/experiment\?status\=run\&limit\=1\&order_by\=-id'
-        logger.debug('Experiments rule: %s',rule)
-        with open(os.path.join(self.content_dir, 'experiments_metadata.json')) as e_m:
-            experiment_json = json.load(e_m)
-            ex_m =json.dumps(experiment_json)
-            self.mock.when(rule).reply(body=ex_m.encode(),
-                                       headers={'Content-Type': 'application/json'},
-                                       times=FOREVER)
+        rules_dict = {
+            'GET /rundb/api/v1/experiment\?status\=run\&limit\=1\&order_by\=-id':'experiments_metadata.json',
+            'GET /rundb/api/v1/plannedexperiment/31/':'plannedexperiment_metadata.json',
+            'GET /rundb/api/v1/results/8/':'results.json',
+            'GET /rundb/api/v1/pluginresult\?result\=8':'plugin_result.json'
+        }
+        for rule, json_file_name in rules_dict.items():
+            with open(os.path.join(self.content_dir, json_file_name), 'rb') as f:
+                self.mock.when(rule).reply(body=f.read(),
+                                           headers={'Content-Type': 'application/json'},
+                                           times=FOREVER)
+
 
 if __name__=='__main__':
     mocker = Torrent_Suite_Mock('mock_resource')
