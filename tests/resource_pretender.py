@@ -51,6 +51,9 @@ class Torrent_Suite_Mock(Mock_Resource):
                 self.mock.when(rule).reply(body=f.read(),
                                            headers={'Content-Type': 'application/json'},
                                            times=FOREVER)
+        for i in range(6):
+            rule = 'GET /auth/output/Home/Run_11_hg19_v3_008/IonXpress_00{0}_rawlib.bam'.format(i)
+            self.mock.when(rule).reply(body=b'Mock BAM file here.', times=1)
 
 
 if __name__=='__main__':
