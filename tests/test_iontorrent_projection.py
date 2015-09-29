@@ -3,7 +3,7 @@ __author__ = 'abragin'
 import logging
 import logging.config
 from unittest import TestCase, skip
-from .resource_pretender import Mock_Resource
+from .resource_pretender import Torrent_Suite_Mock
 
 
 import iontorrent
@@ -22,7 +22,7 @@ PASSWORD = '0ECu1lW'
 
 class TestIonTorrentProjection(TestCase):
     def setUp(self):
-        self.mock_resource = Mock_Resource()
+        self.mock_resource = Torrent_Suite_Mock('tests/mock_resource')
         self.mock_url = self.mock_resource.mock_url
         self.iontorrent = iontorrent.IonTorrentProjection(self.mock_url, USER, PASSWORD)
 

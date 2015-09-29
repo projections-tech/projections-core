@@ -22,9 +22,9 @@ class IonTorrentProjection(ProjectionManager):
 
     def __init__(self, host, user, password):
         logger.info('Creating Ion Torrent projection for host: %s', host)
-        self.host_url = 'http://{}'.format(host)
-        self.api_url = 'http://{}/rundb/api/v1/'.format(host)
-        self.files_url = urljoin(self.host_url, '/auth/output/Home/')
+        self.host_url = 'http://{}/'.format(host)
+        self.api_url = '{}rundb/api/v1/'.format(self.host_url)
+        self.files_url = urljoin(self.host_url, 'auth/output/Home/')
         self.authenticate(user, password)
 
         # TODO: switch to tree-like structure instead of manual path parsing
@@ -39,9 +39,9 @@ class IonTorrentProjection(ProjectionManager):
 
         # create "opener" (OpenerDirector instance)
         opener = urllib.request.build_opener(handler)
-
+        logger.debug('Host URL: %s', self.host_url)
         # use the opener to fetch a URL
-        opener.open(self.api_url)
+        opener.open(self.host_url)
 
         # Install the opener.
         # Now all calls to urllib.request.urlopen use our opener.
@@ -53,8 +53,10 @@ class IonTorrentProjection(ProjectionManager):
 
         :return: list of projections
         """
+        logger.debug('Experiments url: %s', urljoin(self.api_url, 'experiment?status=run&limit=1&order_by=-id'))
         # Select last five experiments that were finished (with 'run' status)
         with urllib.request.urlopen(urljoin(self.api_url, 'experiment?status=run&limit=1&order_by=-id')) as f:
+            logger.debug(f.read())
             experiments = json.loads(f.readall().decode('utf-8'))
         logger.info('Got experiments data: %s', len(experiments['objects']))
 
@@ -249,7 +251,7 @@ def main(mountpoint, data_folder, foreground=True):
     # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
-    projection_filesystem.projection_manager = IonTorrentProjection('10.5.20.17', 'ionadmin', '0ECu1lW')
+    projection_filesystem.projection_manager = IonTorrentProjection('10.5.20.13', 'ionadmin', 'ionadmin')
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
     return fuse
 
