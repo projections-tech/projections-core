@@ -56,7 +56,6 @@ class IonTorrentProjection(ProjectionManager):
         logger.debug('Experiments url: %s', urljoin(self.api_url, 'experiment?status=run&limit=1&order_by=-id'))
         # Select last five experiments that were finished (with 'run' status)
         with urllib.request.urlopen(urljoin(self.api_url, 'experiment?status=run&limit=1&order_by=-id')) as f:
-            logger.debug(f.read())
             experiments = json.loads(f.readall().decode('utf-8'))
         logger.info('Got experiments data: %s', len(experiments['objects']))
 
