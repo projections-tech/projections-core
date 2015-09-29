@@ -128,7 +128,7 @@ class IonTorrentProjection(ProjectionManager):
                                 bed_file_projection = Projection(os.path.join('/'+path_to_results_dir, os.path.basename(bed_file_path)),
                                                                  urljoin(self.files_url, bed_file_path))
                                 projections.append(bed_file_projection)
-
+                logger.debug('Variant Calls: %s', variant_calls)
                 # Create samples projections
                 for s in o['samples']:
                     s_path = os.path.join(path_to_results_dir, s['name'])

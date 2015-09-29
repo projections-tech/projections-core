@@ -32,4 +32,5 @@ class TestIonTorrentProjection(TestCase):
         Tests if ion torrent projection manager creates projections
         """
         self.iontorrent.create_projections()
+        logger.debug('Torrent Suite projections: %s', self.iontorrent.projections.items())
         self.assertGreater(len(self.iontorrent.projections), 1)
