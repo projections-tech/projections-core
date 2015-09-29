@@ -54,6 +54,13 @@ class Torrent_Suite_Mock(Mock_Resource):
         for i in range(6):
             rule = 'GET /auth/output/Home/Run_11_hg19_v3_008/IonXpress_00{0}_rawlib.bam'.format(i)
             self.mock.when(rule).reply(body=b'Mock BAM file here.', times=1)
+            for vc_dir in ['variantCaller_out', 'variantCaller_out.49', 'variantCaller_out.50']:
+                for variant_file_name in ['TSVC_variants.vcf', 'all.merged.vcf', 'indel_assembly.vcf',
+                                          'indel_variants.vcf', 'small_variants.left.vcf',
+                                          'small_variants.vcf', 'small_variants_filtered.vcf',
+                                          'small_variants.sorted.vcf', 'SNP_variants.vcf']:
+                    rule = 'GET /auth/output/Home/Run_11_hg19_v3_008/plugin_out/{0}/IonXpress_00{1}/{2}'.format(vc_dir, i, variant_file_name)
+                    self.mock.when(rule).reply(body=b'Mock VCF file here.', times=1)
 
 
 if __name__=='__main__':
