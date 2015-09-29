@@ -16,20 +16,36 @@ class Mock_Resource:
         self.mock = HTTPMock('localhost', 8000)
         self.mock_url = self.mock.pretend_url+'/'
         print(self.mock_url)
+        self.mock_auth_response()
         self.prepare_responses()
 
     def get_requests_to_mock(self):
         return self.mock.get_request(0)
 
     def mock_auth_response(self):
-        pass
+        return self.mock.when(rule='GET /',
+                              headers={'User-Agent': 'Python-urllib/3.4',
+                                       'Accept-Encoding': 'identity',
+                                       'Content-Type': 'text/plain',
+                                       'Connection': 'close',
+                                       'Host': 'localhost:8000',
+                                       'Content-Length': ''}).reply(status=200)
 
     def prepare_responses(self):
-        self.mock.when('GET /experiment').reply('{100:101}'.encode(), status=200, times=FOREVER)
+        pass
 
 
 if __name__ == '__main__':
     res_mock = Mock_Resource()
-    print(urllib.parse.urljoin(res_mock.mock_url, 'experiment'))
-    with urllib.request.urlopen(urllib.parse.urljoin(res_mock.mock_url, 'experiment')) as f:
-        print(f.readall())
+    password_manager = urllib.request.HTTPPasswordMgrWithDefaultRealm()
+    user = 'User'
+    password = 'Test'
+    password_manager.add_password(None, res_mock.mock_url, user, password)
+    handler = urllib.request.HTTPBasicAuthHandler(password_manager)
+    # create "opener" (OpenerDirector instance)
+    opener = urllib.request.build_opener(handler)
+    # use the opener to fetch a URL
+    opener.open(res_mock.mock_url)
+    # Install the opener.
+    # Now all calls to urllib.request.urlopen use our opener.
+    urllib.request.install_opener(opener)
