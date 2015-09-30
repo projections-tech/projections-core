@@ -10,17 +10,17 @@ from unittest import TestCase, skip
 import filesystem
 
 # Import logging configuration from the file provided
-logging.config.fileConfig('../logging.cfg')
+logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('test_filesystem')
 
-MOUNT_POINT = 'mnt'
-DATA_FOLDER = 'data'
+MOUNT_POINT = 'tests/mnt'
+DATA_FOLDER = 'tests/data'
 
 class TestFilesystem(TestCase):
 
     def setUp(self):
         logger.info('Mounting Projections filesystem for testing')
-        Popen(['../filesystem.py', MOUNT_POINT, DATA_FOLDER])
+        Popen(['./filesystem.py', MOUNT_POINT, DATA_FOLDER])
         # Let filesystem time to mount
         time.sleep(0.5)
 
