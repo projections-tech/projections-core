@@ -85,3 +85,9 @@ class TorrentSuiteMock(MockResource):
             rule = 'GET /auth/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out[\.\d+]*/IonXpress_00\d+/{0}'.format(re.escape(variant_file_name))
             self.mock.when(rule).reply(body=b'Mock VCF file here.', status=200, times=FOREVER)
 
+class SRAMock(MockResource):
+    def prepare_responses(self):
+        """
+        Prepares mock SRA replies to requests
+        """
+        pass
