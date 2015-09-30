@@ -24,7 +24,7 @@ class IonTorrentProjection(ProjectionManager):
         logger.info('Creating Ion Torrent projection for host: %s', host)
         self.host_url = 'http://{}'.format(host)
         self.api_url = 'http://{}/rundb/api/v1/'.format(host)
-        self.files_url = urljoin(self.host_url, '/auth/output/Home/')
+        self.files_url = self.host_url + '/auth/output/Home/'
         self.authenticate(user, password)
 
         # TODO: switch to tree-like structure instead of manual path parsing
@@ -149,7 +149,7 @@ class IonTorrentProjection(ProjectionManager):
                     # Creating sample BAM file projection
                     s_bam_projection = Projection(os.path.join(s_projection.path, s['name'] + '.bam'), sample_bam_uri)
                     # Creating sample metadata projection
-                    s_meta_projection = Projection(os.path.join(s_projection.path, 'metadata.json'), urljoin(self.api_url, s['resource_uri']))
+                    s_meta_projection = Projection(os.path.join(s_projection.path, 'metadata.json'), self.host_url + s['resource_uri'])
 
                     for vc_path, item in variant_calls.items():
                         # Joining path to variant call directory for sample

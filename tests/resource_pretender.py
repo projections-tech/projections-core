@@ -1,6 +1,7 @@
 __author__ = 'vsvekolkin'
 
 import os
+import re
 import json
 import logging
 import logging.config
@@ -43,26 +44,29 @@ class Torrent_Suite_Mock(Mock_Resource):
     def prepare_responses(self):
         rules_dict = {
             'GET /rundb/api/v1/experiment\?status\=run\&limit\=1\&order_by\=-id': 'experiments_metadata.json',
-            'GET /rundb/api/v1/plannedexperiment/31/': 'plannedexperiment_metadata.json',
-            'GET /rundb/api/v1/results/8/': 'results.json',
-            'GET /rundb/api/v1/pluginresult\?result\=8': 'plugin_result.json'
+            'GET /rundb/api/v1/experiment/\d+': 'experiments_metadata.json',
+            'GET /rundb/api/v1/plannedexperiment/\d+/': 'plannedexperiment_metadata.json',
+            'GET /rundb/api/v1/results/\d+/': 'results.json',
+            'GET /rundb/api/v1/pluginresult\?result\=\d+': 'plugin_result.json',
+            'GET /rundb/api/v1/sample/\d+/': 'plugin_result.json'
         }
         for rule, json_file_name in rules_dict.items():
             with open(os.path.join(self.content_dir, json_file_name), 'rb') as f:
                 self.mock.when(rule).reply(body=f.read(),
                                            headers={'Content-Type': 'application/json'},
                                            times=FOREVER)
-        for i in range(6):
-            rule = 'GET /auth/output/Home/Run_11_hg19_v3_008/IonXpress_00{0}_rawlib.bam'.format(i)
-            self.mock.when(rule).reply(body=b'Mock BAM file here.', times=1)
-            for vc_dir in ['variantCaller_out', 'variantCaller_out.49', 'variantCaller_out.50']:
-                for variant_file_name in ['TSVC_variants.vcf', 'all.merged.vcf', 'indel_assembly.vcf',
-                                          'indel_variants.vcf', 'small_variants.left.vcf',
-                                          'small_variants.vcf', 'small_variants_filtered.vcf',
-                                          'small_variants.sorted.vcf', 'SNP_variants.vcf']:
-                    rule = 'GET /auth/output/Home/Run_11_hg19_v3_008/plugin_out/{0}/IonXpress_00{1}/{2}'.format(vc_dir,
-                                                                                                                i, variant_file_name)
-                    self.mock.when(rule).reply(body=b'Mock VCF file here.', times=1)
+
+        rule = r'GET /auth/output/Home/Run_11_hg19_v3_008/IonXpress_00\d+_rawlib.bam'
+        self.mock.when(rule).reply(body=b'Mock BAM file here.', times=FOREVER, status=200)
+
+        for vc_dir in ['variantCaller_out', 'variantCaller_out.49', 'variantCaller_out.50']:
+            for variant_file_name in ['TSVC_variants.vcf', 'all.merged.vcf', 'indel_assembly.vcf',
+                                      'indel_variants.vcf', 'small_variants.left.vcf',
+                                      'small_variants.vcf', 'small_variants_filtered.vcf',
+                                      'small_variants.sorted.vcf', 'SNP_variants.vcf']:
+                rule = 'GET /auth/output/Home/Run_11_hg19_v3_008/plugin_out/{0}/IonXpress_00\d+/{1}'.format(re.escape(vc_dir),
+                                                                                                          re.escape(variant_file_name))
+                self.mock.when(rule).reply(body=b'Mock VCF file here.', status=200, times=FOREVER)
 
 
 if __name__ == '__main__':
