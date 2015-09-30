@@ -56,8 +56,11 @@ class Torrent_Suite_Mock(Mock_Resource):
                                            headers={'Content-Type': 'application/json'},
                                            times=FOREVER)
 
-        rule = r'GET /auth/output/Home/Run_11_hg19_v3_008/IonXpress_00\d+_rawlib.bam'
+        rule = 'GET /auth/output/Home/Run_11_hg19_v3_008/IonXpress_00\d+_rawlib.bam'
         self.mock.when(rule).reply(body=b'Mock BAM file here.', times=FOREVER, status=200)
+
+        rule = 'GET /auth/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.\d+/IAD39777_BED_4_for_TSVC.bed'
+        self.mock.when(rule).reply(body=b'Mock BED file here.', times=FOREVER, status=200)
 
         for vc_dir in ['variantCaller_out', 'variantCaller_out.49', 'variantCaller_out.50']:
             for variant_file_name in ['TSVC_variants.vcf', 'all.merged.vcf', 'indel_assembly.vcf',
