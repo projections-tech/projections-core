@@ -32,7 +32,6 @@ class TestIonTorrentProjection(TestCase):
         self.mock_url = self.mock_resource.mock_url
         self.iontorrent = iontorrent.IonTorrentProjection(self.mock_url, USER, PASSWORD)
 
-    @skip('To correct other test.')
     def test_create_projections(self):
         """
         Tests if ion torrent projection manager creates projections
@@ -40,10 +39,13 @@ class TestIonTorrentProjection(TestCase):
         self.iontorrent.create_projections()
         self.assertGreater(len(self.iontorrent.projections), 1)
 
-    def test_bam_files_creation(self):
-        logger.debug('Current mock server: %s', self.mock_url)
+    def test_bam_projections_creation(self):
         self.iontorrent.create_projections()
-        projection_filesystem = ProjectionFilesystem(MOUNT_POINT, DATA_FOLDER)
-        projection_filesystem.projection_manager = self.iontorrent
-        fuse = FUSE(projection_filesystem, MOUNT_POINT, foreground=True, nonempty=True)
-        logger.debug(os.listdir(MOUNT_POINT))
+        bam_files_list = [p for p in self.iontorrent.projections if os.path.splitext(p)[1] == '.bam']
+        logger.debug('Bam files projections: %s', bam_files_list)
+        self.assertEqual(len(bam_files_list), 5)
+
+    def test_vcf_projections_creation(self):
+        self.iontorrent.create_projections()
+        vcf_files_list = [p for p in self.iontorrent.projections if os.path.splitext(p)[1] == '.vcf']
+        self.assertGreater(len(vcf_files_list), 1)
