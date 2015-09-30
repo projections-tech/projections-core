@@ -14,7 +14,7 @@ logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('resource_pretender')
 
 
-class Mock_Resource(object):
+class MockResource(object):
     """
     Basic mock resource class to build up upon. Must be subclassed in application specific manner.
     """
@@ -40,7 +40,7 @@ class Mock_Resource(object):
         pass
 
 
-class Torrent_Suite_Mock(Mock_Resource):
+class TorrentSuiteMock(MockResource):
     def prepare_responses(self):
         rules_dict = {
             'GET /rundb/api/v1/experiment\?status\=run\&limit\=1\&order_by\=-id': 'experiments_metadata.json',
@@ -59,21 +59,22 @@ class Torrent_Suite_Mock(Mock_Resource):
         rule = 'GET /auth/output/Home/Run_11_hg19_v3_008/IonXpress_00\d+_rawlib.bam'
         self.mock.when(rule).reply(body=b'Mock BAM file here.', times=FOREVER, status=200)
 
-        rule = 'GET /auth/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.\d+/IAD39777_BED_4_for_TSVC.bed'
+        rule = 'GET /auth/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out[\.\d+]*/IAD39777_BED_4_for_TSVC.bed'
         self.mock.when(rule).reply(body=b'Mock BED file here.', times=FOREVER, status=200)
 
-        for vc_dir in ['variantCaller_out', 'variantCaller_out.49', 'variantCaller_out.50']:
-            for variant_file_name in ['TSVC_variants.vcf', 'all.merged.vcf', 'indel_assembly.vcf',
-                                      'indel_variants.vcf', 'small_variants.left.vcf',
-                                      'small_variants.vcf', 'small_variants_filtered.vcf',
-                                      'small_variants.sorted.vcf', 'SNP_variants.vcf']:
-                rule = 'GET /auth/output/Home/Run_11_hg19_v3_008/plugin_out/{0}/IonXpress_00\d+/{1}'.format(re.escape(vc_dir),
-                                                                                                          re.escape(variant_file_name))
-                self.mock.when(rule).reply(body=b'Mock VCF file here.', status=200, times=FOREVER)
+        rule = 'GET /auth/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out[\.\d+]*/local_parameters.json'
+        self.mock.when(rule).reply(body=b'Mock VC settings file here.', times=FOREVER, status=200)
+
+        for variant_file_name in ['TSVC_variants.vcf', 'all.merged.vcf', 'indel_assembly.vcf',
+                                  'indel_variants.vcf', 'small_variants.left.vcf',
+                                  'small_variants.vcf', 'small_variants_filtered.vcf',
+                                  'small_variants.sorted.vcf', 'SNP_variants.vcf']:
+            rule = 'GET /auth/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out[\.\d+]*/IonXpress_00\d+/{0}'.format(re.escape(variant_file_name))
+            self.mock.when(rule).reply(body=b'Mock VCF file here.', status=200, times=FOREVER)
 
 
 if __name__ == '__main__':
-    mocker = Torrent_Suite_Mock('mock_resource')
+    mocker = TorrentSuiteMock('mock_resource')
     url_p = 'http://{}/rundb/api/v1/experiment?status=run&limit=1&order_by=-id'.format(mocker.mock_url)
     logger.debug(url_p)
     with urllib.request.urlopen(url_p) as f:
