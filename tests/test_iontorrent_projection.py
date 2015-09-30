@@ -1,18 +1,14 @@
 __author__ = 'abragin'
 
 import os
-import time
-import subprocess
 import logging
 import logging.config
-from fuse import FUSE
 from unittest import TestCase, skip
 from .resource_pretender import TorrentSuiteMock
 
 
 
 import iontorrent
-from filesystem import ProjectionFilesystem
 
 MOUNT_POINT = 'tests/mnt'
 DATA_FOLDER = 'tests/data'
