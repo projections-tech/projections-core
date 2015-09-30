@@ -137,7 +137,7 @@ class IonTorrentProjection(ProjectionManager):
                 for s in o['samples']:
                     s_path = os.path.join(path_to_results_dir, s['name'])
                     # Creating sample directory projection
-                    s_projection = Projection('/' + s_path, urljoin(self.api_url, s['resource_uri']))
+                    s_projection = Projection('/' + s_path, self.api_url + s['resource_uri'])
                     s_projection.type = stat.S_IFDIR
 
                     # Getting sample barcode
@@ -149,7 +149,8 @@ class IonTorrentProjection(ProjectionManager):
                     # Creating sample BAM file projection
                     s_bam_projection = Projection(os.path.join(s_projection.path, s['name'] + '.bam'), sample_bam_uri)
                     # Creating sample metadata projection
-                    s_meta_projection = Projection(os.path.join(s_projection.path, 'metadata.json'), self.host_url + s['resource_uri'])
+                    s_meta_projection = Projection(os.path.join(s_projection.path, 'metadata.json'),
+                                                   self.host_url + s['resource_uri'])
 
                     for vc_path, item in variant_calls.items():
                         # Joining path to variant call directory for sample

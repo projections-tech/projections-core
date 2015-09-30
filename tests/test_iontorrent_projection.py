@@ -1,6 +1,7 @@
 __author__ = 'abragin'
 
 import os
+import subprocess
 import logging
 import logging.config
 from unittest import TestCase, skip
