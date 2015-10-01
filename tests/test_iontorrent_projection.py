@@ -2,6 +2,7 @@ __author__ = 'abragin'
 
 import os
 import subprocess
+import time
 import logging
 import logging.config
 from unittest import TestCase, skip
@@ -22,8 +23,20 @@ logger = logging.getLogger('test_iontorrent_projection')
 USER = 'ionadmin'
 PASSWORD = '0ECu1lW'
 
+def run_mock_server():
+    return subprocess.Popen(['nohup', 'python3', '-m', 'pretenders.server.server'])
 
 class TestIonTorrentProjection(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        logger.debug('Initializing mock server.')
+        cls.mock_server = run_mock_server()
+        time.sleep(1)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.mock_server.terminate()
+
     def setUp(self):
         self.mock_resource = TorrentSuiteMock('tests/mock_resource')
         self.mock_url = self.mock_resource.mock_url
