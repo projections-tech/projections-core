@@ -28,6 +28,7 @@ class MockResource(object):
         logger.debug('Mock resource URL: %s', self.mock_url)
         logger.debug('HTTPpretty status: %s', httpretty.is_enabled())
         logger.debug('Mock resource contents: %s', os.listdir(content_dir))
+        # Setting up mock authorization response
         self.mock_auth_response()
         self.prepare_responses()
 
@@ -78,8 +79,7 @@ class TorrentSuiteMock(MockResource):
 
         rule = '/auth/output/Home/Run_11_hg19_v3_008/IonXpress_00\d+_rawlib.bam'
         httpretty.register_uri(httpretty.GET, body=b'Mock BAM file here.',
-                               uri=re.compile(self.mock_url + rule),
-                               status=200)
+                               uri=re.compile(self.mock_url + rule), status=200)
 
         rule = '/auth/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out[\.\d+]*/IAD39777_BED_4_for_TSVC.bed'
         httpretty.register_uri(httpretty.GET, body=b'Mock BED file here.',
@@ -87,8 +87,7 @@ class TorrentSuiteMock(MockResource):
 
         rule = '/auth/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out[\.\d+]*/local_parameters.json'
         httpretty.register_uri(httpretty.GET, body=b'Mock VC settings file here.',
-               uri=re.compile(self.mock_url + rule),
-               status=200)
+                               uri=re.compile(self.mock_url + rule), status=200)
 
         for variant_file_name in ['TSVC_variants.vcf', 'all.merged.vcf', 'indel_assembly.vcf',
                                   'indel_variants.vcf', 'small_variants.left.vcf',
@@ -96,4 +95,4 @@ class TorrentSuiteMock(MockResource):
                                   'small_variants.sorted.vcf', 'SNP_variants.vcf']:
             rule = '/auth/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out[\.\d+]*/IonXpress_00\d+/{0}'.format(re.escape(variant_file_name))
             httpretty.register_uri(httpretty.GET, body=b'Mock VCF file here.',
-               uri=re.compile(self.mock_url + rule), status=200)
+                                   uri=re.compile(self.mock_url + rule), status=200)
