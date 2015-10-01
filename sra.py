@@ -45,7 +45,8 @@ class SRAProjection(ProjectionManager):
         self.search_handle = Entrez.esearch(db='sra', term=self.query, retmax=self.num_of_results)
         self.search_results = Entrez.read(self.search_handle)
 
-        query_projection = Projection('/' + self.query, 'test')
+        query_base_path = '/' + self.query
+        query_projection = Projection(query_base_path, 'test')
         query_projection.type = stat.S_IFDIR
         projections.append(query_projection)
 
@@ -56,9 +57,19 @@ class SRAProjection(ProjectionManager):
             sample_dict = xmltodict.parse(fetch_handler.read())
             sample_metadata = sample_dict['EXPERIMENT_PACKAGE_SET']['EXPERIMENT_PACKAGE']
             experiment_id = sample_metadata['EXPERIMENT']['@accession']
-            logger.debug('Experiment accession: %s', experiment_id)
+
+            experiment_path = os.path.join(query_base_path, experiment_id)
+            experiment_projection = Projection(experiment_path, 'test')
+            experiment_projection.type = stat.S_IFDIR
+            projections.append(experiment_projection)
+
             sample_run_set = sample_metadata['RUN_SET']['RUN']
             sample_id = sample_run_set['@accession']
+
+            sample_path = os.path.join(experiment_path, sample_id+'.bam')
+            sample_projection = Projection(sample_path, 'test')
+            projections.append(sample_projection)
+
             logger.debug('Run accession: %s', sample_id)
 
         for p in projections:
