@@ -5,7 +5,6 @@ import re
 import logging
 import logging.config
 import httpretty
-import urllib
 
 logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('resource_pretender')

@@ -1,7 +1,6 @@
 __author__ = 'abragin'
 
 import os
-import httpretty
 import logging
 import logging.config
 from unittest import TestCase, skip

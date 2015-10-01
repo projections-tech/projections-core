@@ -7,8 +7,10 @@ import os
 import stat
 import sys
 import time
+import xmltodict
 import urllib.request
 from urllib.parse import urljoin
+from Bio import Entrez
 
 from projections import Projection, ProjectionManager
 from filesystem import ProjectionFilesystem
@@ -19,45 +21,45 @@ logger = logging.getLogger('sra_projection')
 
 
 class SRAProjection(ProjectionManager):
-    def __init__(self, host, user, password):
-        logger.info('Creating Ion Torrent projection for host: %s', host)
-        self.host_url = 'http://{}'.format(host)
-        self.api_url = 'http://{}/rundb/api/v1/'.format(host)
-        self.files_url = self.host_url + '/auth/output/Home/'
-        self.authenticate(user, password)
+    def __init__(self, email, query, num_of_results=1):
+        self.query = query
+        self.num_of_results = num_of_results
+        logger.info('Creating SRA projection for query: %s', self.query)
+        self.setup_biopython(email)
 
         # TODO: switch to tree-like structure instead of manual path parsing
         self.projections = {}
         self.create_projections()
 
-    def authenticate(self, user, password):
-        password_manager = urllib.request.HTTPPasswordMgrWithDefaultRealm()
-        password_manager.add_password(None, self.host_url, user, password)
-
-        handler = urllib.request.HTTPBasicAuthHandler(password_manager)
-
-        # create "opener" (OpenerDirector instance)
-        opener = urllib.request.build_opener(handler)
-
-        # use the opener to fetch a URL
-        opener.open(self.api_url)
-
-        # Install the opener.
-        # Now all calls to urllib.request.urlopen use our opener.
-        urllib.request.install_opener(opener)
+    def setup_biopython(self, email):
+        Entrez.email = email
+        Entrez.tool = 'sra_projection_manager'
 
     def create_projections(self):
         """
         Creates projections for SRA search request
         :return: list of projections
         """
-
-
         projections = []
 
-        projection = Projection('/' + 'test', self.host_url)
-        projection.type = stat.S_IFDIR
+        self.search_handle = Entrez.esearch(db='sra', term=self.query, retmax=self.num_of_results)
+        self.search_results = Entrez.read(self.search_handle)
 
+        query_projection = Projection('/' + self.query, 'test')
+        query_projection.type = stat.S_IFDIR
+        projections.append(query_projection)
+
+        results_ids = self.search_results['IdList']
+        for ids in results_ids:
+            logger.debug('Query ID: %s', ids)
+            fetch_handler = Entrez.efetch(db='sra', id=ids)
+            sample_dict = xmltodict.parse(fetch_handler.read())
+            sample_metadata = sample_dict['EXPERIMENT_PACKAGE_SET']['EXPERIMENT_PACKAGE']
+            experiment_id = sample_metadata['EXPERIMENT']['@accession']
+            logger.debug('Experiment accession: %s', experiment_id)
+            sample_run_set = sample_metadata['RUN_SET']['RUN']
+            sample_id = sample_run_set['@accession']
+            logger.debug('Run accession: %s', sample_id)
 
         for p in projections:
             self.projections[p.path] = p
@@ -129,7 +131,7 @@ def main(mountpoint, data_folder, foreground=True):
     # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
-    projection_filesystem.projection_manager = SRAProjection('10.5.20.13', 'ionadmin', 'ionadmin')
+    projection_filesystem.projection_manager = SRAProjection('vsvekolkin@parseq.pro', 'Human', 5)
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
     return fuse
 
