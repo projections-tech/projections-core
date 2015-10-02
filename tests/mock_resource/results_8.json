@@ -1,0 +1,865 @@
+{
+    "analysisVersion": "db:4.0.21-1,an:4.0.5-1,",
+    "analysismetrics": [
+        "/rundb/api/v1/analysismetrics/8/"
+    ],
+    "autoExempt": false,
+    "bamLink": "/output/Home/Run_11_hg19_v3_008/R_2012_08_31_00_21_53_Sequoia_SN1-14-Newborn_5_samples_from_CV_Run_11_hg19_v3.bam",
+    "diskusage": 3511,
+    "eas": "/rundb/api/v1/experimentanalysissettings/27/",
+    "experiment": "/rundb/api/v1/experiment/24/",
+    "fastqLink": "/output/Home/Run_11_hg19_v3_008/basecaller_results/R_2012_08_31_00_21_53_Sequoia_SN1-14-Newborn_5_samples_from_CV_Run_11_hg19_v3.fastq",
+    "filesystempath": "/results/analysis/output/Home/Run_11_hg19_v3_008",
+    "framesProcessed": 58,
+    "id": 8,
+    "libmetrics": [
+        "/rundb/api/v1/libmetrics/7/"
+    ],
+    "log": "/output/Home/Run_11_hg19_v3_008/log.html",
+    "metaData": {},
+    "parentIDs": "",
+    "planShortID": "5XQRI",
+    "pluginState": {
+        "NIPD": "Completed",
+        "coverageAnalysis": "Completed",
+        "sampleID": "Completed",
+        "variantCaller": "Completed",
+        "variantCallerVFNA": "Completed"
+    },
+    "pluginStore": {
+        "NIPD": {},
+        "coverageAnalysis": {
+            "Non-duplicate": "No",
+            "Target padding": "0",
+            "Targetted regions": "/results/uploads/BED/2/hg19_v3/merged/detail/IAD39777_BED_4_for_TSCA.bed",
+            "Uniquely mapped": "No",
+            "barcoded": "true",
+            "barcodes": {
+                "IonXpress_001": {
+                    "Alignments": "IonXpress_001_R_2012_08_31_00_21_53_Sequoia_SN1-14-Newborn_5_samples_from_CV_Run_11_hg19_v3",
+                    "Amplicons reading end-to-end": "63.08%",
+                    "Amplicons with at least 1 read": "97.69%",
+                    "Amplicons with at least 100 reads": "90.00%",
+                    "Amplicons with at least 20 reads": "95.38%",
+                    "Amplicons with at least 500 reads": "45.38%",
+                    "Amplicons with no strand bias": "93.85%",
+                    "Average base coverage depth": "473.7",
+                    "Average reads per amplicon": "463.8",
+                    "Bases in target regions": "16435",
+                    "Number of amplicons": "130",
+                    "Number of mapped reads": "86924",
+                    "Percent assigned amplicon reads": "69.37%",
+                    "Percent base reads on target": "69.80%",
+                    "Percent reads on target": "69.37%",
+                    "Reference (File)": "hg19_v3",
+                    "Sample Name": "None",
+                    "Target base coverage at 100x": "95.67%",
+                    "Target base coverage at 1x": "97.85%",
+                    "Target base coverage at 20x": "97.03%",
+                    "Target base coverage at 500x": "42.57%",
+                    "Target bases with no strand bias": "95.13%",
+                    "Targeted Regions": "IAD39777_BED_4_for_TSCA",
+                    "Total aligned base reads": "11153208",
+                    "Total assigned amplicon reads": "60296",
+                    "Total base reads on target": "7784799",
+                    "Uniformity of amplicon coverage": "90.00%",
+                    "Uniformity of base coverage": "95.69%",
+                    "Using": "All Mapped Reads"
+                },
+                "IonXpress_002": {
+                    "Alignments": "IonXpress_002_R_2012_08_31_00_21_53_Sequoia_SN1-14-Newborn_5_samples_from_CV_Run_11_hg19_v3",
+                    "Amplicons reading end-to-end": "61.54%",
+                    "Amplicons with at least 1 read": "97.69%",
+                    "Amplicons with at least 100 reads": "87.69%",
+                    "Amplicons with at least 20 reads": "92.31%",
+                    "Amplicons with at least 500 reads": "31.54%",
+                    "Amplicons with no strand bias": "95.38%",
+                    "Average base coverage depth": "388.1",
+                    "Average reads per amplicon": "393.3",
+                    "Bases in target regions": "16435",
+                    "Number of amplicons": "130",
+                    "Number of mapped reads": "85458",
+                    "Percent assigned amplicon reads": "59.83%",
+                    "Percent base reads on target": "64.07%",
+                    "Percent reads on target": "59.83%",
+                    "Reference (File)": "hg19_v3",
+                    "Sample Name": "None",
+                    "Target base coverage at 100x": "94.63%",
+                    "Target base coverage at 1x": "97.74%",
+                    "Target base coverage at 20x": "96.71%",
+                    "Target base coverage at 500x": "23.15%",
+                    "Target bases with no strand bias": "95.50%",
+                    "Targeted Regions": "IAD39777_BED_4_for_TSCA",
+                    "Total aligned base reads": "9955094",
+                    "Total assigned amplicon reads": "51131",
+                    "Total base reads on target": "6378357",
+                    "Uniformity of amplicon coverage": "87.69%",
+                    "Uniformity of base coverage": "94.83%",
+                    "Using": "All Mapped Reads"
+                },
+                "IonXpress_003": {
+                    "Alignments": "IonXpress_003_R_2012_08_31_00_21_53_Sequoia_SN1-14-Newborn_5_samples_from_CV_Run_11_hg19_v3",
+                    "Amplicons reading end-to-end": "64.62%",
+                    "Amplicons with at least 1 read": "98.46%",
+                    "Amplicons with at least 100 reads": "88.46%",
+                    "Amplicons with at least 20 reads": "93.85%",
+                    "Amplicons with at least 500 reads": "38.46%",
+                    "Amplicons with no strand bias": "96.92%",
+                    "Average base coverage depth": "418.2",
+                    "Average reads per amplicon": "426.3",
+                    "Bases in target regions": "16435",
+                    "Number of amplicons": "130",
+                    "Number of mapped reads": "80979",
+                    "Percent assigned amplicon reads": "68.43%",
+                    "Percent base reads on target": "70.53%",
+                    "Percent reads on target": "68.43%",
+                    "Reference (File)": "hg19_v3",
+                    "Sample Name": "None",
+                    "Target base coverage at 100x": "94.96%",
+                    "Target base coverage at 1x": "97.86%",
+                    "Target base coverage at 20x": "96.98%",
+                    "Target base coverage at 500x": "30.59%",
+                    "Target bases with no strand bias": "96.32%",
+                    "Targeted Regions": "IAD39777_BED_4_for_TSCA",
+                    "Total aligned base reads": "9744414",
+                    "Total assigned amplicon reads": "55417",
+                    "Total base reads on target": "6872982",
+                    "Uniformity of amplicon coverage": "89.23%",
+                    "Uniformity of base coverage": "95.13%",
+                    "Using": "All Mapped Reads"
+                },
+                "IonXpress_004": {
+                    "Alignments": "IonXpress_004_R_2012_08_31_00_21_53_Sequoia_SN1-14-Newborn_5_samples_from_CV_Run_11_hg19_v3",
+                    "Amplicons reading end-to-end": "63.08%",
+                    "Amplicons with at least 1 read": "97.69%",
+                    "Amplicons with at least 100 reads": "89.23%",
+                    "Amplicons with at least 20 reads": "94.62%",
+                    "Amplicons with at least 500 reads": "60.77%",
+                    "Amplicons with no strand bias": "94.62%",
+                    "Average base coverage depth": "537.6",
+                    "Average reads per amplicon": "544.0",
+                    "Bases in target regions": "16435",
+                    "Number of amplicons": "130",
+                    "Number of mapped reads": "94960",
+                    "Percent assigned amplicon reads": "74.47%",
+                    "Percent base reads on target": "75.14%",
+                    "Percent reads on target": "74.47%",
+                    "Reference (File)": "hg19_v3",
+                    "Sample Name": "None",
+                    "Target base coverage at 100x": "95.25%",
+                    "Target base coverage at 1x": "97.94%",
+                    "Target base coverage at 20x": "97.10%",
+                    "Target base coverage at 500x": "52.75%",
+                    "Target bases with no strand bias": "95.89%",
+                    "Targeted Regions": "IAD39777_BED_4_for_TSCA",
+                    "Total aligned base reads": "11758892",
+                    "Total assigned amplicon reads": "70720",
+                    "Total base reads on target": "8836096",
+                    "Uniformity of amplicon coverage": "89.23%",
+                    "Uniformity of base coverage": "95.05%",
+                    "Using": "All Mapped Reads"
+                },
+                "IonXpress_005": {
+                    "Alignments": "IonXpress_005_R_2012_08_31_00_21_53_Sequoia_SN1-14-Newborn_5_samples_from_CV_Run_11_hg19_v3",
+                    "Amplicons reading end-to-end": "62.31%",
+                    "Amplicons with at least 1 read": "98.46%",
+                    "Amplicons with at least 100 reads": "89.23%",
+                    "Amplicons with at least 20 reads": "93.85%",
+                    "Amplicons with at least 500 reads": "49.23%",
+                    "Amplicons with no strand bias": "95.38%",
+                    "Average base coverage depth": "500.6",
+                    "Average reads per amplicon": "512.2",
+                    "Bases in target regions": "16435",
+                    "Number of amplicons": "130",
+                    "Number of mapped reads": "96206",
+                    "Percent assigned amplicon reads": "69.21%",
+                    "Percent base reads on target": "71.08%",
+                    "Percent reads on target": "69.21%",
+                    "Reference (File)": "hg19_v3",
+                    "Sample Name": "None",
+                    "Target base coverage at 100x": "94.96%",
+                    "Target base coverage at 1x": "97.82%",
+                    "Target base coverage at 20x": "97.02%",
+                    "Target base coverage at 500x": "43.18%",
+                    "Target bases with no strand bias": "95.32%",
+                    "Targeted Regions": "IAD39777_BED_4_for_TSCA",
+                    "Total aligned base reads": "11573975",
+                    "Total assigned amplicon reads": "66587",
+                    "Total base reads on target": "8227131",
+                    "Uniformity of amplicon coverage": "89.23%",
+                    "Uniformity of base coverage": "94.96%",
+                    "Using": "All Mapped Reads"
+                }
+            }
+        },
+        "sampleID": {
+            "Library Type": "",
+            "Target Loci": "",
+            "Target Regions": "",
+            "Variant Detection": "",
+            "barcoded": "true",
+            "barcodes": {
+                "IonXpress_001": {
+                    "SampleID": "N/A",
+                    "hotspot_coverage": {
+                        "Average base coverage depth": "0.0",
+                        "Bases in target regions": "8",
+                        "Coverage at 100x": "0.0%",
+                        "Coverage at 1x": "0.0%",
+                        "Coverage at 20x": "0.0%",
+                        "Uniformity of coverage": "100.0%"
+                    },
+                    "mapped_reads": {
+                        "Female sample ID region reads": "0",
+                        "Male sample ID region reads": "0",
+                        "Number of mapped reads": "86924",
+                        "Number of reads in sample ID regions": "0",
+                        "Percent base reads in sample ID regions": "0%",
+                        "Percent reads in sample ID regions": "0%",
+                        "Total base reads in sample ID regions": "11153208"
+                    },
+                    "target_coverage": {
+                        "Average base coverage depth": "0.0",
+                        "Bases in target regions": "1074",
+                        "Coverage at 100x": "0.0%",
+                        "Coverage at 1x": "0.0%",
+                        "Coverage at 20x": "0.0%",
+                        "Uniformity of coverage": "100.0%"
+                    }
+                },
+                "IonXpress_002": {
+                    "SampleID": "N/A",
+                    "hotspot_coverage": {
+                        "Average base coverage depth": "0.0",
+                        "Bases in target regions": "8",
+                        "Coverage at 100x": "0.0%",
+                        "Coverage at 1x": "0.0%",
+                        "Coverage at 20x": "0.0%",
+                        "Uniformity of coverage": "100.0%"
+                    },
+                    "mapped_reads": {
+                        "Female sample ID region reads": "0",
+                        "Male sample ID region reads": "0",
+                        "Number of mapped reads": "85458",
+                        "Number of reads in sample ID regions": "0",
+                        "Percent base reads in sample ID regions": "0%",
+                        "Percent reads in sample ID regions": "0%",
+                        "Total base reads in sample ID regions": "9955094"
+                    },
+                    "target_coverage": {
+                        "Average base coverage depth": "0.0",
+                        "Bases in target regions": "1074",
+                        "Coverage at 100x": "0.0%",
+                        "Coverage at 1x": "0.0%",
+                        "Coverage at 20x": "0.0%",
+                        "Uniformity of coverage": "100.0%"
+                    }
+                },
+                "IonXpress_003": {
+                    "SampleID": "N/A",
+                    "hotspot_coverage": {
+                        "Average base coverage depth": "0.0",
+                        "Bases in target regions": "8",
+                        "Coverage at 100x": "0.0%",
+                        "Coverage at 1x": "0.0%",
+                        "Coverage at 20x": "0.0%",
+                        "Uniformity of coverage": "100.0%"
+                    },
+                    "mapped_reads": {
+                        "Female sample ID region reads": "0",
+                        "Male sample ID region reads": "0",
+                        "Number of mapped reads": "80979",
+                        "Number of reads in sample ID regions": "0",
+                        "Percent base reads in sample ID regions": "0%",
+                        "Percent reads in sample ID regions": "0%",
+                        "Total base reads in sample ID regions": "9744414"
+                    },
+                    "target_coverage": {
+                        "Average base coverage depth": "0.0",
+                        "Bases in target regions": "1074",
+                        "Coverage at 100x": "0.0%",
+                        "Coverage at 1x": "0.0%",
+                        "Coverage at 20x": "0.0%",
+                        "Uniformity of coverage": "100.0%"
+                    }
+                },
+                "IonXpress_004": {
+                    "SampleID": "N/A",
+                    "hotspot_coverage": {
+                        "Average base coverage depth": "0.0",
+                        "Bases in target regions": "8",
+                        "Coverage at 100x": "0.0%",
+                        "Coverage at 1x": "0.0%",
+                        "Coverage at 20x": "0.0%",
+                        "Uniformity of coverage": "100.0%"
+                    },
+                    "mapped_reads": {
+                        "Female sample ID region reads": "0",
+                        "Male sample ID region reads": "0",
+                        "Number of mapped reads": "94960",
+                        "Number of reads in sample ID regions": "0",
+                        "Percent base reads in sample ID regions": "0%",
+                        "Percent reads in sample ID regions": "0%",
+                        "Total base reads in sample ID regions": "11758892"
+                    },
+                    "target_coverage": {
+                        "Average base coverage depth": "0.0",
+                        "Bases in target regions": "1074",
+                        "Coverage at 100x": "0.0%",
+                        "Coverage at 1x": "0.0%",
+                        "Coverage at 20x": "0.0%",
+                        "Uniformity of coverage": "100.0%"
+                    }
+                },
+                "IonXpress_005": {
+                    "SampleID": "N/A",
+                    "hotspot_coverage": {
+                        "Average base coverage depth": "0.0",
+                        "Bases in target regions": "8",
+                        "Coverage at 100x": "0.0%",
+                        "Coverage at 1x": "0.0%",
+                        "Coverage at 20x": "0.0%",
+                        "Uniformity of coverage": "100.0%"
+                    },
+                    "mapped_reads": {
+                        "Female sample ID region reads": "0",
+                        "Male sample ID region reads": "0",
+                        "Number of mapped reads": "96206",
+                        "Number of reads in sample ID regions": "0",
+                        "Percent base reads in sample ID regions": "0%",
+                        "Percent reads in sample ID regions": "0%",
+                        "Total base reads in sample ID regions": "11573975"
+                    },
+                    "target_coverage": {
+                        "Average base coverage depth": "0.0",
+                        "Bases in target regions": "1074",
+                        "Coverage at 100x": "0.0%",
+                        "Coverage at 1x": "0.0%",
+                        "Coverage at 20x": "0.0%",
+                        "Uniformity of coverage": "100.0%"
+                    }
+                }
+            }
+        },
+        "variantCaller": {
+            "Aligned Reads": "R_2012_08_31_00_21_53_Sequoia_SN1-14-Newborn_5_samples_from_CV",
+            "Configuration": "germline_low_stringency",
+            "Library Type": "AmpliSeq",
+            "Target Loci": "Not using",
+            "Target Regions": "IAD39777_BED_4_for_TSVC",
+            "Trim Reads": true,
+            "barcoded": "true",
+            "barcodes": {
+                "IonXpress_001": {
+                    "hotspots": {},
+                    "variants": {
+                        "het_indels": 1,
+                        "het_snps": 6,
+                        "homo_indels": 1,
+                        "homo_snps": 4,
+                        "no_call": 0,
+                        "other": 0,
+                        "variants": 12
+                    }
+                },
+                "IonXpress_002": {
+                    "hotspots": {},
+                    "variants": {
+                        "het_indels": 1,
+                        "het_snps": 9,
+                        "homo_indels": 1,
+                        "homo_snps": 5,
+                        "no_call": 0,
+                        "other": 0,
+                        "variants": 16
+                    }
+                },
+                "IonXpress_003": {
+                    "hotspots": {},
+                    "variants": {
+                        "het_indels": 0,
+                        "het_snps": 6,
+                        "homo_indels": 0,
+                        "homo_snps": 1,
+                        "no_call": 0,
+                        "other": 0,
+                        "variants": 7
+                    }
+                },
+                "IonXpress_004": {
+                    "hotspots": {},
+                    "variants": {
+                        "het_indels": 0,
+                        "het_snps": 8,
+                        "homo_indels": 1,
+                        "homo_snps": 5,
+                        "no_call": 0,
+                        "other": 0,
+                        "variants": 14
+                    }
+                },
+                "IonXpress_005": {
+                    "hotspots": {},
+                    "variants": {
+                        "het_indels": 0,
+                        "het_snps": 5,
+                        "homo_indels": 1,
+                        "homo_snps": 1,
+                        "no_call": 0,
+                        "other": 0,
+                        "variants": 7
+                    }
+                }
+            },
+            "files": [
+                {
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/local_parameters.json",
+                    "filename": "local_parameters.json",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/local_parameters.json",
+                    "type": "parameters_json"
+                },
+                {
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IAD39777_BED_4_for_TSVC.bed",
+                    "filename": "IAD39777_BED_4_for_TSVC.bed",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IAD39777_BED_4_for_TSVC.bed",
+                    "type": "target_regions_bed"
+                },
+                {
+                    "barcode": "IonXpress_001",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_001/TSVC_variants_IonXpress_001.vcf.gz",
+                    "filename": "TSVC_variants_IonXpress_001.vcf.gz",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_001/TSVC_variants_IonXpress_001.vcf.gz",
+                    "type": "variants_vcf_gz"
+                },
+                {
+                    "barcode": "IonXpress_001",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_001/TSVC_variants_IonXpress_001.vcf.gz.tbi",
+                    "filename": "TSVC_variants_IonXpress_001.vcf.gz.tbi",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_001/TSVC_variants_IonXpress_001.vcf.gz.tbi",
+                    "type": "variants_vcf_gz_tbi"
+                },
+                {
+                    "barcode": "IonXpress_001",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_001/alleles_IonXpress_001.xls",
+                    "filename": "alleles_IonXpress_001.xls",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_001/alleles_IonXpress_001.xls",
+                    "type": "alleles_xls"
+                },
+                {
+                    "barcode": "IonXpress_001",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_001/IonXpress_001_rawlib.bam",
+                    "filename": "IonXpress_001_rawlib.bam",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_001/IonXpress_001_rawlib.bam",
+                    "type": "mapped_bam"
+                },
+                {
+                    "barcode": "IonXpress_001",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_001/IonXpress_001_rawlib.bam.bai",
+                    "filename": "IonXpress_001_rawlib.bam.bai",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_001/IonXpress_001_rawlib.bam.bai",
+                    "type": "mapped_bam_bai"
+                },
+                {
+                    "barcode": "IonXpress_001",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_001/IonXpress_001_rawlib_processed.bam",
+                    "filename": "IonXpress_001_rawlib_processed.bam",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_001/IonXpress_001_rawlib_processed.bam",
+                    "type": "processed_bam"
+                },
+                {
+                    "barcode": "IonXpress_001",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_001/IonXpress_001_rawlib_processed.bam.bai",
+                    "filename": "IonXpress_001_rawlib_processed.bam.bai",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_001/IonXpress_001_rawlib_processed.bam.bai",
+                    "type": "processed_bam_bai"
+                },
+                {
+                    "barcode": "IonXpress_001",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_001/small_variants_filtered.vcf",
+                    "filename": "small_variants_filtered.vcf",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_001/small_variants_filtered.vcf",
+                    "type": "filtered_variants_vcf"
+                },
+                {
+                    "barcode": "IonXpress_002",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_002/TSVC_variants_IonXpress_002.vcf.gz",
+                    "filename": "TSVC_variants_IonXpress_002.vcf.gz",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_002/TSVC_variants_IonXpress_002.vcf.gz",
+                    "type": "variants_vcf_gz"
+                },
+                {
+                    "barcode": "IonXpress_002",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_002/TSVC_variants_IonXpress_002.vcf.gz.tbi",
+                    "filename": "TSVC_variants_IonXpress_002.vcf.gz.tbi",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_002/TSVC_variants_IonXpress_002.vcf.gz.tbi",
+                    "type": "variants_vcf_gz_tbi"
+                },
+                {
+                    "barcode": "IonXpress_002",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_002/alleles_IonXpress_002.xls",
+                    "filename": "alleles_IonXpress_002.xls",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_002/alleles_IonXpress_002.xls",
+                    "type": "alleles_xls"
+                },
+                {
+                    "barcode": "IonXpress_002",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_002/IonXpress_002_rawlib.bam",
+                    "filename": "IonXpress_002_rawlib.bam",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_002/IonXpress_002_rawlib.bam",
+                    "type": "mapped_bam"
+                },
+                {
+                    "barcode": "IonXpress_002",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_002/IonXpress_002_rawlib.bam.bai",
+                    "filename": "IonXpress_002_rawlib.bam.bai",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_002/IonXpress_002_rawlib.bam.bai",
+                    "type": "mapped_bam_bai"
+                },
+                {
+                    "barcode": "IonXpress_002",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_002/IonXpress_002_rawlib_processed.bam",
+                    "filename": "IonXpress_002_rawlib_processed.bam",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_002/IonXpress_002_rawlib_processed.bam",
+                    "type": "processed_bam"
+                },
+                {
+                    "barcode": "IonXpress_002",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_002/IonXpress_002_rawlib_processed.bam.bai",
+                    "filename": "IonXpress_002_rawlib_processed.bam.bai",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_002/IonXpress_002_rawlib_processed.bam.bai",
+                    "type": "processed_bam_bai"
+                },
+                {
+                    "barcode": "IonXpress_002",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_002/small_variants_filtered.vcf",
+                    "filename": "small_variants_filtered.vcf",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_002/small_variants_filtered.vcf",
+                    "type": "filtered_variants_vcf"
+                },
+                {
+                    "barcode": "IonXpress_003",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_003/TSVC_variants_IonXpress_003.vcf.gz",
+                    "filename": "TSVC_variants_IonXpress_003.vcf.gz",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_003/TSVC_variants_IonXpress_003.vcf.gz",
+                    "type": "variants_vcf_gz"
+                },
+                {
+                    "barcode": "IonXpress_003",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_003/TSVC_variants_IonXpress_003.vcf.gz.tbi",
+                    "filename": "TSVC_variants_IonXpress_003.vcf.gz.tbi",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_003/TSVC_variants_IonXpress_003.vcf.gz.tbi",
+                    "type": "variants_vcf_gz_tbi"
+                },
+                {
+                    "barcode": "IonXpress_003",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_003/alleles_IonXpress_003.xls",
+                    "filename": "alleles_IonXpress_003.xls",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_003/alleles_IonXpress_003.xls",
+                    "type": "alleles_xls"
+                },
+                {
+                    "barcode": "IonXpress_003",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_003/IonXpress_003_rawlib.bam",
+                    "filename": "IonXpress_003_rawlib.bam",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_003/IonXpress_003_rawlib.bam",
+                    "type": "mapped_bam"
+                },
+                {
+                    "barcode": "IonXpress_003",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_003/IonXpress_003_rawlib.bam.bai",
+                    "filename": "IonXpress_003_rawlib.bam.bai",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_003/IonXpress_003_rawlib.bam.bai",
+                    "type": "mapped_bam_bai"
+                },
+                {
+                    "barcode": "IonXpress_003",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_003/IonXpress_003_rawlib_processed.bam",
+                    "filename": "IonXpress_003_rawlib_processed.bam",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_003/IonXpress_003_rawlib_processed.bam",
+                    "type": "processed_bam"
+                },
+                {
+                    "barcode": "IonXpress_003",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_003/IonXpress_003_rawlib_processed.bam.bai",
+                    "filename": "IonXpress_003_rawlib_processed.bam.bai",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_003/IonXpress_003_rawlib_processed.bam.bai",
+                    "type": "processed_bam_bai"
+                },
+                {
+                    "barcode": "IonXpress_003",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_003/small_variants_filtered.vcf",
+                    "filename": "small_variants_filtered.vcf",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_003/small_variants_filtered.vcf",
+                    "type": "filtered_variants_vcf"
+                },
+                {
+                    "barcode": "IonXpress_004",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_004/TSVC_variants_IonXpress_004.vcf.gz",
+                    "filename": "TSVC_variants_IonXpress_004.vcf.gz",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_004/TSVC_variants_IonXpress_004.vcf.gz",
+                    "type": "variants_vcf_gz"
+                },
+                {
+                    "barcode": "IonXpress_004",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_004/TSVC_variants_IonXpress_004.vcf.gz.tbi",
+                    "filename": "TSVC_variants_IonXpress_004.vcf.gz.tbi",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_004/TSVC_variants_IonXpress_004.vcf.gz.tbi",
+                    "type": "variants_vcf_gz_tbi"
+                },
+                {
+                    "barcode": "IonXpress_004",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_004/alleles_IonXpress_004.xls",
+                    "filename": "alleles_IonXpress_004.xls",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_004/alleles_IonXpress_004.xls",
+                    "type": "alleles_xls"
+                },
+                {
+                    "barcode": "IonXpress_004",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_004/IonXpress_004_rawlib.bam",
+                    "filename": "IonXpress_004_rawlib.bam",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_004/IonXpress_004_rawlib.bam",
+                    "type": "mapped_bam"
+                },
+                {
+                    "barcode": "IonXpress_004",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_004/IonXpress_004_rawlib.bam.bai",
+                    "filename": "IonXpress_004_rawlib.bam.bai",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_004/IonXpress_004_rawlib.bam.bai",
+                    "type": "mapped_bam_bai"
+                },
+                {
+                    "barcode": "IonXpress_004",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_004/IonXpress_004_rawlib_processed.bam",
+                    "filename": "IonXpress_004_rawlib_processed.bam",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_004/IonXpress_004_rawlib_processed.bam",
+                    "type": "processed_bam"
+                },
+                {
+                    "barcode": "IonXpress_004",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_004/IonXpress_004_rawlib_processed.bam.bai",
+                    "filename": "IonXpress_004_rawlib_processed.bam.bai",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_004/IonXpress_004_rawlib_processed.bam.bai",
+                    "type": "processed_bam_bai"
+                },
+                {
+                    "barcode": "IonXpress_004",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_004/small_variants_filtered.vcf",
+                    "filename": "small_variants_filtered.vcf",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_004/small_variants_filtered.vcf",
+                    "type": "filtered_variants_vcf"
+                },
+                {
+                    "barcode": "IonXpress_005",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_005/TSVC_variants_IonXpress_005.vcf.gz",
+                    "filename": "TSVC_variants_IonXpress_005.vcf.gz",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_005/TSVC_variants_IonXpress_005.vcf.gz",
+                    "type": "variants_vcf_gz"
+                },
+                {
+                    "barcode": "IonXpress_005",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_005/TSVC_variants_IonXpress_005.vcf.gz.tbi",
+                    "filename": "TSVC_variants_IonXpress_005.vcf.gz.tbi",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_005/TSVC_variants_IonXpress_005.vcf.gz.tbi",
+                    "type": "variants_vcf_gz_tbi"
+                },
+                {
+                    "barcode": "IonXpress_005",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_005/alleles_IonXpress_005.xls",
+                    "filename": "alleles_IonXpress_005.xls",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_005/alleles_IonXpress_005.xls",
+                    "type": "alleles_xls"
+                },
+                {
+                    "barcode": "IonXpress_005",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_005/IonXpress_005_rawlib.bam",
+                    "filename": "IonXpress_005_rawlib.bam",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_005/IonXpress_005_rawlib.bam",
+                    "type": "mapped_bam"
+                },
+                {
+                    "barcode": "IonXpress_005",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_005/IonXpress_005_rawlib.bam.bai",
+                    "filename": "IonXpress_005_rawlib.bam.bai",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_005/IonXpress_005_rawlib.bam.bai",
+                    "type": "mapped_bam_bai"
+                },
+                {
+                    "barcode": "IonXpress_005",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_005/IonXpress_005_rawlib_processed.bam",
+                    "filename": "IonXpress_005_rawlib_processed.bam",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_005/IonXpress_005_rawlib_processed.bam",
+                    "type": "processed_bam"
+                },
+                {
+                    "barcode": "IonXpress_005",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_005/IonXpress_005_rawlib_processed.bam.bai",
+                    "filename": "IonXpress_005_rawlib_processed.bam.bai",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_005/IonXpress_005_rawlib_processed.bam.bai",
+                    "type": "processed_bam_bai"
+                },
+                {
+                    "barcode": "IonXpress_005",
+                    "download_path": "/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_005/small_variants_filtered.vcf",
+                    "filename": "small_variants_filtered.vcf",
+                    "sample": "None",
+                    "server_path": "/results/analysis/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out.50/IonXpress_005/small_variants_filtered.vcf",
+                    "type": "filtered_variants_vcf"
+                }
+            ],
+            "targets_bed": "/results/uploads/BED/1/hg19_v3/unmerged/detail/IAD39777_BED_4_for_TSVC.bed"
+        },
+        "variantCallerVFNA": {
+            "Aligned Reads": "R_2012_08_31_00_21_53_Sequoia_SN1-14-Newborn_5_samples_from_CV",
+            "Configuration": "Custom",
+            "Library Type": "AmpliSeq",
+            "Target Loci": "Not using",
+            "Target Regions": "IAD39777_BED_4_for_TSVC",
+            "Trim Reads": true,
+            "barcoded": "true",
+            "barcodes": {
+                "IonXpress_001": {
+                    "hotspots": {},
+                    "variants": {
+                        "het_indels": 1,
+                        "het_snps": 6,
+                        "homo_indels": 0,
+                        "homo_snps": 4,
+                        "no_call": 0,
+                        "other": 0,
+                        "variants": 11
+                    }
+                },
+                "IonXpress_002": {
+                    "hotspots": {},
+                    "variants": {
+                        "het_indels": 1,
+                        "het_snps": 9,
+                        "homo_indels": 0,
+                        "homo_snps": 5,
+                        "no_call": 0,
+                        "other": 0,
+                        "variants": 15
+                    }
+                },
+                "IonXpress_003": {
+                    "hotspots": {},
+                    "variants": {
+                        "het_indels": 0,
+                        "het_snps": 6,
+                        "homo_indels": 0,
+                        "homo_snps": 1,
+                        "no_call": 0,
+                        "other": 0,
+                        "variants": 7
+                    }
+                },
+                "IonXpress_004": {
+                    "hotspots": {},
+                    "variants": {
+                        "het_indels": 0,
+                        "het_snps": 8,
+                        "homo_indels": 0,
+                        "homo_snps": 5,
+                        "no_call": 0,
+                        "other": 0,
+                        "variants": 13
+                    }
+                },
+                "IonXpress_005": {
+                    "hotspots": {},
+                    "variants": {
+                        "het_indels": 0,
+                        "het_snps": 5,
+                        "homo_indels": 0,
+                        "homo_snps": 1,
+                        "no_call": 0,
+                        "other": 0,
+                        "variants": 6
+                    }
+                }
+            }
+        }
+    },
+    "pluginresults": [
+        "/rundb/api/v1/pluginresult/77/",
+        "/rundb/api/v1/pluginresult/50/",
+        "/rundb/api/v1/pluginresult/49/",
+        "/rundb/api/v1/pluginresult/39/",
+        "/rundb/api/v1/pluginresult/24/",
+        "/rundb/api/v1/pluginresult/23/",
+        "/rundb/api/v1/pluginresult/15/"
+    ],
+    "processedCycles": 125,
+    "processedflows": 500,
+    "projects": [
+        "/rundb/api/v1/project/3/"
+    ],
+    "qualitymetrics": [
+        "/rundb/api/v1/qualitymetrics/5/"
+    ],
+    "reference": "hg19_v3",
+    "reportLink": "/output/Home/Run_11_hg19_v3_008/",
+    "reportStatus": "Nothing",
+    "reportstorage": {
+        "default": true,
+        "dirPath": "/results/analysis/output",
+        "id": 1,
+        "name": "Home",
+        "resource_uri": "",
+        "webServerPath": "/output"
+    },
+    "representative": false,
+    "resource_uri": "/rundb/api/v1/results/8/",
+    "resultsName": "Run_11_hg19_v3",
+    "resultsType": "",
+    "runid": "GD95I",
+    "sffLink": null,
+    "status": "Completed",
+    "tfFastq": "_",
+    "tfSffLink": null,
+    "tfmetrics": [
+        "/rundb/api/v1/tfmetrics/4/",
+        "/rundb/api/v1/tfmetrics/3/"
+    ],
+    "timeStamp": "2013-11-22T07:42:22.000972+00:00",
+    "timeToComplete": "0"
+}
