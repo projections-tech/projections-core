@@ -55,15 +55,16 @@ class SRAProjection(ProjectionManager):
             logger.debug('Query ID: %s', ids)
             fetch_handler = Entrez.efetch(db='sra', id=ids)
             sample_dict = xmltodict.parse(fetch_handler.read())
-            sample_metadata = sample_dict['EXPERIMENT_PACKAGE_SET']['EXPERIMENT_PACKAGE']
-            experiment_id = sample_metadata['EXPERIMENT']['@accession']
+
+            experiment_metadata = sample_dict['EXPERIMENT_PACKAGE_SET']['EXPERIMENT_PACKAGE']
+            experiment_id = experiment_metadata['EXPERIMENT']['@accession']
 
             experiment_path = os.path.join(query_base_path, experiment_id)
             experiment_projection = Projection(experiment_path, 'test')
             experiment_projection.type = stat.S_IFDIR
             projections.append(experiment_projection)
 
-            sample_run_set = sample_metadata['RUN_SET']['RUN']
+            sample_run_set = experiment_metadata['RUN_SET']['RUN']
             sample_id = sample_run_set['@accession']
 
             sample_path = os.path.join(experiment_path, sample_id+'.bam')
@@ -142,7 +143,7 @@ def main(mountpoint, data_folder, foreground=True):
     # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
-    projection_filesystem.projection_manager = SRAProjection('vsvekolkin@parseq.pro', 'Human', 5)
+    projection_filesystem.projection_manager = SRAProjection('vsvekolkin@parseq.pro', 'Streptococcus', 1)
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
     return fuse
 
