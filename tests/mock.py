@@ -35,7 +35,8 @@ class MockResource(object):
         """
         Returns last request to current mock
         """
-        return httpretty.last_request()
+        last_request = httpretty.last_request()
+        return httpretty.last_request().method, last_request.path
 
     def mock_auth_response(self):
         """
