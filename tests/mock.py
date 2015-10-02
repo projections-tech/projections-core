@@ -5,7 +5,6 @@ import re
 import logging
 import logging.config
 import httpretty
-import urllib
 
 logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('resource_pretender')
@@ -69,8 +68,8 @@ class TorrentSuiteMock(MockResource):
             '/rundb/api/v1/pluginresult\?result\=(\d+)': 'plugin_result.json',
             '/rundb/api/v1/sample/(\d+)/': 'plugin_result.json',
             '/auth/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out[\.\d+]*/local_parameters.json': 'mock_vc_parameters.json',
-            '/auth/output/Home/Run_11_hg19_v3_008/IonXpress_00\d+_rawlib.bam':'mock_bam.bam',
-            '/auth/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out[\.\d+]*/IAD39777_BED_4_for_TSVC.bed':'mock_bed.bed',
+            '/auth/output/Home/Run_11_hg19_v3_008/IonXpress_00\d+_rawlib.bam': 'mock_bam.bam',
+            '/auth/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out[\.\d+]*/IAD39777_BED_4_for_TSVC.bed': 'mock_bed.bed',
             '/auth/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out[\.\d+]*/IonXpress_00\d+/*.vcf': 'mock_vcf.vcf'
         }
         content_types_dict = {
