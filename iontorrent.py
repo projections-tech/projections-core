@@ -19,7 +19,7 @@ from fuse import FUSE
 logger = logging.getLogger('iontorrent_projection')
 
 
-class IonTorrentProjection(ProjectionManager):
+class IonTorrentProjectionManager(ProjectionManager):
     def __init__(self, host, user, password):
         logger.info('Creating Ion Torrent projection for host: %s', host)
         self.host_url = 'http://{}'.format(host)
@@ -256,7 +256,7 @@ def main(mountpoint, data_folder, foreground=True):
     # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
-    projection_filesystem.projection_manager = IonTorrentProjection('10.5.20.13', 'ionadmin', 'ionadmin')
+    projection_filesystem.projection_manager = IonTorrentProjectionManager('10.5.20.13', 'ionadmin', 'ionadmin')
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
     return fuse
 

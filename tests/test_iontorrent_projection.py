@@ -21,14 +21,14 @@ logger = logging.getLogger('test_iontorrent_projection')
 USER = 'ionadmin'
 PASSWORD = '0ECu1lW'
 
-class TestIonTorrentProjection(TestCase):
+class TestIonTorrentProjectionManager(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.mock_resource = TorrentSuiteMock('mockiontorrent.com','tests/mock_resource')
 
     def setUp(self):
         self.mock_url = self.mock_resource.mock_url
-        self.iontorrent = iontorrent.IonTorrentProjection(self.mock_url, USER, PASSWORD)
+        self.iontorrent = iontorrent.IonTorrentProjectionManager(self.mock_url, USER, PASSWORD)
 
     def test_create_projections(self):
         """

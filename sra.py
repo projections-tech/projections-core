@@ -20,7 +20,8 @@ from fuse import FUSE
 logger = logging.getLogger('sra_projection')
 
 
-class SRAProjection(ProjectionManager):
+
+class SRAProjectionManager(ProjectionManager):
     def __init__(self, email, query, num_of_results=1):
         self.query = query
         self.num_of_results = num_of_results
@@ -60,9 +61,17 @@ class SRAProjection(ProjectionManager):
             experiment_id = experiment_metadata['EXPERIMENT']['@accession']
 
             experiment_path = os.path.join(query_base_path, experiment_id)
-            experiment_projection = Projection(experiment_path, 'test')
+            experiment_projection = Projection(experiment_path, '')
             experiment_projection.type = stat.S_IFDIR
+
+            ex_metadata_path = os.path.join(experiment_path, 'experiment_metadata.json')
+            ex_metadata_uri = 'www.ncbi.nlm.nih.gov/sra/{0}'.format(experiment_id)
+            experiment_metadata_projection = Projection(ex_metadata_path, ex_metadata_uri)
+            experiment_metadata_projection.metadata = json.dumps(experiment_metadata)
+            logger.debug('Experiment metadata: %s', experiment_metadata_projection.metadata)
+
             projections.append(experiment_projection)
+            projections.append(experiment_metadata_projection)
 
             sample_run_set = experiment_metadata['RUN_SET']['RUN']
             sample_id = sample_run_set['@accession']
@@ -124,10 +133,17 @@ class SRAProjection(ProjectionManager):
         return attributes
 
     def open_resource(self, path):
-        uri = self.projections[path].uri
+        projection_on_path = self.projections[path]
 
-        with urllib.request.urlopen(uri) as f:
-            content = f.readall()
+        _, resource_file_extension = os.path.splitext(path)
+
+        logger.debug('Resource file extension: %s', resource_file_extension)
+
+        if resource_file_extension == '.json':
+            content = projection_on_path.metadata.encode()
+        elif resource_file_extension == '.bam':
+            content = b'Test BAM!'
+
         logger.info('Got path content: %s\n', path)
 
         self.projections[path].size = len(content)
@@ -143,7 +159,7 @@ def main(mountpoint, data_folder, foreground=True):
     # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
-    projection_filesystem.projection_manager = SRAProjection('vsvekolkin@parseq.pro', 'Streptococcus', 1)
+    projection_filesystem.projection_manager = SRAProjectionManager('vsvekolkin@parseq.pro', 'Streptococcus', 1)
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
     return fuse
 
