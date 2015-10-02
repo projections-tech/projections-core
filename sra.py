@@ -8,6 +8,7 @@ import stat
 import sys
 import time
 import xmltodict
+import subprocess
 import urllib.request
 from urllib.parse import urljoin
 from Bio import Entrez
@@ -68,19 +69,21 @@ class SRAProjectionManager(ProjectionManager):
             ex_metadata_uri = 'www.ncbi.nlm.nih.gov/sra/{0}'.format(experiment_id)
             experiment_metadata_projection = Projection(ex_metadata_path, ex_metadata_uri)
             experiment_metadata_projection.metadata = json.dumps(experiment_metadata)
-            logger.debug('Experiment metadata: %s', experiment_metadata_projection.metadata)
+            #logger.debug('Experiment metadata: %s', experiment_metadata_projection.metadata)
 
             projections.append(experiment_projection)
             projections.append(experiment_metadata_projection)
 
             sample_run_set = experiment_metadata['RUN_SET']['RUN']
-            sample_id = sample_run_set['@accession']
+            for run in sample_run_set:
+                sample_id = run['@accession']
 
-            sample_path = os.path.join(experiment_path, sample_id+'.bam')
-            sample_projection = Projection(sample_path, 'test')
-            projections.append(sample_projection)
+                sample_path = os.path.join(experiment_path, sample_id+'.bam')
+                sample_projection = Projection(sample_path, 'test')
+                sample_projection.sample_id = sample_id
+                projections.append(sample_projection)
 
-            logger.debug('Run accession: %s', sample_id)
+                logger.debug('Run accession: %s', sample_id)
 
         for p in projections:
             self.projections[p.path] = p
@@ -136,13 +139,12 @@ class SRAProjectionManager(ProjectionManager):
         projection_on_path = self.projections[path]
 
         _, resource_file_extension = os.path.splitext(path)
-
         logger.debug('Resource file extension: %s', resource_file_extension)
 
         if resource_file_extension == '.json':
             content = projection_on_path.metadata.encode()
         elif resource_file_extension == '.bam':
-            content = b'Test BAM!'
+            content = b'test bam'
 
         logger.info('Got path content: %s\n', path)
 
@@ -159,7 +161,7 @@ def main(mountpoint, data_folder, foreground=True):
     # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
-    projection_filesystem.projection_manager = SRAProjectionManager('vsvekolkin@parseq.pro', 'Streptococcus', 1)
+    projection_filesystem.projection_manager = SRAProjectionManager('vsvekolkin@parseq.pro', 'SRX079566', 1)
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
     return fuse
 

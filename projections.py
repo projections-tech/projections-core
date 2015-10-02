@@ -32,7 +32,7 @@ class Projection(object):
         self.xattrs = {}
 
         # Other attributes as well as extended attributes may be stored here
-        self.metadata = None
+        self.download_process = None
 
     def __str__(self):
         return 'Projection from {} to {} with xattrs: {}'.format(self.uri, self.path, self.xattrs)
