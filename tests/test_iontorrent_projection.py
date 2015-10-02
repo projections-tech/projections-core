@@ -5,7 +5,7 @@ import httpretty
 import logging
 import logging.config
 from unittest import TestCase, skip
-from .resource_pretender import TorrentSuiteMock
+from .mock import TorrentSuiteMock
 
 
 
@@ -25,11 +25,7 @@ PASSWORD = '0ECu1lW'
 class TestIonTorrentProjection(TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.mock_resource = TorrentSuiteMock('tests/mock_resource')
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.mock_resource.deactivate_mock()
+        cls.mock_resource = TorrentSuiteMock('mockiontorrent.com','tests/mock_resource')
 
     def setUp(self):
         self.mock_url = self.mock_resource.mock_url
@@ -46,6 +42,7 @@ class TestIonTorrentProjection(TestCase):
         self.iontorrent.create_projections()
         bam_files_list = [p for p in self.iontorrent.projections if os.path.splitext(p)[1] == '.bam']
         logger.debug('Bam files projections: %s', bam_files_list)
+        logger.debug('Mock Torrent Suite requests: %s', self.mock_resource.get_last_request_to_mock())
         self.assertEqual(len(bam_files_list), 5)
 
     def test_vcf_projections_creation(self):
