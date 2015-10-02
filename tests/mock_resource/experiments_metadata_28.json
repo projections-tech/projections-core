@@ -1,4 +1,12 @@
-{"objects":[
+{
+    "meta": {
+        "next": "/rundb/api/v1/experiment/?status=run&limit=5&order_by=-id&offset=5",
+        "offset": 0,
+        "previous": "None",
+        "limit": 5,
+        "total_count": 63
+    },
+    "objects":[
 {
     "autoAnalyze": true,
     "baselineRun": false,
