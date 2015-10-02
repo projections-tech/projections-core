@@ -7,14 +7,16 @@ import re
 import stat
 from unittest import TestCase, skip
 
-from projections import ProjectionPrototype, Projector, Projection, ProjectionTree
+from projections import ProjectionPrototype, Projector, Projection, ProjectionTree, ProjectionDriver
 
 # Import logging configuration from the file provided
 logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('test_projector')
 
-class TestDriver(object):
-
+class TestDriver(ProjectionDriver):
+    """
+    This class does not perform actual testing. It's providing test data and may be replaces with mock object.
+    """
     def get_content(self, uri):
         logger.info('Requesting content for uri: %s', uri)
 
@@ -61,6 +63,8 @@ class TestProjector(TestCase):
         :return:
         """
 
+        # Root projection has ho associated prototypes.
+        # This behavior may be changed to provide more uniform approach.
         root = Projection('/', 'experiments')
 
         experiment_prototype = ProjectionPrototype('directory')

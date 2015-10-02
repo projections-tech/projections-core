@@ -3,38 +3,50 @@ __author__ = 'abragin'
 import io
 import logging
 import os
-from os import path
 import stat
 import time
 import threading
 
+# This import is used in eval() expressions so it should be preserved.
+from os import path
+
+# Import logging configuration from the file provided
+logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('projections')
+
 
 class Projection(object):
     """
-    Class for holding projection data. May be subclassed for area-specific projection implementations
+    Class for holding projection data.
+
+    This is designed to be implementation independent.
+    The objects of the class should be logically immutable.
+
+    The purpose of class objects is to store data related to filesystem object representation (name, type and size)
+        and mapping of path to resource uri.
+
+    TODO: current implementation is based on path semantics. It should be reconsidered to use name semantics when
+    Projection objects holds data on its name only and ProjectionTree object holds path/context data in the form
+    of parent/child relationship.
+
     """
 
-    #TODO: consider composite objects here (such as directories). Need to define schema for this.
-
-    def __init__(self, path, uri):
+    def __init__(self, path, uri, type=stat.S_IFDIR, size=4096):
         """
         Create projection object.
 
-        This object is logically immutable. The default variant is 'directory' projection
-
         :param path: specify path relative to mount point. Path is always prefixed with root '/' sign
         :param uri: resource identifier projection is pointing to
+        :param type: type of filesystem object. Current implementation supports S_IFDIR and S_IFREG only.
+        :param size: size of filesystem object in bytes.
         :return:
         """
         # TODO: replace 'path' semantics with 'name' semantic
         self.path = path
-        _, self.name = os.path.split(self.path)
         self.uri = uri
-        # Set to nonzero to trigger projection reading
-        self.size = 4096
-        # File or folder type. Default is file
-        self.type = stat.S_IFDIR
+        self.type = type
+        # Should be nonzero to trigger projection object reading
+        self.size = size
 
     def __str__(self):
         return 'Projection from {} to {}'.format(self.uri, self.path)
@@ -43,43 +55,80 @@ class Projection(object):
 class ProjectionTree(object):
     """
     Class for holding tree-like projection structure.
+
+    This is class STUB.
+
+    TODO: Implementation that allows path traversal and children retrieval should be created.
+    Class functionality is highly similar to ProjectionManager behavior, the latter can achieve this by composition.
+
     """
 
     def __init__(self):
-        # TODO: the self.projections and self.children dictionaries should be synchronized!
         # TODO: consider elements removal. It seems that 'true' tree-like structure is needed here
         # Maps paths to projections in projection tree
         self.projections = {}
-        # Element for holding projections children
-        #self.children = {'/' : set()}
-        # Element for holding root element of projection tree
         self.root = None
 
+        # Be aware of atomicity of operations
         self.lock = threading.Lock()
 
     def get_projection(self, path):
+        """
+        Get projection for a path provided.
+
+        :param path: path the projection resides on
+        :return: projection or None
+        """
         if path in self.projections:
             return self.projections[path]
         else:
             return None
 
     def get_children(self, path):
-        if path not in self.children:
-            raise KeyError('Path is not managed by projection: {}'.format(path))
-        return [p.name for p in self.children[path]]
+        """
+        Return first-order descendants of the projection on the path specified.
+        Implements 'get-directory-content-like' functionality.
+
+        :param path: path to retrieve child projections for
+        :return: list of child projections that can be empty
+        """
+        raise NotImplemented('This method is not currently implemented')
 
     def add_projection(self, projection, parent):
+        """
+        Adds projection to the current tree.
+
+        :param projection: projection object to add.
+        :param parent: parent projection the object should be attached to.
+        """
+        # This should be done atomically regardless of implementation details.
         self.lock.acquire()
         self.projections[projection.path] = projection
-        #self.children[parent.path].add(projection)
         self.lock.release()
 
-class ProjectionPrototype:
+
+class ProjectionPrototype(object):
+    """
+    The class objects describe nodes in projection logical structure.
+    Every Prototype object may have 0..many projections associated with it.
+
+    Serialized form of the ProjectionPrototype objects hierarchy is THE way to describe projections.
+    """
 
     def __init__(self, type):
+        """
+        Create ProjectionPrototype object.
+
+        :param type: describe the type of the generated projections. Current implementation uses 'directory' and 'file' types
+        """
+        # List of child ProjectionPrototype's.
+        # TODO: consider PrototypeTree class creation.
         self.children = {}
         self.type = type
+        # TODO: consider logical synchronization of name and uri
+        # Dialect specific description that is used as a generator for projection names
         self.name = None
+        # Dialect specific description that is used as a generator for projection usi's
         self.uri = None
 
     def __str__(self):
@@ -88,63 +137,81 @@ class ProjectionPrototype:
     def __repr__(self):
         return self.__str__()
 
+
+class ProjectionDriver(object):
+    """
+    Object that has get_content(uri) method returning array of Python dictionaries.
+    """
+
+    def get_content(self, uri):
+        raise NotImplemented('Implement data retrieval from some projection backend.')
+
 class Projector:
+    """
+    Class that creates Projection object and assembles them in ProjectionTree object using Prototypes object.
+
+    """
 
     def __init__(self, driver):
-        # Resource driver
+        """
+        Create projector object.
+
+        :param driver: driver object that has get_content(uri) method returning array of Python dictionaries
+            that are used for ProjectionTree composition.
+        """
+        assert isinstance(driver, ProjectionDriver), 'Check that driver object is subclass of ProjectionDriver'
         self.driver = driver
 
     def create_projection_tree(self, prototypes, projection_tree, parent_projection=None):
         """
-        Creates projection tree for a given collection of prototypes
+        Creates projection tree for a given collection of prototypes.
+
+        Method signature is influenced by recursion implementation and is subject to change.
+
+        :param prototypes: collection of prototypes that are attached to parent projection's prototype
+        :param projection_tree: projection tree to extend. Should not be None
+        :param parent_projection: parent projection that is root to tree under creation.
+            Should exists in projection tree provided.
+        :return: void. The provided projection tree object expected to be used.
         """
         logger.info('Creating projection tree with a prototypes: %s starting from: %s', prototypes, parent_projection)
 
+        # Dictionaries that act as a evaluation context for projections. environment is available for both directory and
+        #   file prototypes, while content for directory prototypes only
         environment = None
         content = None
 
-        if not parent_projection:
-            # Create root projection
-            logger.info('Creating root node for projection.')
-            projection = Projection('/', None)
-            projection.size = 4096
-            projection.type = stat.S_IFDIR
-
-            self.create_projection_tree(prototypes, projection_tree, projection)
-            logging.info('Projection tree creation done.')
-            return projection_tree
-
-        # Get resource content, it should be iterable of JSON objects
-        # This is environment in which projections are created
-        # In many cases it means double request to parent projection resource so it should be optimized
+        # This is environment in which projections are created (parent_projection content)
+        # TODO: in many cases it means double request to parent projection resource so it should be optimized
         environment = self.driver.get_content(parent_projection.uri)
 
         logger.info('Starting prototype creation in the context of resource with uri: %s', parent_projection.uri)
 
+        # For every prototype in collection try to create corresponding projections
         for prototype in prototypes:
             logger.info('Creating projections for a prototype: %s', prototype)
-            # For every prototype in collection try to create corresponding projections
+
+            # TODO: eval is not safe, consider safer alternative, e.g. JsonPath
             URIs = eval(prototype.uri)
             logger.info('Prototype %s has projections on URIs: %s', prototype, URIs)
 
+            # We get projection URIs based on environment and prototype properties
+            # Every URI corresponds to projection object
             for uri in URIs:
-
                 # Get content for a projection
                 content = self.driver.get_content(uri)
 
-                logger.info('ENV: %s, CONTENT: %s', environment, content)
-                logger.info('Name: %s', prototype.name)
+                logger.debug('ENV: %s, CONTENT: %s', environment, content)
                 name = eval(prototype.name)
 
+                # This may be reconsidered with ProjectionTree implementation
                 projection_path = os.path.join(parent_projection.path, name)
-                projection = Projection(projection_path, uri)
 
-                # TODO: Consider safer alternative, e.g. JsonPath
-                # Prototype name evaluation is based on content object search
+                projection = Projection(projection_path, uri)
                 projection.name = name
 
+                # Add newly created projection to projection tree
                 projection_tree.add_projection(projection, parent_projection)
-
                 logger.info('Projection created: %s', projection)
 
                 if prototype.type == 'directory':
@@ -154,37 +221,23 @@ class Projector:
 
                     # If prototype has children, continue tree building
                     logger.info('Starting attached prototype projection creation for  prototype: %s with children: %s',
-                                 prototype, prototype.children)
+                                prototype, prototype.children)
                     if prototype.children:
-                       self.create_projection_tree(prototype.children, projection_tree, projection)
+                        self.create_projection_tree(prototype.children, projection_tree, projection)
 
                 elif prototype.type == 'file':
-
                     # NOTE: content variable is not accessible during file projection creation!
                     # This is the point where metadata can be extracted from the file
-                    # name = eval(prototype.name)
-                    #
-                    # projection_path = os.path.join(parent_projection.path, name)
-                    #
-                    # projection = Projection(projection_path, uri)
-                    #
-                    # # TODO: Consider safer alternative, e.g. JsonPath
-                    # # Prototype name evaluation is based on content object search
-                    # projection.name = name
-                    #
-                    # projection_tree.add_projection(projection, parent_projection)
-                    #
-                    # logger.info('Projection created: %s', projection)
-
+                    #   but file content should be accessed in this case
                     projection.type = stat.S_IFREG
                     projection.size = 1
-
-
 
 
 class ProjectionManager(object):
     """
     Should be subclassed to provide real-life implementations.
+
+    TODO: ProjectionManager should include Projector functionality and present it to subclasses where applicable.
     """
 
     def __init__(self):
@@ -211,6 +264,8 @@ class ProjectionManager(object):
 
         # TODO: replace stub with real code here
         projection = Projection('/projection', 'uri:parseq.pro')
+        projection.type = stat.S_IFREG
+        projection.size = 1
         projections.append(projection)
 
         return projections
