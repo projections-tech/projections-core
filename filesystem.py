@@ -132,7 +132,6 @@ class ProjectionFilesystem(Operations):
         if self.projection_manager.is_managing_path(path):
             file_header, resource_io = self.projection_manager.open_resource(path)
             logger.debug('Opening resource at path: %s returned header: %s', path, file_header)
-
             logger.info('Saving resource content to local drive')
             # Create folder if not exists
             dirname = os.path.dirname(self._extend_data_path(path))
