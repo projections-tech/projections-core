@@ -92,3 +92,7 @@ class TorrentSuiteMock(MockResource):
                                        status=200,
                                        content_type=content_type,
                                        match_querystring=True)
+
+class SRAMock(MockResource):
+    def prepare_responses(self):
+        pass

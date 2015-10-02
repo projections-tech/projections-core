@@ -9,8 +9,6 @@ import sys
 import time
 import xmltodict
 import subprocess
-import urllib.request
-from urllib.parse import urljoin
 from Bio import Entrez
 
 from projections import Projection, ProjectionManager
@@ -19,7 +17,6 @@ from fuse import FUSE
 
 
 logger = logging.getLogger('sra_projection')
-
 
 
 class SRAProjectionManager(ProjectionManager):
@@ -69,20 +66,25 @@ class SRAProjectionManager(ProjectionManager):
             ex_metadata_uri = 'www.ncbi.nlm.nih.gov/sra/{0}'.format(experiment_id)
             experiment_metadata_projection = Projection(ex_metadata_path, ex_metadata_uri)
             experiment_metadata_projection.metadata = json.dumps(experiment_metadata)
-            #logger.debug('Experiment metadata: %s', experiment_metadata_projection.metadata)
 
             projections.append(experiment_projection)
             projections.append(experiment_metadata_projection)
 
             sample_run_set = experiment_metadata['RUN_SET']['RUN']
-            sample_id = sample_run_set['@accession']
+            # Dealing with minor inconsistency here, sometimes RUN field contains run dict, sometimes list of run dicts
+            if not type(sample_run_set) == 'list':
+                # Deal with inconsistency by creating list anyway
+                sample_run_set = [sample_run_set]
 
-            sample_path = os.path.join(experiment_path, sample_id + '.sam')
-            sample_projection = Projection(sample_path, 'test')
-            sample_projection.sample_id = sample_id
-            projections.append(sample_projection)
+            for run in sample_run_set:
+                sample_id = run['@accession']
 
-            logger.debug('Run accession: %s', sample_id)
+                sample_path = os.path.join(experiment_path, sample_id + '.sam')
+                sample_projection = Projection(sample_path, 'test')
+                sample_projection.sample_id = sample_id
+                projections.append(sample_projection)
+
+                logger.debug('Run accession: %s', sample_id)
 
         for p in projections:
             self.projections[p.path] = p
