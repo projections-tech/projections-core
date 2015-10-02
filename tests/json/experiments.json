@@ -1,0 +1,26 @@
+{
+  "objects" : [
+    {
+      "uri" : "experiments/0",
+      "displayName" : "experiment 0",
+      "results" : []
+    },
+    {
+      "uri" : "experiments/1",
+      "displayName" : "experiment 1",
+      "results" : [
+        "results/1",
+        "results/2"
+      ]
+    },
+    {
+      "uri" : "experiments/2",
+      "diaplayName" : "experiment 2",
+      "results" : [
+        "results/3",
+        "results/4",
+        "results/5"
+      ]
+    }
+  ]
+}

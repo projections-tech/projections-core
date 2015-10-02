@@ -1,0 +1,8 @@
+{
+  "uri" : "experiments/1",
+  "displayName" : "experiment 1",
+  "results" : [
+    "results/1",
+    "results/2"
+  ]
+}
