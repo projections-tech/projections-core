@@ -62,16 +62,19 @@ class TorrentSuiteMock(MockResource):
         Prepares mock Torrent Suite replies to requests
         """
         uri_dict = {
-            '/rundb/api/v1/experiment\?status\=run\&limit\=1\&order_by\=-id': 'experiments_metadata_28.json',
-            '/rundb/api/v1/experiment/\d+': 'experiments_metadata_28.json',
-            '/rundb/api/v1/plannedexperiment/\d+/': 'plannedexperiment_metadata_31.json',
-            '/rundb/api/v1/results/\d+/': 'results_8.json',
-            '/rundb/api/v1/pluginresult\?result\=\d+': 'plugin_result.json',
-            '/rundb/api/v1/sample/\d+/': 'plugin_result.json',
+            '/rundb/api/v1/experiment\?status=run\&limit=1\&order_by=-id': 'experiments_metadata_28.json',
+            '/rundb/api/v1/experiment/(\d+)': 'experiments_metadata_28.json',
+            '/rundb/api/v1/plannedexperiment/(\d+)/': 'plannedexperiment_metadata_31.json',
+            '/rundb/api/v1/results/(\d+)/': 'results_8.json',
+            '/rundb/api/v1/pluginresult\?result\=(\d+)': 'plugin_result.json',
+            '/rundb/api/v1/sample/(\d+)/': 'plugin_result.json',
             '/auth/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out[\.\d+]*/local_parameters.json': 'mock_vc_parameters.json',
             '/auth/output/Home/Run_11_hg19_v3_008/IonXpress_00\d+_rawlib.bam':'mock_bam.bam',
             '/auth/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out[\.\d+]*/IAD39777_BED_4_for_TSVC.bed':'mock_bed.bed',
             '/auth/output/Home/Run_11_hg19_v3_008/plugin_out/variantCaller_out[\.\d+]*/IonXpress_00\d+/*.vcf': 'mock_vcf.vcf'
+        }
+        content_types_dict = {
+
         }
         for uri, json_file_name in uri_dict.items():
             with open(os.path.join(self.content_dir, json_file_name), 'rb') as f:
