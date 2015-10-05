@@ -2,6 +2,7 @@
 __author__ = 'abragin'
 
 import logging
+import logging.config
 import io
 import json
 import os
@@ -47,11 +48,11 @@ class TorrentSuiteDriver(ProjectionDriver):
         with urllib.request.urlopen(uri) as f:
             return json.loads(f.readall().decode('utf-8'))
 
-    def load_uri(self, uri):
+    def open_uri(self, uri):
         """
-        Loads uri
+        Opens URI
         :param uri: URI string
-        :return: bytes
+        :return: uri content
         """
         with urllib.request.urlopen(uri) as f:
             return f.readall()
@@ -63,27 +64,11 @@ class IonTorrentProjection(ProjectionManager):
         self.host_url = 'http://{}'.format(host)
         self.api_url = 'http://{}/rundb/api/v1/'.format(host)
         self.files_url = urljoin(self.host_url, '/auth/output/Home/')
-        self.authenticate(user, password)
+        self.driver = TorrentSuiteDriver(self.host_url, user, password)
 
         # TODO: switch to tree-like structure instead of manual path parsing
         self.projections = {}
         self.create_projections()
-
-    def authenticate(self, user, password):
-        password_manager = urllib.request.HTTPPasswordMgrWithDefaultRealm()
-        password_manager.add_password(None, self.host_url, user, password)
-
-        handler = urllib.request.HTTPBasicAuthHandler(password_manager)
-
-        # create "opener" (OpenerDirector instance)
-        opener = urllib.request.build_opener(handler)
-
-        # use the opener to fetch a URL
-        opener.open(self.api_url)
-
-        # Install the opener.
-        # Now all calls to urllib.request.urlopen use our opener.
-        urllib.request.install_opener(opener)
 
     def create_projections(self):
         """
@@ -92,8 +77,7 @@ class IonTorrentProjection(ProjectionManager):
         :return: list of projections
         """
         # Select last five experiments that were finished (with 'run' status)
-        with urllib.request.urlopen(urljoin(self.api_url, 'experiment?status=run&limit=5&order_by=-id')) as f:
-            experiments = json.loads(f.readall().decode('utf-8'))
+        experiments = self.driver.get_content(urljoin(self.api_url, 'experiment?status=run&limit=5&order_by=-id'))
         logger.info('Got experiments data: %s', len(experiments['objects']))
 
         projections = []
@@ -129,40 +113,37 @@ class IonTorrentProjection(ProjectionManager):
                 logger.debug('Barcodes: %s', barcodes)
 
             # Get sample barcodes data
-            with urllib.request.urlopen(urljoin(self.api_url, o['plan'])) as p:
-                ex_plan = json.loads(p.readall().decode('utf-8'))
-                sample_barcodes = ex_plan['barcodedSamples']
+            ex_plan = self.driver.get_content(urljoin(self.api_url, o['plan']))
+            sample_barcodes = ex_plan['barcodedSamples']
 
             # Create experiment results directory projections
             for r in o['results']:
-                with urllib.request.urlopen(urljoin(self.api_url, r)) as f:
-                    results = json.loads(f.readall().decode('utf-8'))
+                results = self.driver.get_content(urljoin(self.api_url, r))
+                path_to_files = os.path.basename(results['filesystempath'])
 
-                    path_to_files = os.path.basename(results['filesystempath'])
+                path_to_results_dir = os.path.join(o['displayName'], path_to_files)
+                results_dir_projection = Projection('/'+path_to_results_dir, urljoin(self.files_url, path_to_files))
+                results_dir_projection.type = stat.S_IFDIR
 
-                    path_to_results_dir = os.path.join(o['displayName'], path_to_files)
-                    results_dir_projection = Projection('/'+path_to_results_dir, urljoin(self.files_url, path_to_files))
-                    results_dir_projection.type = stat.S_IFDIR
-
-                    projections.append(results_dir_projection)
+                projections.append(results_dir_projection)
                 # Dict stores each variant calling run with result variant call directory as key
                 variant_calls = dict()
-                with urllib.request.urlopen(urljoin(self.api_url, 'pluginresult?result={}'.format(results['id']))) as f:
-                    plugin_res = json.loads(f.readall().decode('utf-8'))
-                    for p in plugin_res['objects']:
-                        if 'variantCaller' in p['pluginName'] and not 'VFNA' in p['pluginName']:
-                            variant_calls[p['path']] = {'barcodes': results['pluginStore'][p['pluginName']]['barcodes'].keys(),
-                                                        'resource_uri': p['resource_uri']}
-                            # If there is bed file in "target_bed" field, create it`s projection
-                            if 'targets_bed' in results['pluginStore'][p['pluginName']]:
-                                # Bed file base name
-                                bed_file_name = os.path.basename(results['pluginStore'][p['pluginName']]['targets_bed'])
-                                # Setting up bed file URI
-                                bed_file_path = os.path.join(path_to_files, 'plugin_out',
-                                                        os.path.basename(p['path']), bed_file_name)
-                                bed_file_projection = Projection(os.path.join('/'+path_to_results_dir, os.path.basename(bed_file_path)),
-                                                                 urljoin(self.files_url, bed_file_path))
-                                projections.append(bed_file_projection)
+                for plugin_uri in results['pluginresults']:
+                    p = self.driver.get_content(self.host_url+plugin_uri)
+
+                    if 'variantCaller' in p['pluginName'] and not 'VFNA' in p['pluginName']:
+                        variant_calls[p['path']] = {'barcodes': results['pluginStore'][p['pluginName']]['barcodes'].keys(),
+                                                    'resource_uri': p['resource_uri']}
+                        # If there is bed file in "target_bed" field, create it`s projection
+                        if 'targets_bed' in results['pluginStore'][p['pluginName']]:
+                            # Bed file base name
+                            bed_file_name = os.path.basename(results['pluginStore'][p['pluginName']]['targets_bed'])
+                            # Setting up bed file URI
+                            bed_file_path = os.path.join(path_to_files, 'plugin_out',
+                                                    os.path.basename(p['path']), bed_file_name)
+                            bed_file_projection = Projection(os.path.join('/'+path_to_results_dir, os.path.basename(bed_file_path)),
+                                                             urljoin(self.files_url, bed_file_path))
+                            projections.append(bed_file_projection)
 
                 # Create samples projections
                 for s in o['samples']:
@@ -270,8 +251,7 @@ class IonTorrentProjection(ProjectionManager):
     def open_resource(self, path):
         uri = self.projections[path].uri
 
-        with urllib.request.urlopen(uri) as f:
-            content = f.readall()
+        content = self.driver.open_uri(uri)
         logger.info('Got path content: %s\n', path)
 
         self.projections[path].size = len(content)
