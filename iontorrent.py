@@ -11,12 +11,50 @@ import time
 import urllib.request
 from urllib.parse import urljoin
 
-from projections import Projection, ProjectionManager
+from projections import Projection, ProjectionManager, ProjectionDriver
 from filesystem import ProjectionFilesystem
 from fuse import FUSE
 
 
 logger = logging.getLogger('iontorrent_projection')
+
+class TorrentSuiteDriver(ProjectionDriver):
+    def __init__(self, host_url, user, password):
+        self.authenticate(host_url, user, password)
+
+    def authenticate(self,host_url, user, password):
+        password_manager = urllib.request.HTTPPasswordMgrWithDefaultRealm()
+        password_manager.add_password(None, host_url, user, password)
+
+        handler = urllib.request.HTTPBasicAuthHandler(password_manager)
+
+        # create "opener" (OpenerDirector instance)
+        opener = urllib.request.build_opener(handler)
+
+        # use the opener to fetch a URL
+        opener.open(host_url)
+
+        # Install the opener.
+        # Now all calls to urllib.request.urlopen use our opener.
+        urllib.request.install_opener(opener)
+
+    def get_content(self, uri):
+        """
+        Opens URI and returns dict
+        :param uri: URI string
+        :return: dict of URI contents
+        """
+        with urllib.request.urlopen(uri) as f:
+            return json.loads(f.readall().decode('utf-8'))
+
+    def load_uri(self, uri):
+        """
+        Loads uri
+        :param uri: URI string
+        :return: bytes
+        """
+        with urllib.request.urlopen(uri) as f:
+            return f.readall()
 
 class IonTorrentProjection(ProjectionManager):
 

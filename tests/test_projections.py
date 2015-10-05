@@ -5,6 +5,8 @@ import logging
 import logging.config
 import re
 import stat
+import json
+
 from unittest import TestCase, skip
 
 from projections import ProjectionPrototype, Projector, Projection, ProjectionTree, ProjectionDriver
@@ -88,6 +90,7 @@ class TestProjector(TestCase):
         projection_tree.add_projection(root, None)
 
         projector.create_projection_tree([experiment_prototype], projection_tree=projection_tree, parent_projection=root)
+
 
         dir_paths = ['/', '/experiment_0', '/experiment_1', '/experiment_2',
                  '/experiment_1/result_1', '/experiment_1/result_2',
