@@ -44,11 +44,17 @@ class TestIonTorrentProjection(TestCase):
         paths_experiment_dir_state = all([re.search(expected_experiment_path, path) for path in projection_paths])
         self.assertTrue(paths_experiment_dir_state)
 
-    def test_run_projection_creattion(self):
+    def test_run_projection_creation(self):
+        expected_experiment_path = '/Sequoia SN1-14-Newborn 5 samples from CV'
         expected_run_name = 'Run_11_hg19_v3_008'
-        projection_paths = [key for key in self.iontorrent.projections]
+        # All projections paths except '/Sequoia SN1-14-Newborn 5 samples from CV' and its metadata files
+        projection_paths = [key for key in self.iontorrent.projections if not re.search(expected_experiment_path+'$', key)
+                            and re.search(expected_experiment_path + '/plannedexperiment.json$', key)
+                            and re.search(expected_experiment_path + '/metadata.json$', key)]
+
         paths_run_dir_state = all([re.search(expected_run_name, path) for path in projection_paths])
-        self.assertTrue(paths_run_dir_state, paths_run_dir_state)
+        logger.debug([path for path in projection_paths if not re.search(expected_run_name, path)])
+        self.assertTrue(paths_run_dir_state)
 
     def test_bam_projections_creation(self):
         bam_files_list = sorted([os.path.basename(p) for p in self.iontorrent.projections if os.path.splitext(p)[1] == '.bam'])
