@@ -18,9 +18,8 @@ DATA_FOLDER = 'tests/data'
 logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('test_iontorrent_projection')
 
-# TODO: remove connection parameters to configuration
-USER = 'ionadmin'
-PASSWORD = '0ECu1lW'
+USER = 'user'
+PASSWORD = 'password'
 
 class TestIonTorrentProjection(TestCase):
     @classmethod

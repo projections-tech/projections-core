@@ -7,7 +7,7 @@ import logging.config
 import httpretty
 
 logging.config.fileConfig('logging.cfg')
-logger = logging.getLogger('resource_pretender')
+logger = logging.getLogger('mock')
 
 
 class MockResource(object):
@@ -40,7 +40,7 @@ class MockResource(object):
 
     def mock_auth_response(self):
         """
-        Reply to basic authorization call
+        Reply to basic authorization call, should be overridden in resource-specific manner
         """
         uri = 'http://{}/rundb/api/v1/'.format(self.mock_url)
         httpretty.register_uri(httpretty.GET, uri=uri, status=200)
