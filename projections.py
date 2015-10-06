@@ -6,6 +6,7 @@ import os
 import stat
 import time
 import threading
+import yaml
 
 # This import is used in eval() expressions so it should be preserved.
 from os import path
@@ -51,6 +52,10 @@ class Projection(object):
     def __str__(self):
         return 'Projection from {} to {}'.format(self.uri, self.path)
 
+class ProjectionTreeNode(object):
+    def __init__(self, data):
+        self.data = None
+        self.children = []
 
 class ProjectionTree(object):
     """
@@ -232,6 +237,13 @@ class Projector:
                     projection.type = stat.S_IFREG
                     projection.size = 1
 
+class ProjectionDeserializer(object):
+    def __init__(self, data):
+        self.data_path = data
+
+    def read_projections(self):
+        with open(self.data_path) as y_f:
+            return yaml.safe_load()
 
 class ProjectionManager(object):
     """

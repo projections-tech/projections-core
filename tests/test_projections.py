@@ -91,7 +91,6 @@ class TestProjector(TestCase):
 
         projector.create_projection_tree([experiment_prototype], projection_tree=projection_tree, parent_projection=root)
 
-
         dir_paths = ['/', '/experiment_0', '/experiment_1', '/experiment_2',
                  '/experiment_1/result_1', '/experiment_1/result_2',
                  '/experiment_2/result_3', '/experiment_2/result_4', '/experiment_2/result_5']
