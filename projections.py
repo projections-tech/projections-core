@@ -17,13 +17,23 @@ logger = logging.getLogger('projections')
 
 
 class Tree:
-    def __init__(self):
-        self.value = None
+    def __init__(self, value=None):
+        self.value = value
         self.parent = None
         self.children = {}
 
+    def __split_path_in_parts(self, path):
+        temp = []
+        while True:
+            chunk = os.path.split(path)
+            if chunk[0] == '/' or chunk[0] == '':
+                temp += chunk[::-1]
+                return temp[::-1]
+            temp += [chunk[1]]
+            path = chunk[0]
+
     def tree_to_list(self):
-        return [self.value]+[self.tree_to_list(c[1]) for c in self.children.items()]
+        return [self.value]+[c[1].tree_to_list() for c in self.children.items()]
 
     def find(self, value):
         if self.value == value:
@@ -42,6 +52,9 @@ class Tree:
             result.append(parent)
             parent, child = parent.parent, parent
         return result[::-1]
+
+    def node_descendands(self):
+        return [c[1] for c in self.children.items()]
 
     def traverse_pre_order(self):
         yield self.value
@@ -62,6 +75,13 @@ class Tree:
             for k, c in node.children.items():
                 to_yield.append(c)
             yield node.value
+
+    def find_by_path(self, path_to_node):
+        path = self.__split_path_in_parts(path_to_node)
+        temp_node = self
+        for item in path:
+            temp_node = temp_node.find(item)
+        return temp_node
 
 
 class Projection(object):
@@ -99,11 +119,6 @@ class Projection(object):
 
     def __str__(self):
         return 'Projection from {} to {}'.format(self.uri, self.path)
-
-class ProjectionTreeNode(object):
-    def __init__(self, data):
-        self.data = None
-        self.children = []
 
 class ProjectionTree(object):
     """
