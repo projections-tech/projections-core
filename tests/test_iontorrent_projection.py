@@ -7,8 +7,6 @@ import logging.config
 from unittest import TestCase, skip
 from .mock import TorrentSuiteMock
 
-
-
 import iontorrent
 
 MOUNT_POINT = 'tests/mnt'
