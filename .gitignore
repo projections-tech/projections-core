@@ -1,6 +1,7 @@
+*~
 *__pycache__*
 .idea
+data/*
 mnt/*
 tests/mnt/*
-data/*
-*~
+virtualenv
