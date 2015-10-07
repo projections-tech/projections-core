@@ -41,7 +41,7 @@ class TestIonTorrentProjection(TestCase):
         run_name = 'test_run'
 
         # Checking number of created projections, we expect 372 projections for two experiments with 5 samples and variant_calling
-        self.assertEqual(len(self.iontorrent.projections), 372, msg='Checking projections quantity.')
+        self.assertEqual(len(projection_paths_list), 372, msg='Checking projections quantity, expecting 372, got: {0}.'.format(len(projection_paths_list)))
 
         for exp_dir in exp_dirs:
             # Checking metadata projection creation for experiments
@@ -50,10 +50,10 @@ class TestIonTorrentProjection(TestCase):
                 self.assertTrue(meta_data_path in projection_paths_list, msg='Checking metadata projections for experiment {0}.'.format(exp_dir))
 
             # Checking BED file projections creation
-            bed_file_path = os.path.join(exp_dir, run_name,'IAD39777_BED_4_for_TSVC.bed')
+            bed_file_path = os.path.join(exp_dir, run_name, 'IAD39777_BED_4_for_TSVC.bed')
             self.assertIn(bed_file_path, projection_paths_list, msg='Checking BED file projection existance: {0}.'.format(bed_file_path))
 
-            for i in range(1,6):
+            for i in range(1, 6):
                 # Checking BAM file projections creation on expected paths
                 bam_file_path = os.path.join(exp_dir, run_name, 'sample_{0}'.format(i), 'sample_{0}.bam'.format(i))
                 self.assertIn(bam_file_path, projection_paths_list, msg='Checking BAM projection existance: {0}'.format(bam_file_path))
@@ -72,9 +72,9 @@ class TestIonTorrentProjection(TestCase):
 
                     # Checking VCF files projection creation on expected path
                     for variant_file_name in ['TSVC_variants.vcf', 'all.merged.vcf', 'indel_assembly.vcf',
-                                                              'indel_variants.vcf', 'small_variants.left.vcf',
-                                                              'small_variants.vcf', 'small_variants_filtered.vcf',
-                                                              'small_variants.sorted.vcf', 'SNP_variants.vcf']:
+                                              'indel_variants.vcf', 'small_variants.left.vcf',
+                                              'small_variants.vcf', 'small_variants_filtered.vcf',
+                                              'small_variants.sorted.vcf', 'SNP_variants.vcf']:
                         vcf_file_path = os.path.join(exp_dir,
                                                      run_name,
                                                      'sample_{}'.format(i),
