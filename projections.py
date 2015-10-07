@@ -19,10 +19,8 @@ logger = logging.getLogger('projections')
 class Tree:
     def __init__(self):
         self.value = None
+        self.parent = None
         self.children = {}
-
-    def add_projection(self, projection):
-        pass
 
     def tree_to_list(self):
         return [self.value]+[self.tree_to_list(c[1]) for c in self.children.items()]
@@ -31,21 +29,19 @@ class Tree:
         if self.value == value:
             return self
         else:
-            for k, c in self.children.item():
-                result = self.find(c.value)
+            for k, c in self.children.items():
+                result = c.find(value)
                 if not result == None:
                     return result
             return None
 
-    def parents(self, node):
-        if self.node == node:
-            return [node]
-        else:
-            for c in self.children.items():
-                result = c.parents(node)
-                if result != []:
-                    return [self.value] + result
-            return []
+    def path_to_node(self):
+        result = []
+        parent, child = self.parent, self
+        while parent:
+            result.append(parent)
+            parent, child = parent.parent, parent
+        return result[::-1]
 
     def traverse_pre_order(self):
         yield self.value
