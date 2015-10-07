@@ -1,0 +1,203 @@
+{
+    "adapter": null,
+    "alignmentargs": "stage1 map4",
+    "analysisargs": "Analysis --from-beadfind",
+    "applicationGroup": "/rundb/api/v1/applicationgroup/1/",
+    "applicationGroupDisplayedName": "DNA",
+    "autoAnalyze": true,
+    "autoName": null,
+    "barcodeId": "IonXpress",
+    "barcodedSamples": {
+        "sample_1": {
+            "barcodeSampleInfo": {
+                "IonXpress_001": {
+                    "description": "test",
+                    "externalId": ""
+                }
+            },
+            "barcodes": [
+                "IonXpress_001"
+            ]
+        },
+        "sample_2": {
+            "barcodeSampleInfo": {
+                "IonXpress_002": {
+                    "description": "test",
+                    "externalId": ""
+                }
+            },
+            "barcodes": [
+                "IonXpress_002"
+            ]
+        },
+        "sample_3": {
+            "barcodeSampleInfo": {
+                "IonXpress_003": {
+                    "description": "test",
+                    "externalId": ""
+                }
+            },
+            "barcodes": [
+                "IonXpress_003"
+            ]
+        },
+        "sample_4": {
+            "barcodeSampleInfo": {
+                "IonXpress_004": {
+                    "description": "test",
+                    "externalId": ""
+                }
+            },
+            "barcodes": [
+                "IonXpress_004"
+            ]
+        },
+        "sample_5": {
+            "barcodeSampleInfo": {
+                "IonXpress_005": {
+                    "description": "test",
+                    "externalId": ""
+                }
+            },
+            "barcodes": [
+                "IonXpress_005"
+            ]
+        }
+    },
+    "base_recalibration_mode": "standard_recal",
+    "basecallerargs": "BaseCaller --trim-qual-cutoff 15 --trim-qual-window-size 30 --trim-adapter-cutoff 16",
+    "beadfindargs": "justBeadFind",
+    "bedfile": "",
+    "calibrateargs": "",
+    "categories": "",
+    "chefInfo": {},
+    "childPlans": [],
+    "chipBarcode": null,
+    "chipType": "314",
+    "controlSequencekitname": null,
+    "cycles": null,
+    "date": "2014-03-27T04:37:47.000144+00:00",
+    "expName": "R_2012_08_31_00_21_53_Sequoia_SN1-14-Newborn_5_samples_from_CV",
+    "experiment": "/rundb/api/v1/experiment/24/",
+    "flows": 500,
+    "flowsInOrder": "TACGTACGTCTGAGCATCGATCGATGTACAGC",
+    "forward3primeadapter": "ATCACCGACTGCCCATAGAGAGGCTGAGAC",
+    "id": 31,
+    "irworkflow": "",
+    "isDuplicateReads": false,
+    "isFavorite": false,
+    "isPlanGroup": false,
+    "isReusable": false,
+    "isReverseRun": false,
+    "isSystem": false,
+    "isSystemDefault": false,
+    "libkit": null,
+    "library": "hg19",
+    "libraryKey": "TCAG",
+    "libraryReadLength": 0,
+    "librarykitname": "Ion Xpress Plus Fragment Library Kit",
+    "metaData": {},
+    "notes": "Sample names were created artificially to enable barcoded run analysis.",
+    "pairedEndLibraryAdapterName": "",
+    "parentPlan": null,
+    "planDisplayedName": "CopyOfSystemDefault_R_2012_08_31_00_21_53_Sequoia_SN1-14-Newborn_5_samples_from_CV",
+    "planExecuted": true,
+    "planExecutedDate": null,
+    "planGUID": "c3a9d94b-5a57-4ffa-9cfd-ba157650327e",
+    "planName": "CopyOfSystemDefault_R_2012_08_31_00_21_53_Sequoia_SN1-14-Newborn_5_samples_from_CV",
+    "planPGM": null,
+    "planShortID": "RG788",
+    "planStatus": "run",
+    "platform": "PGM",
+    "preAnalysis": true,
+    "prebasecallerargs": "BaseCaller --trim-qual-cutoff 15 --trim-qual-window-size 30 --trim-adapter-cutoff 16 --calibration-training=100000 --flow-signals-type scaled-residual",
+    "prethumbnailbasecallerargs": "",
+    "project": "",
+    "projects": [],
+    "qcValues": [
+        {
+            "id": 91,
+            "plannedExperiment": "/rundb/api/v1/plannedexperiment/31/",
+            "qcType": {
+                "defaultThreshold": 30,
+                "description": "",
+                "id": 1,
+                "maxThreshold": 100,
+                "minThreshold": 0,
+                "qcName": "Bead Loading (%)",
+                "resource_uri": "/rundb/api/v1/qctype/1/"
+            },
+            "resource_uri": "/rundb/api/v1/plannedexperimentqc/91/",
+            "threshold": 30
+        },
+        {
+            "id": 92,
+            "plannedExperiment": "/rundb/api/v1/plannedexperiment/31/",
+            "qcType": {
+                "defaultThreshold": 30,
+                "description": "",
+                "id": 2,
+                "maxThreshold": 100,
+                "minThreshold": 1,
+                "qcName": "Key Signal (1-100)",
+                "resource_uri": "/rundb/api/v1/qctype/2/"
+            },
+            "resource_uri": "/rundb/api/v1/plannedexperimentqc/92/",
+            "threshold": 30
+        },
+        {
+            "id": 93,
+            "plannedExperiment": "/rundb/api/v1/plannedexperiment/31/",
+            "qcType": {
+                "defaultThreshold": 30,
+                "description": "",
+                "id": 3,
+                "maxThreshold": 100,
+                "minThreshold": 0,
+                "qcName": "Usable Sequence (%)",
+                "resource_uri": "/rundb/api/v1/qctype/3/"
+            },
+            "resource_uri": "/rundb/api/v1/plannedexperimentqc/93/",
+            "threshold": 30
+        }
+    ],
+    "realign": false,
+    "regionfile": "",
+    "resource_uri": "/rundb/api/v1/plannedexperiment/31/",
+    "reverse3primeadapter": "",
+    "reverse_primer": null,
+    "reverselibrarykey": "",
+    "runMode": "single",
+    "runType": "AMPS",
+    "runname": null,
+    "sample": "",
+    "sampleDisplayedName": "",
+    "sampleGrouping": null,
+    "sampleGroupingName": "",
+    "samplePrepKitName": null,
+    "sampleSet": null,
+    "sampleSetDisplayedName": "",
+    "sampleSetGroupType": null,
+    "sampleSet_planIndex": 0,
+    "sampleSet_planTotal": 0,
+    "sampleSet_uid": null,
+    "sampleTubeLabel": "",
+    "selectedPlugins": {},
+    "seqKitBarcode": null,
+    "sequencekitname": "IonPGM200Kit",
+    "storageHost": null,
+    "storage_options": "A",
+    "templatingKitBarcode": null,
+    "templatingKitName": "Ion PGM Template OT2 200 Kit",
+    "templatingSize": "",
+    "tfKey": "",
+    "thumbnailalignmentargs": "",
+    "thumbnailanalysisargs": "",
+    "thumbnailbasecallerargs": "",
+    "thumbnailbeadfindargs": "",
+    "thumbnailcalibrateargs": "",
+    "usePostBeadfind": true,
+    "usePreBeadfind": true,
+    "username": "ionadmin",
+    "variantfrequency": ""
+}

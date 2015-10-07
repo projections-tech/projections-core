@@ -1,0 +1,19 @@
+{
+  "objects":[
+    {
+      "pluginName": "variantCaller",
+      "path": "variantCaller_out",
+      "resource_uri": ""
+    },
+    {
+      "pluginName": "variantCaller",
+      "path": "variantCaller_out.49",
+      "resource_uri": ""
+    },
+    {
+      "pluginName": "variantCaller",
+      "path": "variantCaller_out.50",
+      "resource_uri": ""
+    }
+  ]
+}
