@@ -16,6 +16,58 @@ logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('projections')
 
 
+class Tree:
+    def __init__(self):
+        self.value = None
+        self.children = {}
+
+    def add_projection(self, projection):
+        pass
+
+    def tree_to_list(self):
+        return [self.value]+[self.tree_to_list(c[1]) for c in self.children.items()]
+
+    def find(self, value):
+        if self.value == value:
+            return self
+        else:
+            for k, c in self.children.item():
+                result = self.find(c.value)
+                if not result == None:
+                    return result
+            return None
+
+    def parents(self, node):
+        if self.node == node:
+            return [node]
+        else:
+            for c in self.children.items():
+                result = c.parents(node)
+                if result != []:
+                    return [self.value] + result
+            return []
+
+    def traverse_pre_order(self):
+        yield self.value
+        for k, c in self.children.items():
+            for v in c.traverse_pre_order():
+                yield v
+
+    def traverse_post_order(self):
+        for k, c in self.children.items():
+            for v in c.traverse_post_order():
+                yield v
+        yield self.value
+
+    def traverse_breadth_first(self):
+        to_yield = [self]
+        while to_yield != []:
+            node = to_yield.pop(0)
+            for k, c in node.children.items():
+                to_yield.append(c)
+            yield node.value
+
+
 class Projection(object):
     """
     Class for holding projection data.

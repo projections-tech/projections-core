@@ -263,10 +263,11 @@ class IonTorrentProjection(ProjectionManager):
 
 class TorrentSuiteProjector(Projector):
     def __init__(self, driver):
+        assert isinstance(driver, ProjectionDriver), 'Check that driver object is subclass of ProjectionDriver'
         self.driver = driver
 
         self.projection_tree = ProjectionTree()
-        self.root_projection = Projection('/', self.driver.api_url+'experiment?status=run&limit=5&order_by=-id')
+        self.root_projection = Projection('/', self.driver.api_url + 'experiment?status=run&limit=5&order_by=-id')
         self.projection_tree.add_projection(self.root_projection, None)
 
         prototypes = self.prepare_prototypes()
