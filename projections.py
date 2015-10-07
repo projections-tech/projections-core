@@ -109,6 +109,7 @@ class ProjectionTree(object):
         # This should be done atomically regardless of implementation details.
         self.lock.acquire()
         self.projections[projection.path] = projection
+
         self.lock.release()
 
 
@@ -197,7 +198,9 @@ class Projector:
             logger.info('Creating projections for a prototype: %s', prototype)
 
             # TODO: eval is not safe, consider safer alternative, e.g. JsonPath
+            logger.info('URI %s', prototype.uri)
             URIs = eval(prototype.uri)
+
             logger.info('Prototype %s has projections on URIs: %s', prototype, URIs)
 
             # We get projection URIs based on environment and prototype properties
@@ -236,14 +239,6 @@ class Projector:
                     #   but file content should be accessed in this case
                     projection.type = stat.S_IFREG
                     projection.size = 1
-
-class ProjectionDeserializer(object):
-    def __init__(self, data):
-        self.data_path = data
-
-    def read_projections(self):
-        with open(self.data_path) as y_f:
-            return yaml.safe_load()
 
 class ProjectionManager(object):
     """

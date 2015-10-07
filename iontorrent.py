@@ -13,7 +13,7 @@ import time
 import urllib.request
 from urllib.parse import urljoin
 
-from projections import Projection, ProjectionManager, ProjectionDriver, Projector
+from projections import Projection, ProjectionManager, ProjectionDriver, ProjectionTree, Projector, ProjectionPrototype
 from filesystem import ProjectionFilesystem
 from fuse import FUSE
 
@@ -54,7 +54,7 @@ class TorrentSuiteDriver(ProjectionDriver):
 
     def open_uri(self, uri):
         """
-        Opens URI
+        Opens URI and returns bytes of its contents
         :param uri: URI string
         :return: uri content
         """
@@ -62,7 +62,6 @@ class TorrentSuiteDriver(ProjectionDriver):
             return f.readall()
 
 class IonTorrentProjection(ProjectionManager):
-
     def __init__(self, host, user, password):
         logger.info('Creating Ion Torrent projection for host: %s', host)
         self.driver = TorrentSuiteDriver(host, user, password)
@@ -263,7 +262,92 @@ class IonTorrentProjection(ProjectionManager):
         return file_header, resource_io
 
 class TorrentSuiteProjector(Projector):
-    pass
+    def __init__(self, driver):
+        self.driver = driver
+
+        self.projection_tree = ProjectionTree()
+        self.root_projection = Projection('/', self.driver.api_url+'experiment?status=run&limit=5&order_by=-id')
+        self.projection_tree.add_projection(self.root_projection, None)
+
+        prototypes = self.prepare_prototypes()
+        self.create_projection_tree(prototypes, projection_tree=self.projection_tree, parent_projection=self.root_projection)
+        self.projections = self.projection_tree.projections
+
+    def prepare_prototypes(self):
+        experiment_prototype = ProjectionPrototype('directory')
+        experiment_prototype.name = "content['displayName'].replace(' ', '_')"
+        experiment_prototype.uri = '["{0}"+object["resource_uri"] for object in environment["objects"]]'.format(self.driver.host_url)
+
+        result_prototype = ProjectionPrototype('directory')
+        result_prototype.name = "path.split(content['filesystempath'])[1]"
+        result_prototype.uri = "['{0}' + res for res in environment['results']]".format(self.driver.host_url)
+
+        experiment_prototype.children = [result_prototype]
+
+        return [experiment_prototype]
+
+    def is_managing_path(self, path):
+        return path in self.projections
+
+    def get_projections(self, path):
+        logger.info('Requesting projections for path: %s', path)
+        projections = []
+        for p in self.projections:
+            if p.startswith(path):
+                # limit projections to one level only
+                logging.debug('Analyzing projection candidate: %s', p)
+                suffix = p[len(path):]
+                if suffix and suffix[0] == '/':
+                    suffix = suffix[1:]
+                logger.debug('Path suffix: %s', suffix)
+                if suffix and '/' not in suffix:
+                    projections.append('/' + suffix)
+
+        logger.debug('Returning projections: %s', projections)
+        return projections
+
+    def get_attributes(self, path):
+        assert path in self.projections
+
+        projection = self.projections[path]
+
+        now = time.time()
+        attributes = dict()
+
+        # Set projection attributes
+
+        # This is implementation specific and should be binded to projector data
+        attributes['st_atime'] = now
+        # This may be implemented as last projection cashing time is casing is enabled
+        attributes['st_mtime'] = now
+        # On Unix this is time for metedata modification we can use the same conception
+        attributes['st_ctime'] = now
+        # If this is projection the size is zero
+        attributes['st_size'] = projection.size
+        # Set type to link anf grant full access to everyone
+        attributes['st_mode'] = (projection.type | 0o0777)
+        # Set number of hard links to 0
+        attributes['st_nlink'] = 0
+        # Set id as inode number.
+        attributes['st_ino'] = 1
+
+        return attributes
+
+    def open_resource(self, path):
+        uri = self.projections[path].uri
+
+        content = self.driver.open_uri(uri)
+        logger.info('Got path content: %s\n', path)
+
+        self.projections[path].size = len(content)
+
+        file_header = 3
+        resource_io = io.BytesIO(content)
+
+        return file_header, resource_io
+
+
+
 
 
 # For smoke testing
@@ -271,7 +355,8 @@ def main(mountpoint, data_folder, foreground=True):
     # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
-    projection_filesystem.projection_manager = IonTorrentProjection('10.5.20.17', 'ionadmin', '0ECu1lW')
+    projection_dirver = TorrentSuiteDriver('10.5.20.17', 'ionadmin', '0ECu1lW')
+    projection_filesystem.projection_manager = TorrentSuiteProjector(projection_dirver)
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
     return fuse
 
