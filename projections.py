@@ -15,9 +15,9 @@ from os import path
 logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('projections')
 
-
-class Tree:
-    def __init__(self, value=None):
+class Tree(object):
+    def __init__(self, name = None, value=None):
+        self.name = name
         self.value = value
         self.parent = None
         self.children = {}
@@ -35,12 +35,21 @@ class Tree:
     def tree_to_list(self):
         return [self.value]+[c[1].tree_to_list() for c in self.children.items()]
 
-    def find(self, value):
-        if self.value == value:
+    def find(self, value, field='value'):
+        """
+        Find node in tree according to its field: name or value
+        :param value: value by which Node is searched
+        :param field: value or name field of class Tree
+        :return: node in Tree, which is Tree object
+        """
+
+        class_attr = getattr(self, field)
+
+        if class_attr == value:
             return self
         else:
             for k, c in self.children.items():
-                result = c.find(value)
+                result = c.find(value, field=field)
                 if not result == None:
                     return result
             return None
@@ -76,11 +85,13 @@ class Tree:
                 to_yield.append(c)
             yield node.value
 
-    def find_by_path(self, path_to_node):
+    def find_node_by_path(self, path_to_node):
         path = self.__split_path_in_parts(path_to_node)
         temp_node = self
         for item in path:
-            temp_node = temp_node.find(item)
+            if temp_node == None:
+                return None
+            temp_node = temp_node.find(item, field='name')
         return temp_node
 
 
