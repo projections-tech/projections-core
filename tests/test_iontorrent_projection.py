@@ -26,65 +26,11 @@ class TestIonTorrentProjection(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.mock_resource = TorrentSuiteMock('mockiontorrent.com', 'tests/mock_resource')
-        cls.expected_experiment_path = '/Sequoia SN1-14-Newborn 5 samples from CV'
-        cls.expected_run_name = 'Run_11_hg19_v3_008'
 
     def setUp(self):
         self.mock_url = self.mock_resource.mock_url
         self.iontorrent = iontorrent.IonTorrentProjection(self.mock_url, USER, PASSWORD)
         self.iontorrent.create_projections()
-
-    def test_create_projections(self):
-        """
-        Tests if ion torrent projection manager creates any projections
-        """
-
-        self.assertGreater(len(self.iontorrent.projections), 1)
-
-    def test_experiment_projection_creation(self):
-        """
-        Tests correctness of root dir for all projections
-        """
-        projection_paths = [key for key in self.iontorrent.projections]
-        paths_experiment_dir_state = all([re.search(self.expected_experiment_path, path) for path in projection_paths])
-        self.assertTrue(paths_experiment_dir_state)
-
-    def test_run_projection_creation(self):
-        """
-        Tests correctness of run dir for projections
-        """
-        # All projections paths except '/Sequoia SN1-14-Newborn 5 samples from CV' and its metadata files
-        projection_paths = [key for key in self.iontorrent.projections if not re.search(self.expected_experiment_path+'$', key)
-                            and re.search(self.expected_experiment_path + '/plannedexperiment.json$', key)
-                            and re.search(self.expected_experiment_path + '/metadata.json$', key)]
-        paths_run_dir_state = all([re.search(self.expected_run_name, path) for path in projection_paths])
-        self.assertTrue(paths_run_dir_state)
-
-    def test_bam_projections_creation(self):
-        """
-        Tests BAM file projection creation
-        """
-        bam_files_list = sorted([os.path.basename(p) for p in self.iontorrent.projections if os.path.splitext(p)[1] == '.bam'])
-        expected_bam_files = ['sample_{}.bam'.format(i) for i in range(1, 6)]
-        self.assertListEqual(bam_files_list, expected_bam_files)
-
-    def test_vcf_projections_creation(self):
-        """
-        Test VCF file projection creation
-        """
-        vcf_files_list = [p for p in self.iontorrent.projections if os.path.splitext(p)[1] == '.vcf']
-        for sample_id in range(1, 6):
-            for variant_caller_dir in ['', '.49', '.50']:
-                for variant_file_name in ['TSVC_variants.vcf', 'all.merged.vcf', 'indel_assembly.vcf',
-                                                              'indel_variants.vcf', 'small_variants.left.vcf',
-                                                              'small_variants.vcf', 'small_variants_filtered.vcf',
-                                                              'small_variants.sorted.vcf', 'SNP_variants.vcf']:
-                    vcf_file_path = os.path.join(self.expected_experiment_path,
-                                                 self.expected_run_name,
-                                                 'sample_{}'.format(sample_id),
-                                                 'variantCaller_out{}'.format(variant_caller_dir),
-                                                 variant_file_name)
-                    self.assertTrue(vcf_file_path in vcf_files_list, msg='VCF path: {0}'.format(vcf_file_path))
 
     def test_bed_file_projections_creation(self):
         """
@@ -96,3 +42,31 @@ class TestIonTorrentProjection(TestCase):
                                               'IAD39777_BED_4_for_TSVC.bed')
 
         self.assertTrue(expected_bed_file_path in bed_files_list)
+
+    def test_full_projection(self):
+        projection_paths_list = self.iontorrent.projections.keys()
+        exp_dirs = ['test_experiment_1', 'test_experiment_2']
+        run_name = 'test_run'
+        # Checking number of created projections, we expect 372 projections for two experiments with 5 samples and variant_calling
+        self.assertEqual(len(self.iontorrent.projections), 372, msg='Checking projections quantity.')
+
+        for exp_dir in exp_dirs:
+            # Checking BAM file projections creation on expected paths
+            for i in range(1,6):
+                bam_file_path = os.path.join('/', exp_dir, run_name, 'sample_{0}'.format(i), 'sample_{0}.bam'.format(i))
+                self.assertTrue(bam_file_path in projection_paths_list, msg='Checking BAM projection existance: {0}'.format(bam_file_path))
+                # Checking VCF files projection creation on expected path
+                for variant_caller_dir in ['', '.49', '.50']:
+                    for variant_file_name in ['TSVC_variants.vcf', 'all.merged.vcf', 'indel_assembly.vcf',
+                                                              'indel_variants.vcf', 'small_variants.left.vcf',
+                                                              'small_variants.vcf', 'small_variants_filtered.vcf',
+                                                              'small_variants.sorted.vcf', 'SNP_variants.vcf']:
+                        vcf_file_path = os.path.join('/', exp_dir,
+                                                     run_name,
+                                                     'sample_{}'.format(i),
+                                                     'variantCaller_out{}'.format(variant_caller_dir),
+                                                     variant_file_name)
+                        self.assertTrue(vcf_file_path in projection_paths_list, msg='VCF path: {0}'.format(vcf_file_path))
+        # Checking VCF files projections creation on expected paths
+
+

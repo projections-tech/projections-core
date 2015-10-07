@@ -9,7 +9,7 @@
     "eas": "/rundb/api/v1/experimentanalysissettings/27/",
     "experiment": "/rundb/api/v1/experiment/24/",
     "fastqLink": "/output/Home/Run_11_hg19_v3_008/basecaller_results/R_2012_08_31_00_21_53_Sequoia_SN1-14-Newborn_5_samples_from_CV_Run_11_hg19_v3.fastq",
-    "filesystempath": "/results/analysis/output/Home/Run_11_hg19_v3_008",
+    "filesystempath": "/results/analysis/output/Home/test_run",
     "framesProcessed": 58,
     "id": 8,
     "libmetrics": [
