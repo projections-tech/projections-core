@@ -51,16 +51,16 @@ class TestIonTorrentProjection(TestCase):
 
             # Checking BED file projections creation
             bed_file_path = os.path.join(exp_dir, run_name,'IAD39777_BED_4_for_TSVC.bed')
-            self.assertTrue(bed_file_path in projection_paths_list, msg='Checking BED file projection existance: {0}.'.format(bed_file_path))
+            self.assertIn(bed_file_path, projection_paths_list, msg='Checking BED file projection existance: {0}.'.format(bed_file_path))
 
             for i in range(1,6):
                 # Checking BAM file projections creation on expected paths
                 bam_file_path = os.path.join(exp_dir, run_name, 'sample_{0}'.format(i), 'sample_{0}.bam'.format(i))
-                self.assertTrue(bam_file_path in projection_paths_list, msg='Checking BAM projection existance: {0}'.format(bam_file_path))
+                self.assertIn(bam_file_path, projection_paths_list, msg='Checking BAM projection existance: {0}'.format(bam_file_path))
 
                 # Test sample metadata projection creation
                 sample_meta_path = os.path.join(exp_dir, run_name, 'sample_{0}'.format(i), 'metadata.json')
-                self.assertTrue(sample_meta_path in projection_paths_list, msg='Checking metadata creation:{0}'.format(sample_meta_path))
+                self.assertIn(sample_meta_path, projection_paths_list, msg='Checking metadata creation:{0}'.format(sample_meta_path))
 
                 for variant_caller_dir in ['', '.49', '.50']:
                     vc_dir_path = os.path.join(exp_dir, run_name, 'sample_{}'.format(i),
@@ -68,7 +68,7 @@ class TestIonTorrentProjection(TestCase):
 
                     # Checking variant caller settings projection creation
                     vcf_settings_path = os.path.join(vc_dir_path, 'variant_caller_settings.json')
-                    self.assertTrue(vcf_settings_path in projection_paths_list, msg='Checking VC settings projection creation: {0}'.format(vcf_settings_path))
+                    self.assertIn(vcf_settings_path, projection_paths_list, msg='Checking VC settings projection creation: {0}'.format(vcf_settings_path))
 
                     # Checking VCF files projection creation on expected path
                     for variant_file_name in ['TSVC_variants.vcf', 'all.merged.vcf', 'indel_assembly.vcf',
@@ -80,7 +80,7 @@ class TestIonTorrentProjection(TestCase):
                                                      'sample_{}'.format(i),
                                                      'variantCaller_out{}'.format(variant_caller_dir),
                                                      variant_file_name)
-                        self.assertTrue(vcf_file_path in projection_paths_list, msg='VCF path: {0}'.format(vcf_file_path))
+                        self.assertIn(vcf_file_path, projection_paths_list, msg='VCF path: {0}'.format(vcf_file_path))
 
 
 
