@@ -67,9 +67,9 @@ class TorrentSuiteMock(MockResource):
         """
         uri_dict = {
             '/rundb/api/v1/experiment\?status=run\&limit=(\d+)\&order_by=-id':
-                'experiments_metadata_28.json',
-            '/rundb/api/v1/experiment/(\d+)':
-                'experiments_metadata_28.json',
+                'experiments_search_query.json',
+            '/rundb/api/v1/experiment/(\d+)/':
+                'experiments_metadata_24.json',
             '/rundb/api/v1/plannedexperiment/(\d+)/':
                 'plannedexperiment_metadata_31.json',
             '/rundb/api/v1/results/(\d+)/':

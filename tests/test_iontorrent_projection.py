@@ -90,7 +90,7 @@ class TestIonTorrentProjection(TestCase):
                         self.assertIn(vcf_file_path, projection_paths_list, msg='VCF path: {}'.format(vcf_file_path))
 
 
-class TestTorrentSuitetProjector(TestCase):
+class TestTorrentSuiteProjector(TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -100,7 +100,6 @@ class TestTorrentSuitetProjector(TestCase):
         self.mock_url = self.mock_resource.mock_url
         driver = iontorrent.TorrentSuiteDriver(self.mock_url, USER, PASSWORD)
         self.iontorrent = iontorrent.TorrentSuiteProjector(driver)
-        self.iontorrent.create_projections()
 
     def test_full_projection(self):
         """
