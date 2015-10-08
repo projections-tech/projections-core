@@ -16,7 +16,7 @@ from urllib.parse import urljoin
 from projections import Projection, ProjectionManager, ProjectionDriver, ProjectionTree, Projector, ProjectionPrototype
 from filesystem import ProjectionFilesystem
 from fuse import FUSE
-
+from tests.mock import TorrentSuiteMock
 
 logger = logging.getLogger('iontorrent_projection')
 
@@ -25,7 +25,7 @@ class TorrentSuiteDriver(ProjectionDriver):
         self.host_url = 'http://{}'.format(host_url)
         self.api_url = 'http://{}/rundb/api/v1/'.format(host_url)
         self.files_url = urljoin(self.host_url, '/auth/output/Home/')
-        self.authenticate(self.api_url, user, password)
+        self.authenticate(self.host_url, user, password)
 
     def authenticate(self, host_url, user, password):
         password_manager = urllib.request.HTTPPasswordMgrWithDefaultRealm()
@@ -49,17 +49,12 @@ class TorrentSuiteDriver(ProjectionDriver):
         :param uri: URI string
         :return: dict of URI contents
         """
-        with urllib.request.urlopen(uri) as f:
-            return json.loads(f.readall().decode('utf-8'))
 
-    def open_uri(self, uri):
-        """
-        Opens URI and returns bytes of its contents
-        :param uri: URI string
-        :return: uri content
-        """
         with urllib.request.urlopen(uri) as f:
-            return f.readall()
+            if re.search('\.bam$', uri):
+                return f.readall()
+            else:
+                return json.loads(f.readall().decode('utf-8'))
 
 class IonTorrentProjection(ProjectionManager):
     def __init__(self, host, user, password):
@@ -249,7 +244,7 @@ class IonTorrentProjection(ProjectionManager):
     def open_resource(self, path):
         uri = self.projections[path].uri
 
-        content = self.driver.open_uri(uri)
+        content = self.driver.get_content(uri)
         logger.info('Got path content: %s\n', path)
 
         self.projections[path].size = len(content)
@@ -265,7 +260,7 @@ class TorrentSuiteProjector(Projector):
         self.driver = driver
 
         self.projection_tree = ProjectionTree()
-        self.root_projection = Projection('/', self.driver.api_url + 'experiment?status=run&limit=5&order_by=-id')
+        self.root_projection = Projection('/', self.driver.api_url + 'experiment?status=run&limit=1&order_by=-id')
         self.projection_tree.add_projection(self.root_projection, None)
 
         prototypes = self.prepare_prototypes()
@@ -277,15 +272,24 @@ class TorrentSuiteProjector(Projector):
         experiment_prototype.name = "content['displayName'].replace(' ', '_')"
         experiment_prototype.uri = '["{0}"+object["resource_uri"] for object in environment["objects"]]'.format(self.driver.host_url)
 
-        result_prototype = ProjectionPrototype('directory')
-        result_prototype.parent = experiment_prototype
+        result_prototype = ProjectionPrototype('directory', experiment_prototype)
         result_prototype.name = "path.split(content['filesystempath'])[1]"
         result_prototype.uri = "['{0}' + res for res in environment['results']]".format(self.driver.host_url)
-        result_prototype.get_context()
+
+        sample_prototype = ProjectionPrototype('directory', result_prototype)
+        sample_prototype.name = "content['name']"
+        sample_prototype.uri = "['{0}' + sample['resource_uri'] for sample in context[1]['samples']]".format(self.driver.host_url)
+
+        bam_prototype = ProjectionPrototype('file', sample_prototype)
+        bam_prototype.name = "environment['name']+'.bam'"
+        bam_prototype.uri = "['{0}'+ path.split(context[2]['filesystempath'])[1] + '/'" \
+                            "+fetch_context('{1}'+context[1]['plan'])['barcodedSamples'][environment['name']]['barcodes'][0]" \
+                            " + '_rawlib.bam']".format(self.driver.files_url, self.driver.host_url)
 
         experiment_prototype.children[result_prototype.name] = result_prototype
-
-        return [experiment_prototype]
+        result_prototype.children[sample_prototype.name] = sample_prototype
+        sample_prototype.children[bam_prototype.name] = bam_prototype
+        return {'/':experiment_prototype}
 
     def is_managing_path(self, path):
         return path in self.projections
@@ -337,7 +341,7 @@ class TorrentSuiteProjector(Projector):
     def open_resource(self, path):
         uri = self.projections[path].uri
 
-        content = self.driver.open_uri(uri)
+        content = self.driver.get_content(uri)
         logger.info('Got path content: %s\n', path)
 
         self.projections[path].size = len(content)
@@ -354,7 +358,10 @@ def main(mountpoint, data_folder, foreground=True):
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
 
-    projection_dirver = TorrentSuiteDriver('10.5.20.17', 'ionadmin', '0ECu1lW')
+    mock_torrent_suite = TorrentSuiteMock('mockiontorrent.com', 'tests/mock_resource')
+    mock_url = mock_torrent_suite.mock_url
+
+    projection_dirver = TorrentSuiteDriver(mock_url, 'ionadmin', '0ECu1lW')
     projection_filesystem.projection_manager = TorrentSuiteProjector(projection_dirver)
 
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)

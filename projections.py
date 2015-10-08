@@ -195,19 +195,22 @@ class ProjectionPrototype(Tree):
     Serialized form of the ProjectionPrototype objects hierarchy is THE way to describe projections.
     """
 
-    def __init__(self, type, name=None):
+    def __init__(self, type, parent=None, name=None):
         """
         Create ProjectionPrototype object.
 
         :param type: describe the type of the generated projections. Current implementation uses 'directory' and 'file' types
         """
         super().__init__(name, self)
+        self.parent = parent
+
         self.type = type
         # TODO: consider logical synchronization of name and uri
         # Dialect specific description that is used as a generator for projection names
         self.name = None
         # Dialect specific description that is used as a generator for projection usi's
         self.uri = None
+        self.context = None
 
     def __str__(self):
         return 'ProjectionPrototype for {}'.format(self.uri)
@@ -216,7 +219,7 @@ class ProjectionPrototype(Tree):
         return self.__str__()
 
     def get_context(self):
-        logger.info(self.path_to_node())
+        return [node.context for node in self.path_to_node()]
 
 
 class ProjectionDriver(object):
@@ -242,6 +245,9 @@ class Projector:
         assert isinstance(driver, ProjectionDriver), 'Check that driver object is subclass of ProjectionDriver'
         self.driver = driver
 
+    def fetch_context(self, path):
+        return self.driver.get_content(path)
+
     def create_projection_tree(self, prototypes, projection_tree, parent_projection=None):
         """
         Creates projection tree for a given collection of prototypes.
@@ -260,18 +266,23 @@ class Projector:
         #   file prototypes, while content for directory prototypes only
         environment = None
         content = None
+        fetch_context = self.fetch_context
 
         # This is environment in which projections are created (parent_projection content)
         # TODO: in many cases it means double request to parent projection resource so it should be optimized
         environment = self.driver.get_content(parent_projection.uri)
+
         logger.info('Starting prototype creation in the context of resource with uri: %s', parent_projection.uri)
 
         # For every prototype in collection try to create corresponding projections
-        for prototype in prototypes:
+        for key, prototype in prototypes.items():
+            prototype.context = environment
+            context = prototype.get_context()
+            logger.info('Prototype context: %s', len(context))
             logger.info('Creating projections for a prototype: %s', prototype)
 
             # TODO: eval is not safe, consider safer alternative, e.g. JsonPath
-            logger.info('URI %s', prototype.uri)
+            logger.info('Prototype URI microcode: %s', prototype.uri)
             URIs = eval(prototype.uri)
 
             logger.info('Prototype %s has projections on URIs: %s', prototype, URIs)
@@ -280,6 +291,7 @@ class Projector:
             # Every URI corresponds to projection object
             for uri in URIs:
                 # Get content for a projection
+                logger.info('Content URI: %s', uri)
                 content = self.driver.get_content(uri)
 
                 logger.debug('ENV: %s, CONTENT: %s', environment, content)
