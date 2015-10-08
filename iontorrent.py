@@ -353,7 +353,7 @@ def main(mountpoint, data_folder, foreground=True):
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
 
     projection_dirver = TorrentSuiteDriver('10.5.20.17', 'ionadmin', '0ECu1lW')
-    projection_filesystem.projection_manager = IonTorrentProjection('10.5.20.17', 'ionadmin', '0ECu1lW')
+    projection_filesystem.projection_manager = TorrentSuiteProjector(projection_dirver)
 
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
     return fuse
