@@ -49,13 +49,12 @@ class TorrentSuiteDriver(ProjectionDriver):
         :param uri: URI string
         :return: dict of URI contents
         """
-
         with urllib.request.urlopen(uri) as f:
             if re.search('\.bam$', uri) or re.search('\.vcf$', uri):
                 return f.readall()
             else:
                 return json.loads(f.readall().decode('utf-8'))
-        # TODO write this function in a way which automatically asigns right host adress according to request
+        # TODO write this function in a way which automatically assigns right host address according to request
 
 class IonTorrentProjection(ProjectionManager):
     def __init__(self, host, user, password):
@@ -299,14 +298,12 @@ class TorrentSuiteProjector(Projector):
                             " + context[1]['plan'])['barcodedSamples'][context[3]['name']]['barcodes'][0] " \
                             " + '/TSVC_variants.vcf']".format(self.driver.files_url, self.driver.host_url)
 
-        #vcf_prototype.uri = "fetch_context('{0}'+context[1]['plan'])['barcodedSamples'][context[3]['name']]['barcodes']".format(self.driver.host_url)
-
         experiment_prototype.children[result_prototype.name] = result_prototype
         result_prototype.children[sample_prototype.name] = sample_prototype
         sample_prototype.children[bam_prototype.name] = bam_prototype
         sample_prototype.children[plugin_result_prototype.name] = plugin_result_prototype
         plugin_result_prototype.children[vcf_prototype.name] = vcf_prototype
-        return {'/':experiment_prototype}
+        return {'/': experiment_prototype}
 
     def is_managing_path(self, path):
         return path in self.projections
