@@ -144,7 +144,6 @@ class IonTorrentProjection(ProjectionManager):
                             bed_file_projection = Projection(os.path.join('/'+path_to_results_dir, os.path.basename(bed_file_path)),
                                                              urljoin(self.driver.files_url, bed_file_path))
                             projections.append(bed_file_projection)
-
                 # Create samples projections
                 for s in o['samples']:
                     s_path = os.path.join(path_to_results_dir, s['name'])
@@ -161,6 +160,7 @@ class IonTorrentProjection(ProjectionManager):
                     # Creating sample BAM file projection
                     s_bam_projection = Projection(os.path.join(s_projection.path, s['name'] + '.bam'), sample_bam_uri)
                     # Creating sample metadata projection
+
                     s_meta_projection = Projection(os.path.join(s_projection.path, 'metadata.json'), urljoin(self.driver.api_url, s['resource_uri']))
 
                     for vc_path, item in variant_calls.items():
@@ -182,8 +182,7 @@ class IonTorrentProjection(ProjectionManager):
                         if sample_barcode in item['barcodes']:
                             # Setting up base URI to variant calling directory
                             base_vcf_file_projection_path = os.path.join(path_to_files, 'plugin_out',
-                                                                    os.path.basename(vc_path),
-                                                                    sample_barcode)
+                                                                         os.path.basename(vc_path), sample_barcode)
                             for variant_file_name in ['TSVC_variants.vcf', 'all.merged.vcf', 'indel_assembly.vcf',
                                                       'indel_variants.vcf', 'small_variants.left.vcf',
                                                       'small_variants.vcf', 'small_variants_filtered.vcf',
@@ -353,8 +352,10 @@ def main(mountpoint, data_folder, foreground=True):
     # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
+
     projection_dirver = TorrentSuiteDriver('10.5.20.17', 'ionadmin', '0ECu1lW')
     projection_filesystem.projection_manager = TorrentSuiteProjector(projection_dirver)
+
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
     return fuse
 
