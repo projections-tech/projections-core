@@ -6,6 +6,7 @@ import os
 import stat
 import time
 import threading
+from collections import namedtuple
 
 # This import is used in eval() expressions so it should be preserved.
 from os import path
@@ -15,9 +16,9 @@ logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('projections')
 
 class Tree(object):
-    def __init__(self, name = None, data=None):
+    def __init__(self, name=None, data=None):
         self.name = name
-        self.value = data
+        self.data = data
         self.parent = None
         self.children = {}
 
@@ -32,7 +33,7 @@ class Tree(object):
             path = chunk[0]
 
     def tree_to_list(self):
-        return [self.value]+[c[1].tree_to_list() for c in self.children.items()]
+        return [self.data]+[c[1].tree_to_list() for c in self.children.items()]
 
     def find(self, value, field='data'):
         """
@@ -65,7 +66,7 @@ class Tree(object):
         return [c[1] for c in self.children.items()]
 
     def traverse_pre_order(self):
-        yield self.value
+        yield self.data
         for k, c in self.children.items():
             for v in c.traverse_pre_order():
                 yield v
@@ -74,7 +75,7 @@ class Tree(object):
         for k, c in self.children.items():
             for v in c.traverse_post_order():
                 yield v
-        yield self.value
+        yield self.data
 
     def traverse_breadth_first(self):
         to_yield = [self]
@@ -82,7 +83,7 @@ class Tree(object):
             node = to_yield.pop(0)
             for k, c in node.children.items():
                 to_yield.append(c)
-            yield node.value
+            yield node.data
 
     def find_node_by_path(self, path_to_node):
         path = self.__split_path_in_parts(path_to_node)
@@ -186,7 +187,7 @@ class ProjectionTree(object):
         self.lock.release()
 
 
-class ProjectionPrototype(object):
+class ProjectionPrototype(Tree):
     """
     The class objects describe nodes in projection logical structure.
     Every Prototype object may have 0..many projections associated with it.
@@ -194,15 +195,13 @@ class ProjectionPrototype(object):
     Serialized form of the ProjectionPrototype objects hierarchy is THE way to describe projections.
     """
 
-    def __init__(self, type):
+    def __init__(self, type, name=None):
         """
         Create ProjectionPrototype object.
 
         :param type: describe the type of the generated projections. Current implementation uses 'directory' and 'file' types
         """
-        # List of child ProjectionPrototype's.
-        # TODO: consider PrototypeTree class creation.
-        self.children = {}
+        super().__init__(name, self)
         self.type = type
         # TODO: consider logical synchronization of name and uri
         # Dialect specific description that is used as a generator for projection names
@@ -215,6 +214,9 @@ class ProjectionPrototype(object):
 
     def __repr__(self):
         return self.__str__()
+
+    def get_context(self):
+        logger.info(self.path_to_node())
 
 
 class ProjectionDriver(object):
@@ -262,7 +264,6 @@ class Projector:
         # This is environment in which projections are created (parent_projection content)
         # TODO: in many cases it means double request to parent projection resource so it should be optimized
         environment = self.driver.get_content(parent_projection.uri)
-        logger.info(environment)
         logger.info('Starting prototype creation in the context of resource with uri: %s', parent_projection.uri)
 
         # For every prototype in collection try to create corresponding projections

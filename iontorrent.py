@@ -278,10 +278,12 @@ class TorrentSuiteProjector(Projector):
         experiment_prototype.uri = '["{0}"+object["resource_uri"] for object in environment["objects"]]'.format(self.driver.host_url)
 
         result_prototype = ProjectionPrototype('directory')
+        result_prototype.parent = experiment_prototype
         result_prototype.name = "path.split(content['filesystempath'])[1]"
         result_prototype.uri = "['{0}' + res for res in environment['results']]".format(self.driver.host_url)
+        result_prototype.get_context()
 
-        experiment_prototype.children = [result_prototype]
+        experiment_prototype.children[result_prototype.name] = result_prototype
 
         return [experiment_prototype]
 
