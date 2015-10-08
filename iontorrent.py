@@ -25,9 +25,9 @@ class TorrentSuiteDriver(ProjectionDriver):
         self.host_url = 'http://{}'.format(host_url)
         self.api_url = 'http://{}/rundb/api/v1/'.format(host_url)
         self.files_url = urljoin(self.host_url, '/auth/output/Home/')
-        self.authenticate(self.host_url, user, password)
+        self.authenticate(self.api_url, user, password)
 
-    def authenticate(self,host_url, user, password):
+    def authenticate(self, host_url, user, password):
         password_manager = urllib.request.HTTPPasswordMgrWithDefaultRealm()
         password_manager.add_password(None, host_url, user, password)
 
@@ -130,7 +130,6 @@ class IonTorrentProjection(ProjectionManager):
                 variant_calls = dict()
                 for plugin_uri in results['pluginresults']:
                     p = self.driver.get_content(self.driver.host_url+plugin_uri)
-
                     if 'variantCaller' in p['pluginName'] and not 'VFNA' in p['pluginName']:
                         variant_calls[p['path']] = {'barcodes': results['pluginStore'][p['pluginName']]['barcodes'].keys(),
                                                     'resource_uri': p['resource_uri']}
@@ -354,7 +353,7 @@ def main(mountpoint, data_folder, foreground=True):
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
 
     projection_dirver = TorrentSuiteDriver('10.5.20.17', 'ionadmin', '0ECu1lW')
-    projection_filesystem.projection_manager = TorrentSuiteProjector(projection_dirver)
+    projection_filesystem.projection_manager = IonTorrentProjection('10.5.20.17', 'ionadmin', '0ECu1lW')
 
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
     return fuse

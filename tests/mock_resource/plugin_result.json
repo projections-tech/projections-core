@@ -1,19 +1,362 @@
 {
-  "objects":[
-    {
-      "pluginName": "variantCaller",
-      "path": "variantCaller_out",
-      "resource_uri": ""
+    "endtime": "2015-06-17T12:45:21.000241+00:00",
+    "resource_uri": "/rundb/api/v1/pluginresult/564/",
+    "owner": "/rundb/api/v1/user/2/",
+    "duration": "0:41:20.151906",
+    "apikey": "None",
+    "reportLink": "/output/Home/new_140/",
+    "store": {
+        "Target Loci": "Not using",
+        "barcodes": {
+            "IonXpress_014": {
+                "variants": {
+                    "het_snps": 12,
+                    "homo_indels": 0,
+                    "other": 0,
+                    "variants": 17,
+                    "het_indels": 3,
+                    "no_call": 0,
+                    "homo_snps": 2
+                },
+                "hotspots": {}
+            },
+            "IonXpress_005": {
+                "variants": {
+                    "het_snps": 4,
+                    "homo_indels": 0,
+                    "other": 0,
+                    "variants": 10,
+                    "het_indels": 2,
+                    "no_call": 0,
+                    "homo_snps": 4
+                },
+                "hotspots": {}
+            },
+            "IonXpress_055": {
+                "variants": {
+                    "het_snps": 11,
+                    "homo_indels": 0,
+                    "other": 0,
+                    "variants": 13,
+                    "het_indels": 2,
+                    "no_call": 0,
+                    "homo_snps": 0
+                },
+                "hotspots": {}
+            },
+            "IonXpress_013": {
+                "variants": {
+                    "het_snps": 12,
+                    "homo_indels": 0,
+                    "other": 0,
+                    "variants": 14,
+                    "het_indels": 1,
+                    "no_call": 0,
+                    "homo_snps": 1
+                },
+                "hotspots": {}
+            },
+            "IonXpress_054": {
+                "variants": {
+                    "het_snps": 9,
+                    "homo_indels": 0,
+                    "other": 0,
+                    "variants": 11,
+                    "het_indels": 2,
+                    "no_call": 0,
+                    "homo_snps": 0
+                },
+                "hotspots": {}
+            },
+            "IonXpress_011": {
+                "variants": {
+                    "het_snps": 4,
+                    "homo_indels": 1,
+                    "other": 0,
+                    "variants": 10,
+                    "het_indels": 0,
+                    "no_call": 0,
+                    "homo_snps": 5
+                },
+                "hotspots": {}
+            },
+            "IonXpress_009": {
+                "variants": {
+                    "het_snps": 4,
+                    "homo_indels": 0,
+                    "other": 0,
+                    "variants": 14,
+                    "het_indels": 0,
+                    "no_call": 0,
+                    "homo_snps": 10
+                },
+                "hotspots": {}
+            },
+            "IonXpress_001": {
+                "variants": {
+                    "het_snps": 8,
+                    "homo_indels": 0,
+                    "other": 0,
+                    "variants": 12,
+                    "het_indels": 2,
+                    "no_call": 0,
+                    "homo_snps": 2
+                },
+                "hotspots": {}
+            },
+            "IonXpress_017": {
+                "variants": {
+                    "het_snps": 13,
+                    "homo_indels": 0,
+                    "other": 0,
+                    "variants": 13,
+                    "het_indels": 0,
+                    "no_call": 0,
+                    "homo_snps": 0
+                },
+                "hotspots": {}
+            },
+            "IonXpress_010": {
+                "variants": {
+                    "het_snps": 5,
+                    "homo_indels": 0,
+                    "other": 0,
+                    "variants": 5,
+                    "het_indels": 0,
+                    "no_call": 0,
+                    "homo_snps": 0
+                },
+                "hotspots": {}
+            },
+            "IonXpress_006": {
+                "variants": {
+                    "het_snps": 9,
+                    "homo_indels": 0,
+                    "other": 0,
+                    "variants": 11,
+                    "het_indels": 1,
+                    "no_call": 0,
+                    "homo_snps": 1
+                },
+                "hotspots": {}
+            },
+            "IonXpress_053": {
+                "variants": {
+                    "het_snps": 11,
+                    "homo_indels": 0,
+                    "other": 0,
+                    "variants": 13,
+                    "het_indels": 2,
+                    "no_call": 0,
+                    "homo_snps": 0
+                },
+                "hotspots": {}
+            },
+            "IonXpress_002": {
+                "variants": {
+                    "het_snps": 7,
+                    "homo_indels": 0,
+                    "other": 0,
+                    "variants": 14,
+                    "het_indels": 0,
+                    "no_call": 0,
+                    "homo_snps": 7
+                },
+                "hotspots": {}
+            },
+            "IonXpress_004": {
+                "variants": {
+                    "het_snps": 13,
+                    "homo_indels": 0,
+                    "other": 0,
+                    "variants": 18,
+                    "het_indels": 2,
+                    "no_call": 0,
+                    "homo_snps": 3
+                },
+                "hotspots": {}
+            },
+            "IonXpress_003": {
+                "variants": {
+                    "het_snps": 2,
+                    "homo_indels": 0,
+                    "other": 0,
+                    "variants": 13,
+                    "het_indels": 1,
+                    "no_call": 0,
+                    "homo_snps": 10
+                },
+                "hotspots": {}
+            },
+            "IonXpress_062": {
+                "variants": {
+                    "het_snps": 8,
+                    "homo_indels": 0,
+                    "other": 0,
+                    "variants": 10,
+                    "het_indels": 2,
+                    "no_call": 0,
+                    "homo_snps": 0
+                },
+                "hotspots": {}
+            },
+            "IonXpress_063": {
+                "variants": {
+                    "het_snps": 9,
+                    "homo_indels": 0,
+                    "other": 0,
+                    "variants": 11,
+                    "het_indels": 2,
+                    "no_call": 0,
+                    "homo_snps": 0
+                },
+                "hotspots": {}
+            },
+            "IonXpress_016": {
+                "variants": {
+                    "het_snps": 12,
+                    "homo_indels": 1,
+                    "other": 0,
+                    "variants": 18,
+                    "het_indels": 1,
+                    "no_call": 0,
+                    "homo_snps": 4
+                },
+                "hotspots": {}
+            },
+            "IonXpress_007": {
+                "variants": {
+                    "het_snps": 3,
+                    "homo_indels": 0,
+                    "other": 0,
+                    "variants": 7,
+                    "het_indels": 0,
+                    "no_call": 0,
+                    "homo_snps": 4
+                },
+                "hotspots": {}
+            },
+            "IonXpress_015": {
+                "variants": {
+                    "het_snps": 8,
+                    "homo_indels": 0,
+                    "other": 0,
+                    "variants": 14,
+                    "het_indels": 2,
+                    "no_call": 0,
+                    "homo_snps": 4
+                },
+                "hotspots": {}
+            },
+            "IonXpress_012": {
+                "variants": {
+                    "het_snps": 16,
+                    "homo_indels": 0,
+                    "other": 0,
+                    "variants": 18,
+                    "het_indels": 1,
+                    "no_call": 0,
+                    "homo_snps": 1
+                },
+                "hotspots": {}
+            },
+            "IonXpress_008": {
+                "variants": {
+                    "het_snps": 10,
+                    "homo_indels": 0,
+                    "other": 0,
+                    "variants": 11,
+                    "het_indels": 1,
+                    "no_call": 0,
+                    "homo_snps": 0
+                },
+                "hotspots": {}
+            }
+        },
+        "Target Regions": "IAD39777_for_TSVC",
+        "Library Type": "AmpliSeq",
+        "barcoded": "true",
+        "Aligned Reads": "R_2014_03_03_19_33_35_Sequoia_SN1-64-NND_commercial_and_VFNA_verification",
+        "Trim Reads": "True",
+        "Configuration": "Custom"
     },
-    {
-      "pluginName": "variantCaller",
-      "path": "variantCaller_out.49",
-      "resource_uri": ""
+    "starttime": "2015-06-17T12:04:01.000089+00:00",
+    "state": "Completed",
+    "pluginVersion": "3.6.63335",
+    "inodes": "1183",
+    "pluginName": "variantCaller",
+    "id": 564,
+    "size": "2059834724",
+    "resultName": "new",
+    "config": {
+        "torrent_variant_caller": {
+            "snp_beta_bias": "30",
+            "hp_max_length": "8",
+            "indel_min_allele_freq": "0.15",
+            "snp_strand_bias": "0.95",
+            "indel_beta_bias": "8",
+            "hotspot_strand_bias": "0.95",
+            "hotspot_beta_bias": "8",
+            "downsample_to_coverage": "400",
+            "snp_min_cov_each_strand": "3",
+            "indel_min_cov_each_strand": "3",
+            "do_snp_realignment": "0",
+            "snp_min_variant_score": "10",
+            "heavy_tailed": "3",
+            "indel_min_variant_score": "10",
+            "prediction_precision": "1",
+            "snp_min_allele_freq": "0.15",
+            "hotspot_min_allele_freq": "0.15",
+            "indel_strand_bias": "0.85",
+            "filter_deletion_predictions": "0.2",
+            "hotspot_min_cov_each_strand": "3",
+            "filter_insertion_predictions": "0.2",
+            "data_quality_stringency": "8.5",
+            "outlier_probability": "0.01",
+            "filter_unusual_predictions": "0.25",
+            "hotspot_min_variant_score": "10",
+            "indel_min_coverage": "20",
+            "snp_min_coverage": "20",
+            "hotspot_min_coverage": "20",
+            "suppress_recalibration": "1"
+        },
+        "meta": {
+            "targetloci": "",
+            "trimreads": "True",
+            "targetregions": "/results/uploads/BED/210/hg19_v3/unmerged/detail/IAD39777_for_TSVC.bed",
+            "librarytype": "ampliseq",
+            "targetloci_id": "None",
+            "configuration": "custom",
+            "reference": "hg19_v3",
+            "tvcargs": "tvc",
+            "targetregions_id": "IAD39777_for_TSVC",
+            "targetloci_merge": "",
+            "targetregions_merge": "/results/uploads/BED/210/hg19_v3/merged/plain/IAD39777_for_TSVC.bed"
+        },
+        "long_indel_assembler": {
+            "min_var_freq": "0.15",
+            "relative_strand_bias": "0.8",
+            "min_indel_size": "4",
+            "kmer_len": "19",
+            "max_hp_length": "8",
+            "min_var_count": "5",
+            "short_suffix_match": "5"
+        },
+        "freebayes": {
+            "gen_min_alt_allele_freq": "0.15",
+            "allow_indels": "1",
+            "allow_mnps": "0",
+            "read_mismatch_limit": "10",
+            "allow_snps": "1",
+            "min_base_qv": "4",
+            "gen_min_coverage": "6",
+            "read_max_mismatch_fraction": "1",
+            "gen_min_indel_alt_allele_freq": "0.15",
+            "min_mapping_qv": "4"
+        }
     },
-    {
-      "pluginName": "variantCaller",
-      "path": "variantCaller_out.50",
-      "resource_uri": ""
-    }
-  ]
+    "plugin": "/rundb/api/v1/plugin/94/",
+    "result": "/rundb/api/v1/results/140/",
+    "jobid": 1463,
+    "path": "/results/analysis/output/Home/new_140/plugin_out/variantCaller_out.50"
 }

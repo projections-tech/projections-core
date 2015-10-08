@@ -66,7 +66,7 @@ class TorrentSuiteMock(MockResource):
         Prepares mock Torrent Suite replies to requests
         """
         uri_dict = {
-            '/rundb/api/v1/experiment\?status=run\&limit=1\&order_by=-id':
+            '/rundb/api/v1/experiment\?status=run\&limit=(\d+)\&order_by=-id':
                 'experiments_metadata_28.json',
             '/rundb/api/v1/experiment/(\d+)':
                 'experiments_metadata_28.json',
@@ -74,7 +74,7 @@ class TorrentSuiteMock(MockResource):
                 'plannedexperiment_metadata_31.json',
             '/rundb/api/v1/results/(\d+)/':
                 'results_8.json',
-            '/rundb/api/v1/pluginresult\?result\=(\d+)':
+            '/rundb/api/v1/pluginresult/(\d+)/':
                 'plugin_result.json',
             '/rundb/api/v1/sample/(\d+)/':
                 'plugin_result.json',

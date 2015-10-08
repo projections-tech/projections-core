@@ -42,7 +42,7 @@ class TestIonTorrentProjection(TestCase):
 
         # Checking number of created projections,
         # we expect 372 projections for two experiments with 5 samples and variant_calling
-        self.assertEqual(len(projection_paths_list), 372,
+        self.assertEqual(len(projection_paths_list), 150,
                          msg='Checking total number of projections, expecting 372, got: {}.'.format(len(projection_paths_list)))
 
         for exp_dir in exp_dirs:
@@ -68,7 +68,7 @@ class TestIonTorrentProjection(TestCase):
                 self.assertIn(sample_meta_path, projection_paths_list,
                               msg='Checking metadata creation:{}'.format(sample_meta_path))
 
-                for variant_caller_dir in ['', '.49', '.50']:
+                for variant_caller_dir in ['.50']:
                     vc_dir_path = os.path.join(exp_dir, run_name, 'sample_{}'.format(i),
                                                'variantCaller_out{}'.format(variant_caller_dir))
 
