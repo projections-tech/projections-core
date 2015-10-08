@@ -68,8 +68,10 @@ class TorrentSuiteMock(MockResource):
         uri_dict = {
             '/rundb/api/v1/experiment\?status=run\&limit=(\d+)\&order_by=-id':
                 'experiments_search_query.json',
-            '/rundb/api/v1/experiment/(\d+)/':
+            '/rundb/api/v1/experiment/24/':
                 'experiments_metadata_24.json',
+            '/rundb/api/v1/experiment/25/':
+                'experiments_metadata_25.json',
             '/rundb/api/v1/plannedexperiment/(\d+)/':
                 'plannedexperiment_metadata_31.json',
             '/rundb/api/v1/results/(\d+)/':
@@ -84,7 +86,7 @@ class TorrentSuiteMock(MockResource):
                 'mock_bam.bam',
             '/auth/output/Home/.*/plugin_out/variantCaller_out[\.\d+]*/IAD39777_BED_4_for_TSVC.bed':
                 'mock_bed.bed',
-            '/auth/output/Home/.*/plugin_out/variantCaller_out[\.\d+]*/IonXpress_00\d+/*.vcf':
+            '/auth/output/Home/test_run/plugin_out/variantCaller_out[\.\d+]*/IonXpress_00(\d+)/.*vcf':
                 'mock_vcf.vcf'
         }
         content_types_dict = {

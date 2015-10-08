@@ -282,7 +282,6 @@ class Projector:
             logger.info('Creating projections for a prototype: %s', prototype)
 
             # TODO: eval is not safe, consider safer alternative, e.g. JsonPath
-            logger.info('Prototype URI microcode: %s', prototype.uri)
             URIs = eval(prototype.uri)
 
             logger.info('Prototype %s has projections on URIs: %s', prototype, URIs)
@@ -291,7 +290,6 @@ class Projector:
             # Every URI corresponds to projection object
             for uri in URIs:
                 # Get content for a projection
-                logger.info('Content URI: %s', uri)
                 content = self.driver.get_content(uri)
 
                 logger.debug('ENV: %s, CONTENT: %s', environment, content)
