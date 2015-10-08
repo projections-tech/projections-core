@@ -6,7 +6,6 @@ import os
 import stat
 import time
 import threading
-import yaml
 
 # This import is used in eval() expressions so it should be preserved.
 from os import path
@@ -16,9 +15,9 @@ logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('projections')
 
 class Tree(object):
-    def __init__(self, name = None, value=None):
+    def __init__(self, name = None, data=None):
         self.name = name
-        self.value = value
+        self.value = data
         self.parent = None
         self.children = {}
 
@@ -35,11 +34,11 @@ class Tree(object):
     def tree_to_list(self):
         return [self.value]+[c[1].tree_to_list() for c in self.children.items()]
 
-    def find(self, value, field='value'):
+    def find(self, value, field='data'):
         """
         Find node in tree according to its field: name or value
         :param value: value by which Node is searched
-        :param field: value or name field of class Tree
+        :param field: "data" or "name" field of class Tree
         :return: node in Tree, which is Tree object
         """
 
@@ -229,7 +228,6 @@ class ProjectionDriver(object):
 class Projector:
     """
     Class that creates Projection object and assembles them in ProjectionTree object using Prototypes object.
-
     """
 
     def __init__(self, driver):

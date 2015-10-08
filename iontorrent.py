@@ -348,9 +348,6 @@ class TorrentSuiteProjector(Projector):
         return file_header, resource_io
 
 
-
-
-
 # For smoke testing
 def main(mountpoint, data_folder, foreground=True):
     # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
