@@ -313,13 +313,13 @@ class Projector:
         # This is environment in which projections are created (parent_projection content)
         # TODO: in many cases it means double request to parent projection resource so it should be optimized
         environment = self.driver.get_content(parent_projection.uri)
+        logger.debug(environment)
         logger.info('Starting prototype creation in the context of resource with uri: %s', parent_projection.uri)
 
         # For every prototype in collection try to create corresponding projections
         for key, prototype in prototypes.items():
             # Set current prototype context to current environment for children node to use
             prototype.context = environment
-            logger.info('Current env: %s', environment)
             # Get context of current node from contexts of parent nodes
             context = prototype.get_context()
             logger.info('Prototype context: %s', len(context))
@@ -335,7 +335,7 @@ class Projector:
             for uri in URIs:
                 # Get content for a projection
                 content = self.driver.get_content(uri)
-
+                logger.info(content)
                 logger.debug('ENV: %s, CONTENT: %s', environment, content)
                 name = eval(prototype.name, locals())
 
