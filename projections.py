@@ -8,9 +8,6 @@ import time
 import threading
 from collections import namedtuple
 
-# This import is used in eval() expressions so it should be preserved.
-from os import path
-
 # Import logging configuration from the file provided
 logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('projections')
@@ -311,11 +308,11 @@ class Projector:
         environment = None
         content = None
         fetch_context = self.fetch_context
+        path = os.path
 
         # This is environment in which projections are created (parent_projection content)
         # TODO: in many cases it means double request to parent projection resource so it should be optimized
         environment = self.driver.get_content(parent_projection.uri)
-
         logger.info('Starting prototype creation in the context of resource with uri: %s', parent_projection.uri)
 
         # For every prototype in collection try to create corresponding projections
@@ -326,8 +323,9 @@ class Projector:
             context = prototype.get_context()
             logger.info('Prototype context: %s', len(context))
             logger.info('Creating projections for a prototype: %s', prototype)
+
             # TODO: eval is not safe, consider safer alternative, e.g. JsonPath
-            URIs = eval(prototype.uri)
+            URIs = eval(prototype.uri, locals())
 
             logger.info('Prototype %s has projections on URIs: %s', prototype, URIs)
 
@@ -338,7 +336,7 @@ class Projector:
                 content = self.driver.get_content(uri)
 
                 logger.debug('ENV: %s, CONTENT: %s', environment, content)
-                name = eval(prototype.name)
+                name = eval(prototype.name, locals())
 
                 # This may be reconsidered with ProjectionTree implementation
                 projection_path = os.path.join(parent_projection.path, name)

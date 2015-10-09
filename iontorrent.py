@@ -13,7 +13,7 @@ import time
 import urllib.request
 from urllib.parse import urljoin
 
-from projections import Projection, ProjectionManager, ProjectionDriver, ProjectionTree, Projector, ProjectionPrototype
+from projections import Projection,  ProjectionDriver, ProjectionTree, Projector, ProjectionPrototype
 from filesystem import ProjectionFilesystem
 from fuse import FUSE
 from tests.mock import TorrentSuiteMock
@@ -52,7 +52,7 @@ class TorrentSuiteDriver(ProjectionDriver):
         """
         with urllib.request.urlopen(uri) as f:
             if re.search('\.bam$', uri) or re.search('\.vcf$', uri) or re.search('\.bed$', uri):
-                return f.readall()
+                return b''
             else:
                 return json.loads(f.readall().decode('utf-8'))
         # TODO write this function in a way which automatically assigns right host address according to request
@@ -68,7 +68,7 @@ class TorrentSuiteProjector(Projector):
 
         # Initializing projection tree with root projection.
         self.projection_tree = ProjectionTree()
-        self.root_projection = Projection('/', self.driver.api_url + 'experiment?status=run&limit=5&order_by=-id')
+        self.root_projection = Projection('/', self.driver.api_url + 'experiment?status=run&limit=1&order_by=-id')
         self.projection_tree.add_projection(self.root_projection, None)
 
         prototypes = self.prepare_prototypes()
@@ -113,13 +113,14 @@ class TorrentSuiteProjector(Projector):
 
         plugin_result_prototype = ProjectionPrototype('directory', sample_prototype)
         plugin_result_prototype.name = "path.basename(content['path'])"
-        plugin_result_prototype.uri = "['{0}' + p_res for p_res in context[2]['pluginresults']]".format(self.driver.host_url)
+        plugin_result_prototype.uri = "['{0}' + p_res for p_res in context[2]['pluginresults']" \
+                                      " if 'variant' in fetch_context('{0}' + p_res)['pluginName'] and 'VFNA' not in fetch_context('{0}' + p_res)['pluginName']]".format(self.driver.host_url)
 
         bed_prototype = ProjectionPrototype('file', plugin_result_prototype)
-        bed_prototype.name = "environment['config']['meta']['targetregions_id'] + '.bed'"
+        bed_prototype.name = "path.basename(environment['store']['targets_bed'])"
         bed_prototype.uri = "[ '{0}' + path.basename(context[2]['filesystempath']) + '/plugin_out/'" \
                                 " + path.basename(environment['path']) " \
-                                " + '/' + environment['config']['meta']['targetregions_id'] + '.bed' ]".format(self.driver.files_url,
+                                " + '/' + path.basename(environment['store']['targets_bed'])]".format(self.driver.files_url,
                                                                                                 self.driver.host_url)
 
         local_settings_prototype = ProjectionPrototype('file', plugin_result_prototype)
@@ -225,10 +226,10 @@ def main(mountpoint, data_folder, foreground=True):
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
 
-    mock_torrent_suite = TorrentSuiteMock('mockiontorrent.com', 'tests/mock_resource')
-    mock_url = mock_torrent_suite.mock_url
+    #mock_torrent_suite = TorrentSuiteMock('mockiontorrent.com', 'tests/mock_resource')
+    #mock_url = mock_torrent_suite.mock_url
 
-    projection_dirver = TorrentSuiteDriver(mock_url, 'ionadmin', '0ECu1lW')
+    projection_dirver = TorrentSuiteDriver('10.5.20.17', 'ionadmin', '0ECu1lW')
     projection_filesystem.projection_manager = TorrentSuiteProjector(projection_dirver)
 
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
