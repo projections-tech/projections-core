@@ -280,7 +280,6 @@ class Projector:
             context = prototype.get_context()
             logger.info('Prototype context: %s', len(context))
             logger.info('Creating projections for a prototype: %s', prototype)
-
             # TODO: eval is not safe, consider safer alternative, e.g. JsonPath
             URIs = eval(prototype.uri)
 
@@ -289,6 +288,7 @@ class Projector:
             # We get projection URIs based on environment and prototype properties
             # Every URI corresponds to projection object
             for uri in URIs:
+                logger.info('URI: %s', uri)
                 # Get content for a projection
                 content = self.driver.get_content(uri)
 

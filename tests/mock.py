@@ -84,7 +84,7 @@ class TorrentSuiteMock(MockResource):
                 'mock_vc_parameters.json',
             '/auth/output/Home/.*/IonXpress_00\d+_rawlib.bam':
                 'mock_bam.bam',
-            '/auth/output/Home/.*/plugin_out/variantCaller_out[\.\d+]*/IAD39777_BED_4_for_TSVC.bed':
+            '/auth/output/Home/.*/plugin_out/variantCaller_out[\.\d+]*/.*bed':
                 'mock_bed.bed',
             '/auth/output/Home/test_run/plugin_out/variantCaller_out[\.\d+]*/IonXpress_00(\d+)/.*vcf':
                 'mock_vcf.vcf'

@@ -48,50 +48,6 @@
                     "barcodes": [
                         "IonXpress_001"
                     ]
-                },
-                "sample_2": {
-                    "barcodeSampleInfo": {
-                        "IonXpress_002": {
-                            "description": "test",
-                            "externalId": ""
-                        }
-                    },
-                    "barcodes": [
-                        "IonXpress_002"
-                    ]
-                },
-                "sample_3": {
-                    "barcodeSampleInfo": {
-                        "IonXpress_003": {
-                            "description": "test",
-                            "externalId": ""
-                        }
-                    },
-                    "barcodes": [
-                        "IonXpress_003"
-                    ]
-                },
-                "sample_4": {
-                    "barcodeSampleInfo": {
-                        "IonXpress_004": {
-                            "description": "test",
-                            "externalId": ""
-                        }
-                    },
-                    "barcodes": [
-                        "IonXpress_004"
-                    ]
-                },
-                "sample_5": {
-                    "barcodeSampleInfo": {
-                        "IonXpress_005": {
-                            "description": "test",
-                            "externalId": ""
-                        }
-                    },
-                    "barcodes": [
-                        "IonXpress_005"
-                    ]
                 }
             },
             "base_recalibration_mode": "standard_recal",
@@ -400,62 +356,6 @@
     "runtype": "AMPS",
     "sample": "sample_5",
     "samples": [
-        {
-            "date": "2014-03-27T04:37:47.000144+00:00",
-            "description": "test",
-            "displayedName": "sample_5",
-            "experiments": [
-                "/rundb/api/v1/experiment/24/"
-            ],
-            "externalId": "",
-            "id": 3,
-            "name": "sample_5",
-            "resource_uri": "/rundb/api/v1/sample/3/",
-            "sampleSets": [],
-            "status": "run"
-        },
-        {
-            "date": "2014-03-27T04:37:47.000144+00:00",
-            "description": "test",
-            "displayedName": "sample_4",
-            "experiments": [
-                "/rundb/api/v1/experiment/24/"
-            ],
-            "externalId": "",
-            "id": 4,
-            "name": "sample_4",
-            "resource_uri": "/rundb/api/v1/sample/4/",
-            "sampleSets": [],
-            "status": "run"
-        },
-        {
-            "date": "2014-03-27T04:37:47.000144+00:00",
-            "description": "test",
-            "displayedName": "sample_3",
-            "experiments": [
-                "/rundb/api/v1/experiment/24/"
-            ],
-            "externalId": "",
-            "id": 5,
-            "name": "sample_3",
-            "resource_uri": "/rundb/api/v1/sample/5/",
-            "sampleSets": [],
-            "status": "run"
-        },
-        {
-            "date": "2014-03-27T04:37:47.000144+00:00",
-            "description": "test",
-            "displayedName": "sample_2",
-            "experiments": [
-                "/rundb/api/v1/experiment/24/"
-            ],
-            "externalId": "",
-            "id": 6,
-            "name": "sample_2",
-            "resource_uri": "/rundb/api/v1/sample/6/",
-            "sampleSets": [],
-            "status": "run"
-        },
         {
             "date": "2014-03-27T04:37:47.000144+00:00",
             "description": "test",
