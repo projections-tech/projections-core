@@ -22,7 +22,6 @@ PASSWORD = 'password'
 
 
 class TestTorrentSuiteProjector(TestCase):
-
     @classmethod
     def setUpClass(cls):
         cls.mock_resource = TorrentSuiteMock('mockiontorrent.com', 'tests/mock_resource')
