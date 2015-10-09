@@ -17,6 +17,10 @@ logger = logging.getLogger('projections')
 
 
 class Tree(object):
+    """
+    Generic tree class which holds common methods for "tree" structure, must be subclassed to create Prototype and
+    Projection classes
+    """
     def __init__(self, name=None, data=None):
         self.name = name
         self.data = data
@@ -24,6 +28,11 @@ class Tree(object):
         self.children = {}
 
     def __split_path_in_parts(self, path):
+        """
+        Split path string in parts preserving path root
+        :param path: path string
+        :return: list of path parts strings
+        """
         temp = []
         while True:
             chunk = os.path.split(path)
@@ -34,6 +43,9 @@ class Tree(object):
             path = chunk[0]
 
     def tree_to_list(self):
+        """
+        Converts list of lists tree to Tree of Trees
+        """
         return [self.data]+[c[1].tree_to_list() for c in self.children.items()]
 
     def find(self, value, field='data'):
@@ -56,6 +68,9 @@ class Tree(object):
             return None
 
     def path_to_node(self):
+        """
+        Returns full path to current node from root
+        """
         result = []
         parent, child = self.parent, self
         while parent:
@@ -63,22 +78,34 @@ class Tree(object):
             parent, child = parent.parent, parent
         return result[::-1]
 
-    def node_descendands(self):
+    def node_descendants(self):
+        """
+        Returns list of descendants of current node
+        """
         return [c[1] for c in self.children.items()]
 
     def traverse_pre_order(self):
+        """
+        Used to traverse tree in pre order manner
+        """
         yield self.data
         for k, c in self.children.items():
             for v in c.traverse_pre_order():
                 yield v
 
     def traverse_post_order(self):
+        """
+        Used to traverse tree in ppost order manner
+        """
         for k, c in self.children.items():
             for v in c.traverse_post_order():
                 yield v
         yield self.data
 
     def traverse_breadth_first(self):
+        """
+        Used to traverse tree breadth first
+        """
         to_yield = [self]
         while to_yield != []:
             node = to_yield.pop(0)
@@ -87,6 +114,10 @@ class Tree(object):
             yield node.data
 
     def find_node_by_path(self, path_to_node):
+        """
+        Finds node in a tree according to path, by iterating path parts on part at a time on level of tree structure,
+        per iteration
+        """
         path = self.__split_path_in_parts(path_to_node)
         temp_node = self
         for item in path:
@@ -203,6 +234,7 @@ class ProjectionPrototype(Tree):
 
         :param type: describe the type of the generated projections. Current implementation uses 'directory' and 'file' types
         """
+        # Inititalize Tree class, passing current object as Tree data field
         super().__init__(name, self)
         self.parent = parent
 
@@ -221,6 +253,10 @@ class ProjectionPrototype(Tree):
         return self.__str__()
 
     def get_context(self):
+        """
+        Get context of current node defined by contexts of upper nodes
+        """
+        # TODO rewrite this code to use namedtuple from collections in order to achieve dot notation of context
         return [node.context for node in self.path_to_node()]
 
 
@@ -248,8 +284,13 @@ class Projector:
         assert isinstance(driver, ProjectionDriver), 'Check that driver object is subclass of ProjectionDriver'
         self.driver = driver
 
-    def fetch_context(self, path):
-        return self.driver.get_content(path)
+    def fetch_context(self, uri):
+        """
+        Used to fetch contents of uri in microcode
+        :param uri: URI
+        :return: uri contents
+        """
+        return self.driver.get_content(uri)
 
     def create_projection_tree(self, prototypes, projection_tree, parent_projection=None):
         """
@@ -279,7 +320,9 @@ class Projector:
 
         # For every prototype in collection try to create corresponding projections
         for key, prototype in prototypes.items():
+            # Set current prototype context to current environment for children node to use
             prototype.context = environment
+            # Get context of current node from contexts of parent nodes
             context = prototype.get_context()
             logger.info('Prototype context: %s', len(context))
             logger.info('Creating projections for a prototype: %s', prototype)
