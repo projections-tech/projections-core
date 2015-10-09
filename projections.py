@@ -15,6 +15,7 @@ from os import path
 logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('projections')
 
+
 class Tree(object):
     def __init__(self, name=None, data=None):
         self.name = name
@@ -50,7 +51,7 @@ class Tree(object):
         else:
             for k, c in self.children.items():
                 result = c.find(value, field=field)
-                if not result == None:
+                if not result is None:
                     return result
             return None
 
@@ -89,7 +90,7 @@ class Tree(object):
         path = self.__split_path_in_parts(path_to_node)
         temp_node = self
         for item in path:
-            if temp_node == None:
+            if temp_node is None:
                 return None
             temp_node = temp_node.find(item, field='name')
         return temp_node
@@ -130,6 +131,7 @@ class Projection(object):
 
     def __str__(self):
         return 'Projection from {} to {}'.format(self.uri, self.path)
+
 
 class ProjectionTree(object):
     """
@@ -230,6 +232,7 @@ class ProjectionDriver(object):
     def get_content(self, uri):
         raise NotImplemented('Implement data retrieval from some projection backend.')
 
+
 class Projector:
     """
     Class that creates Projection object and assembles them in ProjectionTree object using Prototypes object.
@@ -288,7 +291,6 @@ class Projector:
             # We get projection URIs based on environment and prototype properties
             # Every URI corresponds to projection object
             for uri in URIs:
-                logger.info('URI: %s', uri)
                 # Get content for a projection
                 content = self.driver.get_content(uri)
 
@@ -322,6 +324,7 @@ class Projector:
                     #   but file content should be accessed in this case
                     projection.type = stat.S_IFREG
                     projection.size = 1
+
 
 class ProjectionManager(object):
     """

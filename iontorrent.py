@@ -20,6 +20,7 @@ from tests.mock import TorrentSuiteMock
 
 logger = logging.getLogger('iontorrent_projection')
 
+
 class TorrentSuiteDriver(ProjectionDriver):
     def __init__(self, host_url, user, password):
         self.host_url = 'http://{}'.format(host_url)
@@ -59,6 +60,7 @@ class TorrentSuiteDriver(ProjectionDriver):
     def load_content(self, uri):
         with urllib.request.urlopen(uri) as f:
             return f.readall()
+
 
 class IonTorrentProjection(ProjectionManager):
     def __init__(self, host, user, password):
@@ -346,7 +348,6 @@ class TorrentSuiteProjector(Projector):
 
         plugin_result_prototype.children[local_settings_prototype.name] = local_settings_prototype
         plugin_result_prototype.children[bed_prototype.name] = bed_prototype
-
 
         return {'/': experiment_prototype}
 

@@ -20,6 +20,7 @@ logger = logging.getLogger('test_iontorrent_projection')
 USER = 'user'
 PASSWORD = 'password'
 
+
 class TestTorrentSuiteProjector(TestCase):
 
     @classmethod
@@ -42,7 +43,8 @@ class TestTorrentSuiteProjector(TestCase):
         # Checking number of created projections,
         # we expect 372 projections for two experiments with 5 samples and variant_calling
         self.assertEqual(len(projection_paths_list), 39,
-                         msg='Checking total number of projections, expecting 39, got: {}.'.format(len(projection_paths_list)))
+                         msg='Checking total number of projections,'
+                             ' expecting 39, got: {}.'.format(len(projection_paths_list)))
 
         for exp_dir in exp_dirs:
             # Checking metadata projection creation for experiments
@@ -65,7 +67,7 @@ class TestTorrentSuiteProjector(TestCase):
             vc_dir_path = os.path.join(exp_dir, run_name, 'sample_1',
                                        'variantCaller_out{}'.format(variant_caller_dir))
 
-                        # Checking BED file projections creation
+            # Checking BED file projections creation
             bed_file_path = os.path.join(vc_dir_path, 'IAD39777_for_TSVC.bed')
             self.assertIn(bed_file_path, projection_paths_list,
                           msg='Checking BED file projection existence: {}.'.format(bed_file_path))
