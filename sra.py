@@ -55,7 +55,7 @@ class SRADriver(ProjectionDriver):
         if query_type == 'get_experiment_runs':
             return subprocess.check_output(['./sratoolkit.2.5.2-ubuntu64/bin/sam-dump', query[1]])
         else:
-            return str(self.query_cache[query[1]]).encode()
+            return json.dumps(self.query_cache[query[1]]).encode()
 
 class SRAProjector(Projector):
     def __init__(self, driver):
@@ -80,12 +80,17 @@ class SRAProjector(Projector):
         experiment_prototype.name = "environment['EXPERIMENT']['@accession']"
         experiment_prototype.uri = "['experiment_id:'+environment['EXPERIMENT']['@accession']]"
 
-        run_prototype = ProjectionPrototype('file', query_prototype)
+        experiment_meta_prototype = ProjectionPrototype('file', experiment_prototype)
+        experiment_meta_prototype.name = "'metadata.json'"
+        experiment_meta_prototype.uri = "['experiment_id:'+environment['EXPERIMENT']['@accession']]"
+
+        run_prototype = ProjectionPrototype('file', experiment_prototype)
         run_prototype.name = "content"
         run_prototype.uri = "['get_experiment_runs:'+environment['RUN_SET']['RUN']['@accession']]"
 
         query_prototype.children[experiment_prototype.name] = experiment_prototype
         experiment_prototype.children[run_prototype.name] = run_prototype
+        experiment_prototype.children[experiment_meta_prototype.name] = experiment_meta_prototype
 
         return {'/': query_prototype}
 
