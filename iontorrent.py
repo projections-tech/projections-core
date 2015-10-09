@@ -226,10 +226,10 @@ def main(mountpoint, data_folder, foreground=True):
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
 
-    #mock_torrent_suite = TorrentSuiteMock('mockiontorrent.com', 'tests/mock_resource')
-    #mock_url = mock_torrent_suite.mock_url
+    mock_torrent_suite = TorrentSuiteMock('mockiontorrent.com', 'tests/mock_resource')
+    mock_url = mock_torrent_suite.mock_url
 
-    projection_dirver = TorrentSuiteDriver('10.5.20.17', 'ionadmin', '0ECu1lW')
+    projection_dirver = TorrentSuiteDriver(mock_url, 'ionadmin', '0ECu1lW')
     projection_filesystem.projection_manager = TorrentSuiteProjector(projection_dirver)
 
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)

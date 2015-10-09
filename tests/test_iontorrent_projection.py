@@ -63,12 +63,12 @@ class TestTorrentSuiteProjector(TestCase):
             self.assertIn(sample_meta_path, projection_paths_list,
                           msg='Checking metadata creation:{}'.format(sample_meta_path))
 
-            variant_caller_dir = '.50'
+            variant_caller_dir = '.587'
             vc_dir_path = os.path.join(exp_dir, run_name, 'sample_1',
                                        'variantCaller_out{}'.format(variant_caller_dir))
 
             # Checking BED file projections creation
-            bed_file_path = os.path.join(vc_dir_path, 'IAD39777_for_TSVC.bed')
+            bed_file_path = os.path.join(vc_dir_path, 'IAD66589_181_SNP-HID-p2-L_Target_regions.bed')
             self.assertIn(bed_file_path, projection_paths_list,
                           msg='Checking BED file projection existence: {}.'.format(bed_file_path))
 

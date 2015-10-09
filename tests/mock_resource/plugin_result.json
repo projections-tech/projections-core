@@ -1,362 +1,1835 @@
 {
-    "endtime": "2015-06-17T12:45:21.000241+00:00",
-    "resource_uri": "/rundb/api/v1/pluginresult/564/",
-    "owner": "/rundb/api/v1/user/2/",
-    "duration": "0:41:20.151906",
-    "apikey": "None",
-    "reportLink": "/output/Home/new_140/",
-    "store": {
-        "Target Loci": "Not using",
-        "barcodes": {
-            "IonXpress_014": {
-                "variants": {
-                    "het_snps": 12,
-                    "homo_indels": 0,
-                    "other": 0,
-                    "variants": 17,
-                    "het_indels": 3,
-                    "no_call": 0,
-                    "homo_snps": 2
-                },
-                "hotspots": {}
-            },
-            "IonXpress_005": {
-                "variants": {
-                    "het_snps": 4,
-                    "homo_indels": 0,
-                    "other": 0,
-                    "variants": 10,
-                    "het_indels": 2,
-                    "no_call": 0,
-                    "homo_snps": 4
-                },
-                "hotspots": {}
-            },
-            "IonXpress_055": {
-                "variants": {
-                    "het_snps": 11,
-                    "homo_indels": 0,
-                    "other": 0,
-                    "variants": 13,
-                    "het_indels": 2,
-                    "no_call": 0,
-                    "homo_snps": 0
-                },
-                "hotspots": {}
-            },
-            "IonXpress_013": {
-                "variants": {
-                    "het_snps": 12,
-                    "homo_indels": 0,
-                    "other": 0,
-                    "variants": 14,
-                    "het_indels": 1,
-                    "no_call": 0,
-                    "homo_snps": 1
-                },
-                "hotspots": {}
-            },
-            "IonXpress_054": {
-                "variants": {
-                    "het_snps": 9,
-                    "homo_indels": 0,
-                    "other": 0,
-                    "variants": 11,
-                    "het_indels": 2,
-                    "no_call": 0,
-                    "homo_snps": 0
-                },
-                "hotspots": {}
-            },
-            "IonXpress_011": {
-                "variants": {
-                    "het_snps": 4,
-                    "homo_indels": 1,
-                    "other": 0,
-                    "variants": 10,
-                    "het_indels": 0,
-                    "no_call": 0,
-                    "homo_snps": 5
-                },
-                "hotspots": {}
-            },
-            "IonXpress_009": {
-                "variants": {
-                    "het_snps": 4,
-                    "homo_indels": 0,
-                    "other": 0,
-                    "variants": 14,
-                    "het_indels": 0,
-                    "no_call": 0,
-                    "homo_snps": 10
-                },
-                "hotspots": {}
-            },
-            "IonXpress_001": {
-                "variants": {
-                    "het_snps": 8,
-                    "homo_indels": 0,
-                    "other": 0,
-                    "variants": 12,
-                    "het_indels": 2,
-                    "no_call": 0,
-                    "homo_snps": 2
-                },
-                "hotspots": {}
-            },
-            "IonXpress_017": {
-                "variants": {
-                    "het_snps": 13,
-                    "homo_indels": 0,
-                    "other": 0,
-                    "variants": 13,
-                    "het_indels": 0,
-                    "no_call": 0,
-                    "homo_snps": 0
-                },
-                "hotspots": {}
-            },
-            "IonXpress_010": {
-                "variants": {
-                    "het_snps": 5,
-                    "homo_indels": 0,
-                    "other": 0,
-                    "variants": 5,
-                    "het_indels": 0,
-                    "no_call": 0,
-                    "homo_snps": 0
-                },
-                "hotspots": {}
-            },
-            "IonXpress_006": {
-                "variants": {
-                    "het_snps": 9,
-                    "homo_indels": 0,
-                    "other": 0,
-                    "variants": 11,
-                    "het_indels": 1,
-                    "no_call": 0,
-                    "homo_snps": 1
-                },
-                "hotspots": {}
-            },
-            "IonXpress_053": {
-                "variants": {
-                    "het_snps": 11,
-                    "homo_indels": 0,
-                    "other": 0,
-                    "variants": 13,
-                    "het_indels": 2,
-                    "no_call": 0,
-                    "homo_snps": 0
-                },
-                "hotspots": {}
-            },
-            "IonXpress_002": {
-                "variants": {
-                    "het_snps": 7,
-                    "homo_indels": 0,
-                    "other": 0,
-                    "variants": 14,
-                    "het_indels": 0,
-                    "no_call": 0,
-                    "homo_snps": 7
-                },
-                "hotspots": {}
-            },
-            "IonXpress_004": {
-                "variants": {
-                    "het_snps": 13,
-                    "homo_indels": 0,
-                    "other": 0,
-                    "variants": 18,
-                    "het_indels": 2,
-                    "no_call": 0,
-                    "homo_snps": 3
-                },
-                "hotspots": {}
-            },
-            "IonXpress_003": {
-                "variants": {
-                    "het_snps": 2,
-                    "homo_indels": 0,
-                    "other": 0,
-                    "variants": 13,
-                    "het_indels": 1,
-                    "no_call": 0,
-                    "homo_snps": 10
-                },
-                "hotspots": {}
-            },
-            "IonXpress_062": {
-                "variants": {
-                    "het_snps": 8,
-                    "homo_indels": 0,
-                    "other": 0,
-                    "variants": 10,
-                    "het_indels": 2,
-                    "no_call": 0,
-                    "homo_snps": 0
-                },
-                "hotspots": {}
-            },
-            "IonXpress_063": {
-                "variants": {
-                    "het_snps": 9,
-                    "homo_indels": 0,
-                    "other": 0,
-                    "variants": 11,
-                    "het_indels": 2,
-                    "no_call": 0,
-                    "homo_snps": 0
-                },
-                "hotspots": {}
-            },
-            "IonXpress_016": {
-                "variants": {
-                    "het_snps": 12,
-                    "homo_indels": 1,
-                    "other": 0,
-                    "variants": 18,
-                    "het_indels": 1,
-                    "no_call": 0,
-                    "homo_snps": 4
-                },
-                "hotspots": {}
-            },
-            "IonXpress_007": {
-                "variants": {
-                    "het_snps": 3,
-                    "homo_indels": 0,
-                    "other": 0,
-                    "variants": 7,
-                    "het_indels": 0,
-                    "no_call": 0,
-                    "homo_snps": 4
-                },
-                "hotspots": {}
-            },
-            "IonXpress_015": {
-                "variants": {
-                    "het_snps": 8,
-                    "homo_indels": 0,
-                    "other": 0,
-                    "variants": 14,
-                    "het_indels": 2,
-                    "no_call": 0,
-                    "homo_snps": 4
-                },
-                "hotspots": {}
-            },
-            "IonXpress_012": {
-                "variants": {
-                    "het_snps": 16,
-                    "homo_indels": 0,
-                    "other": 0,
-                    "variants": 18,
-                    "het_indels": 1,
-                    "no_call": 0,
-                    "homo_snps": 1
-                },
-                "hotspots": {}
-            },
-            "IonXpress_008": {
-                "variants": {
-                    "het_snps": 10,
-                    "homo_indels": 0,
-                    "other": 0,
-                    "variants": 11,
-                    "het_indels": 1,
-                    "no_call": 0,
-                    "homo_snps": 0
-                },
-                "hotspots": {}
-            }
-        },
-        "Target Regions": "IAD39777_for_TSVC",
-        "Library Type": "AmpliSeq",
-        "barcoded": "true",
-        "Aligned Reads": "R_2014_03_03_19_33_35_Sequoia_SN1-64-NND_commercial_and_VFNA_verification",
-        "Trim Reads": "True",
-        "Configuration": "Custom"
-    },
-    "starttime": "2015-06-17T12:04:01.000089+00:00",
-    "state": "Completed",
-    "pluginVersion": "3.6.63335",
-    "inodes": "1183",
-    "pluginName": "variantCaller",
-    "id": 564,
-    "size": "2059834724",
-    "resultName": "new",
     "config": {
-        "torrent_variant_caller": {
-            "snp_beta_bias": "30",
-            "hp_max_length": "8",
-            "indel_min_allele_freq": "0.15",
-            "snp_strand_bias": "0.95",
-            "indel_beta_bias": "8",
-            "hotspot_strand_bias": "0.95",
-            "hotspot_beta_bias": "8",
-            "downsample_to_coverage": "400",
-            "snp_min_cov_each_strand": "3",
-            "indel_min_cov_each_strand": "3",
-            "do_snp_realignment": "0",
-            "snp_min_variant_score": "10",
-            "heavy_tailed": "3",
-            "indel_min_variant_score": "10",
-            "prediction_precision": "1",
-            "snp_min_allele_freq": "0.15",
-            "hotspot_min_allele_freq": "0.15",
-            "indel_strand_bias": "0.85",
-            "filter_deletion_predictions": "0.2",
-            "hotspot_min_cov_each_strand": "3",
-            "filter_insertion_predictions": "0.2",
-            "data_quality_stringency": "8.5",
-            "outlier_probability": "0.01",
-            "filter_unusual_predictions": "0.25",
-            "hotspot_min_variant_score": "10",
-            "indel_min_coverage": "20",
-            "snp_min_coverage": "20",
-            "hotspot_min_coverage": "20",
-            "suppress_recalibration": "1"
-        },
         "meta": {
-            "targetloci": "",
-            "trimreads": "True",
-            "targetregions": "/results/uploads/BED/210/hg19_v3/unmerged/detail/IAD39777_for_TSVC.bed",
-            "librarytype": "ampliseq",
-            "targetloci_id": "None",
-            "configuration": "custom",
-            "reference": "hg19_v3",
+            "based_on": "ampliseq_germline_lowstringency_pgm_parameters.json",
+            "barcode_mode": "match",
+            "librarytype": "wholegenome",
+            "trimreads": "TRUE",
+            "ts_version": "4.4",
+            "compatibility": {
+                "stringency": [
+                    "low"
+                ],
+                "chip": [
+                    "pgm"
+                ],
+                "library": [
+                    "wholegenome",
+                    "ampliseq",
+                    "targetseq"
+                ],
+                "frequency": [
+                    "germline"
+                ]
+            },
+            "built_in": "TRUE",
+            "configuration": "germline_low_stringency",
+            "name": "Generic - PGM - Germ Line - Low Stringency",
+            "user_selections": {
+                "chip": "pgm",
+                "panel": "",
+                "library": "wholegenome",
+                "frequency": "germline"
+            },
             "tvcargs": "tvc",
-            "targetregions_id": "IAD39777_for_TSVC",
-            "targetloci_merge": "",
-            "targetregions_merge": "/results/uploads/BED/210/hg19_v3/merged/plain/IAD39777_for_TSVC.bed"
+            "tooltip": "Optimized for allele frequencies >10% and high sensitivity"
         },
-        "long_indel_assembler": {
-            "min_var_freq": "0.15",
-            "relative_strand_bias": "0.8",
-            "min_indel_size": "4",
-            "kmer_len": "19",
-            "max_hp_length": "8",
-            "min_var_count": "5",
-            "short_suffix_match": "5"
+        "torrent_variant_caller": {
+            "hotspot_strand_bias": "0.98",
+            "snp_min_coverage": 6,
+            "indel_as_hpindel": 0,
+            "indel_min_cov_each_strand": 5,
+            "position_bias": "0.75",
+            "do_snp_realignment": 1,
+            "indel_min_variant_score": 10,
+            "mnp_strand_bias": "0.95",
+            "mnp_strand_bias_pval": 1,
+            "hp_max_length": 10,
+            "mnp_min_variant_score": 10,
+            "data_quality_stringency": "6.5",
+            "heavy_tailed": 3,
+            "suppress_recalibration": 0,
+            "snp_strand_bias_pval": 1,
+            "indel_strand_bias_pval": 1,
+            "hotspot_min_variant_score": 5,
+            "filter_insertion_predictions": "0.4",
+            "snp_min_cov_each_strand": 0,
+            "mnp_min_cov_each_strand": 0,
+            "realignment_threshold": 1,
+            "prediction_precision": 1,
+            "filter_unusual_predictions": "0.7",
+            "snp_min_variant_score": 10,
+            "mnp_min_allele_freq": "0.1",
+            "position_bias_pval": "0.05",
+            "downsample_to_coverage": 4000,
+            "hotspot_min_coverage": 6,
+            "use_position_bias": 0,
+            "filter_deletion_predictions": "0.2",
+            "indel_min_coverage": 15,
+            "snp_min_allele_freq": "0.1",
+            "hotspot_min_cov_each_strand": 3,
+            "position_bias_ref_fraction": "0.05",
+            "do_mnp_realignment": 1,
+            "mnp_min_coverage": 6,
+            "snp_strand_bias": "0.95",
+            "outlier_probability": "0.01",
+            "hotspot_min_allele_freq": "0.1",
+            "indel_min_allele_freq": "0.1",
+            "hotspot_strand_bias_pval": 1,
+            "indel_strand_bias": "0.85"
         },
         "freebayes": {
+            "allow_complex": 0,
+            "read_snp_limit": 10,
+            "allow_mnps": 1,
+            "min_mapping_qv": 4,
             "gen_min_alt_allele_freq": "0.15",
-            "allow_indels": "1",
-            "allow_mnps": "0",
-            "read_mismatch_limit": "10",
-            "allow_snps": "1",
-            "min_base_qv": "4",
-            "gen_min_coverage": "6",
-            "read_max_mismatch_fraction": "1",
+            "allow_snps": 1,
             "gen_min_indel_alt_allele_freq": "0.15",
-            "min_mapping_qv": "4"
+            "allow_indels": 1,
+            "read_max_mismatch_fraction": 1,
+            "gen_min_coverage": 6
+        },
+        "long_indel_assembler": {
+            "kmer_len": 19,
+            "output_mnv": 0,
+            "min_indel_size": 4,
+            "min_var_count": 5,
+            "short_suffix_match": 5,
+            "max_hp_length": 8,
+            "min_var_freq": "0.15",
+            "relative_strand_bias": "0.8"
         }
     },
-    "plugin": "/rundb/api/v1/plugin/94/",
-    "result": "/rundb/api/v1/results/140/",
-    "jobid": 1463,
-    "path": "/results/analysis/output/Home/new_140/plugin_out/variantCaller_out.50"
+    "path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587",
+    "size": "489198114",
+    "endtime": "2015-09-18T08:04:49.000470+00:00",
+    "reportLink": "/output/Home/SN1-65-SNP-HID_analysis_144/",
+    "plugin": "/rundb/api/v1/plugin/96/",
+    "jobid": 1495,
+    "owner": "/rundb/api/v1/user/2/",
+    "resultName": "SN1-65-SNP-HID_analysis",
+    "duration": "0:18:51.394497",
+    "result": "/rundb/api/v1/results/144/",
+    "starttime": "2015-09-18T07:45:58.000076+00:00",
+    "pluginVersion": "4.4.3.3",
+    "pluginName": "variantCaller",
+    "state": "Completed",
+    "resource_uri": "/rundb/api/v1/pluginresult/587/",
+    "store": {
+        "Configuration": "germline_low_stringency",
+        "Target Loci": "IAD66589_181_SNP-HID-p2-L_Hotspots",
+        "Aligned Reads": "R_2015_09_17_09_21_20_Sequoia_SN1-65-AmpliSeq_newHi-Q_400_316v2_17sep2015",
+        "files": [
+            {
+                "filename": "local_parameters.json",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/local_parameters.json",
+                "type": "parameters_json",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/local_parameters.json"
+            },
+            {
+                "filename": "IAD66589_181_SNP-HID-p2-L_Target_regions.bed",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IAD66589_181_SNP-HID-p2-L_Target_regions.bed",
+                "type": "target_regions_bed",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IAD66589_181_SNP-HID-p2-L_Target_regions.bed"
+            },
+            {
+                "filename": "IAD66589_181_SNP-HID-p2-L_Hotspots.bed",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IAD66589_181_SNP-HID-p2-L_Hotspots.bed",
+                "type": "hotspots_bed",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IAD66589_181_SNP-HID-p2-L_Hotspots.bed"
+            },
+            {
+                "barcode": "IonXpress_001",
+                "filename": "TSVC_variants_IonXpress_001.vcf.gz",
+                "sample": "HL-13",
+                "type": "variants_vcf_gz",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_001/TSVC_variants_IonXpress_001.vcf.gz",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_001/TSVC_variants_IonXpress_001.vcf.gz"
+            },
+            {
+                "barcode": "IonXpress_001",
+                "filename": "TSVC_variants_IonXpress_001.vcf.gz.tbi",
+                "sample": "HL-13",
+                "type": "variants_vcf_gz_tbi",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_001/TSVC_variants_IonXpress_001.vcf.gz.tbi",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_001/TSVC_variants_IonXpress_001.vcf.gz.tbi"
+            },
+            {
+                "barcode": "IonXpress_001",
+                "filename": "alleles_IonXpress_001.xls",
+                "sample": "HL-13",
+                "type": "alleles_xls",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_001/alleles_IonXpress_001.xls",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_001/alleles_IonXpress_001.xls"
+            },
+            {
+                "barcode": "IonXpress_001",
+                "filename": "IonXpress_001_rawlib.bam",
+                "sample": "HL-13",
+                "type": "mapped_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_001/IonXpress_001_rawlib.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_001/IonXpress_001_rawlib.bam"
+            },
+            {
+                "barcode": "IonXpress_001",
+                "filename": "IonXpress_001_rawlib.bam.bai",
+                "sample": "HL-13",
+                "type": "mapped_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_001/IonXpress_001_rawlib.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_001/IonXpress_001_rawlib.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_001",
+                "filename": "IonXpress_001_rawlib_processed.bam",
+                "sample": "HL-13",
+                "type": "processed_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_001/IonXpress_001_rawlib_processed.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_001/IonXpress_001_rawlib_processed.bam"
+            },
+            {
+                "barcode": "IonXpress_001",
+                "filename": "IonXpress_001_rawlib_processed.bam.bai",
+                "sample": "HL-13",
+                "type": "processed_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_001/IonXpress_001_rawlib_processed.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_001/IonXpress_001_rawlib_processed.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_001",
+                "filename": "small_variants_filtered.vcf",
+                "sample": "HL-13",
+                "type": "filtered_variants_vcf",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_001/small_variants_filtered.vcf",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_001/small_variants_filtered.vcf"
+            },
+            {
+                "barcode": "IonXpress_002",
+                "filename": "TSVC_variants_IonXpress_002.vcf.gz",
+                "sample": "HL-14",
+                "type": "variants_vcf_gz",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_002/TSVC_variants_IonXpress_002.vcf.gz",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_002/TSVC_variants_IonXpress_002.vcf.gz"
+            },
+            {
+                "barcode": "IonXpress_002",
+                "filename": "TSVC_variants_IonXpress_002.vcf.gz.tbi",
+                "sample": "HL-14",
+                "type": "variants_vcf_gz_tbi",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_002/TSVC_variants_IonXpress_002.vcf.gz.tbi",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_002/TSVC_variants_IonXpress_002.vcf.gz.tbi"
+            },
+            {
+                "barcode": "IonXpress_002",
+                "filename": "alleles_IonXpress_002.xls",
+                "sample": "HL-14",
+                "type": "alleles_xls",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_002/alleles_IonXpress_002.xls",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_002/alleles_IonXpress_002.xls"
+            },
+            {
+                "barcode": "IonXpress_002",
+                "filename": "IonXpress_002_rawlib.bam",
+                "sample": "HL-14",
+                "type": "mapped_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_002/IonXpress_002_rawlib.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_002/IonXpress_002_rawlib.bam"
+            },
+            {
+                "barcode": "IonXpress_002",
+                "filename": "IonXpress_002_rawlib.bam.bai",
+                "sample": "HL-14",
+                "type": "mapped_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_002/IonXpress_002_rawlib.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_002/IonXpress_002_rawlib.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_002",
+                "filename": "IonXpress_002_rawlib_processed.bam",
+                "sample": "HL-14",
+                "type": "processed_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_002/IonXpress_002_rawlib_processed.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_002/IonXpress_002_rawlib_processed.bam"
+            },
+            {
+                "barcode": "IonXpress_002",
+                "filename": "IonXpress_002_rawlib_processed.bam.bai",
+                "sample": "HL-14",
+                "type": "processed_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_002/IonXpress_002_rawlib_processed.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_002/IonXpress_002_rawlib_processed.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_002",
+                "filename": "small_variants_filtered.vcf",
+                "sample": "HL-14",
+                "type": "filtered_variants_vcf",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_002/small_variants_filtered.vcf",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_002/small_variants_filtered.vcf"
+            },
+            {
+                "barcode": "IonXpress_003",
+                "filename": "TSVC_variants_IonXpress_003.vcf.gz",
+                "sample": "A9",
+                "type": "variants_vcf_gz",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_003/TSVC_variants_IonXpress_003.vcf.gz",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_003/TSVC_variants_IonXpress_003.vcf.gz"
+            },
+            {
+                "barcode": "IonXpress_003",
+                "filename": "TSVC_variants_IonXpress_003.vcf.gz.tbi",
+                "sample": "A9",
+                "type": "variants_vcf_gz_tbi",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_003/TSVC_variants_IonXpress_003.vcf.gz.tbi",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_003/TSVC_variants_IonXpress_003.vcf.gz.tbi"
+            },
+            {
+                "barcode": "IonXpress_003",
+                "filename": "alleles_IonXpress_003.xls",
+                "sample": "A9",
+                "type": "alleles_xls",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_003/alleles_IonXpress_003.xls",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_003/alleles_IonXpress_003.xls"
+            },
+            {
+                "barcode": "IonXpress_003",
+                "filename": "IonXpress_003_rawlib.bam",
+                "sample": "A9",
+                "type": "mapped_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_003/IonXpress_003_rawlib.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_003/IonXpress_003_rawlib.bam"
+            },
+            {
+                "barcode": "IonXpress_003",
+                "filename": "IonXpress_003_rawlib.bam.bai",
+                "sample": "A9",
+                "type": "mapped_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_003/IonXpress_003_rawlib.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_003/IonXpress_003_rawlib.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_003",
+                "filename": "IonXpress_003_rawlib_processed.bam",
+                "sample": "A9",
+                "type": "processed_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_003/IonXpress_003_rawlib_processed.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_003/IonXpress_003_rawlib_processed.bam"
+            },
+            {
+                "barcode": "IonXpress_003",
+                "filename": "IonXpress_003_rawlib_processed.bam.bai",
+                "sample": "A9",
+                "type": "processed_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_003/IonXpress_003_rawlib_processed.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_003/IonXpress_003_rawlib_processed.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_003",
+                "filename": "small_variants_filtered.vcf",
+                "sample": "A9",
+                "type": "filtered_variants_vcf",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_003/small_variants_filtered.vcf",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_003/small_variants_filtered.vcf"
+            },
+            {
+                "barcode": "IonXpress_004",
+                "filename": "TSVC_variants_IonXpress_004.vcf.gz",
+                "sample": "B01",
+                "type": "variants_vcf_gz",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_004/TSVC_variants_IonXpress_004.vcf.gz",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_004/TSVC_variants_IonXpress_004.vcf.gz"
+            },
+            {
+                "barcode": "IonXpress_004",
+                "filename": "TSVC_variants_IonXpress_004.vcf.gz.tbi",
+                "sample": "B01",
+                "type": "variants_vcf_gz_tbi",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_004/TSVC_variants_IonXpress_004.vcf.gz.tbi",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_004/TSVC_variants_IonXpress_004.vcf.gz.tbi"
+            },
+            {
+                "barcode": "IonXpress_004",
+                "filename": "alleles_IonXpress_004.xls",
+                "sample": "B01",
+                "type": "alleles_xls",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_004/alleles_IonXpress_004.xls",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_004/alleles_IonXpress_004.xls"
+            },
+            {
+                "barcode": "IonXpress_004",
+                "filename": "IonXpress_004_rawlib.bam",
+                "sample": "B01",
+                "type": "mapped_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_004/IonXpress_004_rawlib.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_004/IonXpress_004_rawlib.bam"
+            },
+            {
+                "barcode": "IonXpress_004",
+                "filename": "IonXpress_004_rawlib.bam.bai",
+                "sample": "B01",
+                "type": "mapped_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_004/IonXpress_004_rawlib.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_004/IonXpress_004_rawlib.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_004",
+                "filename": "IonXpress_004_rawlib_processed.bam",
+                "sample": "B01",
+                "type": "processed_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_004/IonXpress_004_rawlib_processed.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_004/IonXpress_004_rawlib_processed.bam"
+            },
+            {
+                "barcode": "IonXpress_004",
+                "filename": "IonXpress_004_rawlib_processed.bam.bai",
+                "sample": "B01",
+                "type": "processed_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_004/IonXpress_004_rawlib_processed.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_004/IonXpress_004_rawlib_processed.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_004",
+                "filename": "small_variants_filtered.vcf",
+                "sample": "B01",
+                "type": "filtered_variants_vcf",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_004/small_variants_filtered.vcf",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_004/small_variants_filtered.vcf"
+            },
+            {
+                "barcode": "IonXpress_005",
+                "filename": "TSVC_variants_IonXpress_005.vcf.gz",
+                "sample": "HL-17",
+                "type": "variants_vcf_gz",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_005/TSVC_variants_IonXpress_005.vcf.gz",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_005/TSVC_variants_IonXpress_005.vcf.gz"
+            },
+            {
+                "barcode": "IonXpress_005",
+                "filename": "TSVC_variants_IonXpress_005.vcf.gz.tbi",
+                "sample": "HL-17",
+                "type": "variants_vcf_gz_tbi",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_005/TSVC_variants_IonXpress_005.vcf.gz.tbi",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_005/TSVC_variants_IonXpress_005.vcf.gz.tbi"
+            },
+            {
+                "barcode": "IonXpress_005",
+                "filename": "alleles_IonXpress_005.xls",
+                "sample": "HL-17",
+                "type": "alleles_xls",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_005/alleles_IonXpress_005.xls",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_005/alleles_IonXpress_005.xls"
+            },
+            {
+                "barcode": "IonXpress_005",
+                "filename": "IonXpress_005_rawlib.bam",
+                "sample": "HL-17",
+                "type": "mapped_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_005/IonXpress_005_rawlib.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_005/IonXpress_005_rawlib.bam"
+            },
+            {
+                "barcode": "IonXpress_005",
+                "filename": "IonXpress_005_rawlib.bam.bai",
+                "sample": "HL-17",
+                "type": "mapped_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_005/IonXpress_005_rawlib.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_005/IonXpress_005_rawlib.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_005",
+                "filename": "IonXpress_005_rawlib_processed.bam",
+                "sample": "HL-17",
+                "type": "processed_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_005/IonXpress_005_rawlib_processed.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_005/IonXpress_005_rawlib_processed.bam"
+            },
+            {
+                "barcode": "IonXpress_005",
+                "filename": "IonXpress_005_rawlib_processed.bam.bai",
+                "sample": "HL-17",
+                "type": "processed_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_005/IonXpress_005_rawlib_processed.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_005/IonXpress_005_rawlib_processed.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_005",
+                "filename": "small_variants_filtered.vcf",
+                "sample": "HL-17",
+                "type": "filtered_variants_vcf",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_005/small_variants_filtered.vcf",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_005/small_variants_filtered.vcf"
+            },
+            {
+                "barcode": "IonXpress_006",
+                "filename": "TSVC_variants_IonXpress_006.vcf.gz",
+                "sample": "HL-18",
+                "type": "variants_vcf_gz",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_006/TSVC_variants_IonXpress_006.vcf.gz",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_006/TSVC_variants_IonXpress_006.vcf.gz"
+            },
+            {
+                "barcode": "IonXpress_006",
+                "filename": "TSVC_variants_IonXpress_006.vcf.gz.tbi",
+                "sample": "HL-18",
+                "type": "variants_vcf_gz_tbi",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_006/TSVC_variants_IonXpress_006.vcf.gz.tbi",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_006/TSVC_variants_IonXpress_006.vcf.gz.tbi"
+            },
+            {
+                "barcode": "IonXpress_006",
+                "filename": "alleles_IonXpress_006.xls",
+                "sample": "HL-18",
+                "type": "alleles_xls",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_006/alleles_IonXpress_006.xls",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_006/alleles_IonXpress_006.xls"
+            },
+            {
+                "barcode": "IonXpress_006",
+                "filename": "IonXpress_006_rawlib.bam",
+                "sample": "HL-18",
+                "type": "mapped_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_006/IonXpress_006_rawlib.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_006/IonXpress_006_rawlib.bam"
+            },
+            {
+                "barcode": "IonXpress_006",
+                "filename": "IonXpress_006_rawlib.bam.bai",
+                "sample": "HL-18",
+                "type": "mapped_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_006/IonXpress_006_rawlib.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_006/IonXpress_006_rawlib.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_006",
+                "filename": "IonXpress_006_rawlib_processed.bam",
+                "sample": "HL-18",
+                "type": "processed_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_006/IonXpress_006_rawlib_processed.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_006/IonXpress_006_rawlib_processed.bam"
+            },
+            {
+                "barcode": "IonXpress_006",
+                "filename": "IonXpress_006_rawlib_processed.bam.bai",
+                "sample": "HL-18",
+                "type": "processed_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_006/IonXpress_006_rawlib_processed.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_006/IonXpress_006_rawlib_processed.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_006",
+                "filename": "small_variants_filtered.vcf",
+                "sample": "HL-18",
+                "type": "filtered_variants_vcf",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_006/small_variants_filtered.vcf",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_006/small_variants_filtered.vcf"
+            },
+            {
+                "barcode": "IonXpress_007",
+                "filename": "TSVC_variants_IonXpress_007.vcf.gz",
+                "sample": "HL-19",
+                "type": "variants_vcf_gz",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_007/TSVC_variants_IonXpress_007.vcf.gz",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_007/TSVC_variants_IonXpress_007.vcf.gz"
+            },
+            {
+                "barcode": "IonXpress_007",
+                "filename": "TSVC_variants_IonXpress_007.vcf.gz.tbi",
+                "sample": "HL-19",
+                "type": "variants_vcf_gz_tbi",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_007/TSVC_variants_IonXpress_007.vcf.gz.tbi",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_007/TSVC_variants_IonXpress_007.vcf.gz.tbi"
+            },
+            {
+                "barcode": "IonXpress_007",
+                "filename": "alleles_IonXpress_007.xls",
+                "sample": "HL-19",
+                "type": "alleles_xls",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_007/alleles_IonXpress_007.xls",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_007/alleles_IonXpress_007.xls"
+            },
+            {
+                "barcode": "IonXpress_007",
+                "filename": "IonXpress_007_rawlib.bam",
+                "sample": "HL-19",
+                "type": "mapped_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_007/IonXpress_007_rawlib.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_007/IonXpress_007_rawlib.bam"
+            },
+            {
+                "barcode": "IonXpress_007",
+                "filename": "IonXpress_007_rawlib.bam.bai",
+                "sample": "HL-19",
+                "type": "mapped_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_007/IonXpress_007_rawlib.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_007/IonXpress_007_rawlib.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_007",
+                "filename": "IonXpress_007_rawlib_processed.bam",
+                "sample": "HL-19",
+                "type": "processed_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_007/IonXpress_007_rawlib_processed.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_007/IonXpress_007_rawlib_processed.bam"
+            },
+            {
+                "barcode": "IonXpress_007",
+                "filename": "IonXpress_007_rawlib_processed.bam.bai",
+                "sample": "HL-19",
+                "type": "processed_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_007/IonXpress_007_rawlib_processed.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_007/IonXpress_007_rawlib_processed.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_007",
+                "filename": "small_variants_filtered.vcf",
+                "sample": "HL-19",
+                "type": "filtered_variants_vcf",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_007/small_variants_filtered.vcf",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_007/small_variants_filtered.vcf"
+            },
+            {
+                "barcode": "IonXpress_008",
+                "filename": "TSVC_variants_IonXpress_008.vcf.gz",
+                "sample": "HL-20",
+                "type": "variants_vcf_gz",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_008/TSVC_variants_IonXpress_008.vcf.gz",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_008/TSVC_variants_IonXpress_008.vcf.gz"
+            },
+            {
+                "barcode": "IonXpress_008",
+                "filename": "TSVC_variants_IonXpress_008.vcf.gz.tbi",
+                "sample": "HL-20",
+                "type": "variants_vcf_gz_tbi",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_008/TSVC_variants_IonXpress_008.vcf.gz.tbi",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_008/TSVC_variants_IonXpress_008.vcf.gz.tbi"
+            },
+            {
+                "barcode": "IonXpress_008",
+                "filename": "alleles_IonXpress_008.xls",
+                "sample": "HL-20",
+                "type": "alleles_xls",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_008/alleles_IonXpress_008.xls",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_008/alleles_IonXpress_008.xls"
+            },
+            {
+                "barcode": "IonXpress_008",
+                "filename": "IonXpress_008_rawlib.bam",
+                "sample": "HL-20",
+                "type": "mapped_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_008/IonXpress_008_rawlib.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_008/IonXpress_008_rawlib.bam"
+            },
+            {
+                "barcode": "IonXpress_008",
+                "filename": "IonXpress_008_rawlib.bam.bai",
+                "sample": "HL-20",
+                "type": "mapped_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_008/IonXpress_008_rawlib.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_008/IonXpress_008_rawlib.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_008",
+                "filename": "IonXpress_008_rawlib_processed.bam",
+                "sample": "HL-20",
+                "type": "processed_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_008/IonXpress_008_rawlib_processed.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_008/IonXpress_008_rawlib_processed.bam"
+            },
+            {
+                "barcode": "IonXpress_008",
+                "filename": "IonXpress_008_rawlib_processed.bam.bai",
+                "sample": "HL-20",
+                "type": "processed_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_008/IonXpress_008_rawlib_processed.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_008/IonXpress_008_rawlib_processed.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_008",
+                "filename": "small_variants_filtered.vcf",
+                "sample": "HL-20",
+                "type": "filtered_variants_vcf",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_008/small_variants_filtered.vcf",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_008/small_variants_filtered.vcf"
+            },
+            {
+                "barcode": "IonXpress_009",
+                "filename": "TSVC_variants_IonXpress_009.vcf.gz",
+                "sample": "HL-21",
+                "type": "variants_vcf_gz",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_009/TSVC_variants_IonXpress_009.vcf.gz",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_009/TSVC_variants_IonXpress_009.vcf.gz"
+            },
+            {
+                "barcode": "IonXpress_009",
+                "filename": "TSVC_variants_IonXpress_009.vcf.gz.tbi",
+                "sample": "HL-21",
+                "type": "variants_vcf_gz_tbi",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_009/TSVC_variants_IonXpress_009.vcf.gz.tbi",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_009/TSVC_variants_IonXpress_009.vcf.gz.tbi"
+            },
+            {
+                "barcode": "IonXpress_009",
+                "filename": "alleles_IonXpress_009.xls",
+                "sample": "HL-21",
+                "type": "alleles_xls",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_009/alleles_IonXpress_009.xls",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_009/alleles_IonXpress_009.xls"
+            },
+            {
+                "barcode": "IonXpress_009",
+                "filename": "IonXpress_009_rawlib.bam",
+                "sample": "HL-21",
+                "type": "mapped_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_009/IonXpress_009_rawlib.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_009/IonXpress_009_rawlib.bam"
+            },
+            {
+                "barcode": "IonXpress_009",
+                "filename": "IonXpress_009_rawlib.bam.bai",
+                "sample": "HL-21",
+                "type": "mapped_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_009/IonXpress_009_rawlib.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_009/IonXpress_009_rawlib.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_009",
+                "filename": "IonXpress_009_rawlib_processed.bam",
+                "sample": "HL-21",
+                "type": "processed_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_009/IonXpress_009_rawlib_processed.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_009/IonXpress_009_rawlib_processed.bam"
+            },
+            {
+                "barcode": "IonXpress_009",
+                "filename": "IonXpress_009_rawlib_processed.bam.bai",
+                "sample": "HL-21",
+                "type": "processed_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_009/IonXpress_009_rawlib_processed.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_009/IonXpress_009_rawlib_processed.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_009",
+                "filename": "small_variants_filtered.vcf",
+                "sample": "HL-21",
+                "type": "filtered_variants_vcf",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_009/small_variants_filtered.vcf",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_009/small_variants_filtered.vcf"
+            },
+            {
+                "barcode": "IonXpress_010",
+                "filename": "TSVC_variants_IonXpress_010.vcf.gz",
+                "sample": "HL-22",
+                "type": "variants_vcf_gz",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_010/TSVC_variants_IonXpress_010.vcf.gz",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_010/TSVC_variants_IonXpress_010.vcf.gz"
+            },
+            {
+                "barcode": "IonXpress_010",
+                "filename": "TSVC_variants_IonXpress_010.vcf.gz.tbi",
+                "sample": "HL-22",
+                "type": "variants_vcf_gz_tbi",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_010/TSVC_variants_IonXpress_010.vcf.gz.tbi",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_010/TSVC_variants_IonXpress_010.vcf.gz.tbi"
+            },
+            {
+                "barcode": "IonXpress_010",
+                "filename": "alleles_IonXpress_010.xls",
+                "sample": "HL-22",
+                "type": "alleles_xls",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_010/alleles_IonXpress_010.xls",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_010/alleles_IonXpress_010.xls"
+            },
+            {
+                "barcode": "IonXpress_010",
+                "filename": "IonXpress_010_rawlib.bam",
+                "sample": "HL-22",
+                "type": "mapped_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_010/IonXpress_010_rawlib.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_010/IonXpress_010_rawlib.bam"
+            },
+            {
+                "barcode": "IonXpress_010",
+                "filename": "IonXpress_010_rawlib.bam.bai",
+                "sample": "HL-22",
+                "type": "mapped_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_010/IonXpress_010_rawlib.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_010/IonXpress_010_rawlib.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_010",
+                "filename": "IonXpress_010_rawlib_processed.bam",
+                "sample": "HL-22",
+                "type": "processed_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_010/IonXpress_010_rawlib_processed.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_010/IonXpress_010_rawlib_processed.bam"
+            },
+            {
+                "barcode": "IonXpress_010",
+                "filename": "IonXpress_010_rawlib_processed.bam.bai",
+                "sample": "HL-22",
+                "type": "processed_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_010/IonXpress_010_rawlib_processed.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_010/IonXpress_010_rawlib_processed.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_010",
+                "filename": "small_variants_filtered.vcf",
+                "sample": "HL-22",
+                "type": "filtered_variants_vcf",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_010/small_variants_filtered.vcf",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_010/small_variants_filtered.vcf"
+            },
+            {
+                "barcode": "IonXpress_013",
+                "filename": "TSVC_variants_IonXpress_013.vcf.gz",
+                "sample": "HL-25",
+                "type": "variants_vcf_gz",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_013/TSVC_variants_IonXpress_013.vcf.gz",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_013/TSVC_variants_IonXpress_013.vcf.gz"
+            },
+            {
+                "barcode": "IonXpress_013",
+                "filename": "TSVC_variants_IonXpress_013.vcf.gz.tbi",
+                "sample": "HL-25",
+                "type": "variants_vcf_gz_tbi",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_013/TSVC_variants_IonXpress_013.vcf.gz.tbi",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_013/TSVC_variants_IonXpress_013.vcf.gz.tbi"
+            },
+            {
+                "barcode": "IonXpress_013",
+                "filename": "alleles_IonXpress_013.xls",
+                "sample": "HL-25",
+                "type": "alleles_xls",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_013/alleles_IonXpress_013.xls",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_013/alleles_IonXpress_013.xls"
+            },
+            {
+                "barcode": "IonXpress_013",
+                "filename": "IonXpress_013_rawlib.bam",
+                "sample": "HL-25",
+                "type": "mapped_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_013/IonXpress_013_rawlib.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_013/IonXpress_013_rawlib.bam"
+            },
+            {
+                "barcode": "IonXpress_013",
+                "filename": "IonXpress_013_rawlib.bam.bai",
+                "sample": "HL-25",
+                "type": "mapped_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_013/IonXpress_013_rawlib.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_013/IonXpress_013_rawlib.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_013",
+                "filename": "IonXpress_013_rawlib_processed.bam",
+                "sample": "HL-25",
+                "type": "processed_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_013/IonXpress_013_rawlib_processed.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_013/IonXpress_013_rawlib_processed.bam"
+            },
+            {
+                "barcode": "IonXpress_013",
+                "filename": "IonXpress_013_rawlib_processed.bam.bai",
+                "sample": "HL-25",
+                "type": "processed_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_013/IonXpress_013_rawlib_processed.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_013/IonXpress_013_rawlib_processed.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_013",
+                "filename": "small_variants_filtered.vcf",
+                "sample": "HL-25",
+                "type": "filtered_variants_vcf",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_013/small_variants_filtered.vcf",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_013/small_variants_filtered.vcf"
+            },
+            {
+                "barcode": "IonXpress_014",
+                "filename": "TSVC_variants_IonXpress_014.vcf.gz",
+                "sample": "1947.03",
+                "type": "variants_vcf_gz",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_014/TSVC_variants_IonXpress_014.vcf.gz",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_014/TSVC_variants_IonXpress_014.vcf.gz"
+            },
+            {
+                "barcode": "IonXpress_014",
+                "filename": "TSVC_variants_IonXpress_014.vcf.gz.tbi",
+                "sample": "1947.03",
+                "type": "variants_vcf_gz_tbi",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_014/TSVC_variants_IonXpress_014.vcf.gz.tbi",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_014/TSVC_variants_IonXpress_014.vcf.gz.tbi"
+            },
+            {
+                "barcode": "IonXpress_014",
+                "filename": "alleles_IonXpress_014.xls",
+                "sample": "1947.03",
+                "type": "alleles_xls",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_014/alleles_IonXpress_014.xls",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_014/alleles_IonXpress_014.xls"
+            },
+            {
+                "barcode": "IonXpress_014",
+                "filename": "IonXpress_014_rawlib.bam",
+                "sample": "1947.03",
+                "type": "mapped_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_014/IonXpress_014_rawlib.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_014/IonXpress_014_rawlib.bam"
+            },
+            {
+                "barcode": "IonXpress_014",
+                "filename": "IonXpress_014_rawlib.bam.bai",
+                "sample": "1947.03",
+                "type": "mapped_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_014/IonXpress_014_rawlib.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_014/IonXpress_014_rawlib.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_014",
+                "filename": "IonXpress_014_rawlib_processed.bam",
+                "sample": "1947.03",
+                "type": "processed_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_014/IonXpress_014_rawlib_processed.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_014/IonXpress_014_rawlib_processed.bam"
+            },
+            {
+                "barcode": "IonXpress_014",
+                "filename": "IonXpress_014_rawlib_processed.bam.bai",
+                "sample": "1947.03",
+                "type": "processed_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_014/IonXpress_014_rawlib_processed.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_014/IonXpress_014_rawlib_processed.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_014",
+                "filename": "small_variants_filtered.vcf",
+                "sample": "1947.03",
+                "type": "filtered_variants_vcf",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_014/small_variants_filtered.vcf",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_014/small_variants_filtered.vcf"
+            },
+            {
+                "barcode": "IonXpress_015",
+                "filename": "TSVC_variants_IonXpress_015.vcf.gz",
+                "sample": "1948.03",
+                "type": "variants_vcf_gz",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_015/TSVC_variants_IonXpress_015.vcf.gz",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_015/TSVC_variants_IonXpress_015.vcf.gz"
+            },
+            {
+                "barcode": "IonXpress_015",
+                "filename": "TSVC_variants_IonXpress_015.vcf.gz.tbi",
+                "sample": "1948.03",
+                "type": "variants_vcf_gz_tbi",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_015/TSVC_variants_IonXpress_015.vcf.gz.tbi",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_015/TSVC_variants_IonXpress_015.vcf.gz.tbi"
+            },
+            {
+                "barcode": "IonXpress_015",
+                "filename": "alleles_IonXpress_015.xls",
+                "sample": "1948.03",
+                "type": "alleles_xls",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_015/alleles_IonXpress_015.xls",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_015/alleles_IonXpress_015.xls"
+            },
+            {
+                "barcode": "IonXpress_015",
+                "filename": "IonXpress_015_rawlib.bam",
+                "sample": "1948.03",
+                "type": "mapped_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_015/IonXpress_015_rawlib.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_015/IonXpress_015_rawlib.bam"
+            },
+            {
+                "barcode": "IonXpress_015",
+                "filename": "IonXpress_015_rawlib.bam.bai",
+                "sample": "1948.03",
+                "type": "mapped_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_015/IonXpress_015_rawlib.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_015/IonXpress_015_rawlib.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_015",
+                "filename": "IonXpress_015_rawlib_processed.bam",
+                "sample": "1948.03",
+                "type": "processed_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_015/IonXpress_015_rawlib_processed.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_015/IonXpress_015_rawlib_processed.bam"
+            },
+            {
+                "barcode": "IonXpress_015",
+                "filename": "IonXpress_015_rawlib_processed.bam.bai",
+                "sample": "1948.03",
+                "type": "processed_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_015/IonXpress_015_rawlib_processed.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_015/IonXpress_015_rawlib_processed.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_015",
+                "filename": "small_variants_filtered.vcf",
+                "sample": "1948.03",
+                "type": "filtered_variants_vcf",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_015/small_variants_filtered.vcf",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_015/small_variants_filtered.vcf"
+            },
+            {
+                "barcode": "IonXpress_016",
+                "filename": "TSVC_variants_IonXpress_016.vcf.gz",
+                "sample": "683.03",
+                "type": "variants_vcf_gz",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_016/TSVC_variants_IonXpress_016.vcf.gz",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_016/TSVC_variants_IonXpress_016.vcf.gz"
+            },
+            {
+                "barcode": "IonXpress_016",
+                "filename": "TSVC_variants_IonXpress_016.vcf.gz.tbi",
+                "sample": "683.03",
+                "type": "variants_vcf_gz_tbi",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_016/TSVC_variants_IonXpress_016.vcf.gz.tbi",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_016/TSVC_variants_IonXpress_016.vcf.gz.tbi"
+            },
+            {
+                "barcode": "IonXpress_016",
+                "filename": "alleles_IonXpress_016.xls",
+                "sample": "683.03",
+                "type": "alleles_xls",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_016/alleles_IonXpress_016.xls",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_016/alleles_IonXpress_016.xls"
+            },
+            {
+                "barcode": "IonXpress_016",
+                "filename": "IonXpress_016_rawlib.bam",
+                "sample": "683.03",
+                "type": "mapped_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_016/IonXpress_016_rawlib.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_016/IonXpress_016_rawlib.bam"
+            },
+            {
+                "barcode": "IonXpress_016",
+                "filename": "IonXpress_016_rawlib.bam.bai",
+                "sample": "683.03",
+                "type": "mapped_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_016/IonXpress_016_rawlib.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_016/IonXpress_016_rawlib.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_016",
+                "filename": "IonXpress_016_rawlib_processed.bam",
+                "sample": "683.03",
+                "type": "processed_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_016/IonXpress_016_rawlib_processed.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_016/IonXpress_016_rawlib_processed.bam"
+            },
+            {
+                "barcode": "IonXpress_016",
+                "filename": "IonXpress_016_rawlib_processed.bam.bai",
+                "sample": "683.03",
+                "type": "processed_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_016/IonXpress_016_rawlib_processed.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_016/IonXpress_016_rawlib_processed.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_016",
+                "filename": "small_variants_filtered.vcf",
+                "sample": "683.03",
+                "type": "filtered_variants_vcf",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_016/small_variants_filtered.vcf",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_016/small_variants_filtered.vcf"
+            },
+            {
+                "barcode": "IonXpress_017",
+                "filename": "TSVC_variants_IonXpress_017.vcf.gz",
+                "sample": "HL-29",
+                "type": "variants_vcf_gz",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_017/TSVC_variants_IonXpress_017.vcf.gz",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_017/TSVC_variants_IonXpress_017.vcf.gz"
+            },
+            {
+                "barcode": "IonXpress_017",
+                "filename": "TSVC_variants_IonXpress_017.vcf.gz.tbi",
+                "sample": "HL-29",
+                "type": "variants_vcf_gz_tbi",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_017/TSVC_variants_IonXpress_017.vcf.gz.tbi",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_017/TSVC_variants_IonXpress_017.vcf.gz.tbi"
+            },
+            {
+                "barcode": "IonXpress_017",
+                "filename": "alleles_IonXpress_017.xls",
+                "sample": "HL-29",
+                "type": "alleles_xls",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_017/alleles_IonXpress_017.xls",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_017/alleles_IonXpress_017.xls"
+            },
+            {
+                "barcode": "IonXpress_017",
+                "filename": "IonXpress_017_rawlib.bam",
+                "sample": "HL-29",
+                "type": "mapped_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_017/IonXpress_017_rawlib.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_017/IonXpress_017_rawlib.bam"
+            },
+            {
+                "barcode": "IonXpress_017",
+                "filename": "IonXpress_017_rawlib.bam.bai",
+                "sample": "HL-29",
+                "type": "mapped_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_017/IonXpress_017_rawlib.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_017/IonXpress_017_rawlib.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_017",
+                "filename": "IonXpress_017_rawlib_processed.bam",
+                "sample": "HL-29",
+                "type": "processed_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_017/IonXpress_017_rawlib_processed.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_017/IonXpress_017_rawlib_processed.bam"
+            },
+            {
+                "barcode": "IonXpress_017",
+                "filename": "IonXpress_017_rawlib_processed.bam.bai",
+                "sample": "HL-29",
+                "type": "processed_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_017/IonXpress_017_rawlib_processed.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_017/IonXpress_017_rawlib_processed.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_017",
+                "filename": "small_variants_filtered.vcf",
+                "sample": "HL-29",
+                "type": "filtered_variants_vcf",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_017/small_variants_filtered.vcf",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_017/small_variants_filtered.vcf"
+            },
+            {
+                "barcode": "IonXpress_030",
+                "filename": "TSVC_variants_IonXpress_030.vcf.gz",
+                "sample": "1418",
+                "type": "variants_vcf_gz",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_030/TSVC_variants_IonXpress_030.vcf.gz",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_030/TSVC_variants_IonXpress_030.vcf.gz"
+            },
+            {
+                "barcode": "IonXpress_030",
+                "filename": "TSVC_variants_IonXpress_030.vcf.gz.tbi",
+                "sample": "1418",
+                "type": "variants_vcf_gz_tbi",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_030/TSVC_variants_IonXpress_030.vcf.gz.tbi",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_030/TSVC_variants_IonXpress_030.vcf.gz.tbi"
+            },
+            {
+                "barcode": "IonXpress_030",
+                "filename": "alleles_IonXpress_030.xls",
+                "sample": "1418",
+                "type": "alleles_xls",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_030/alleles_IonXpress_030.xls",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_030/alleles_IonXpress_030.xls"
+            },
+            {
+                "barcode": "IonXpress_030",
+                "filename": "IonXpress_030_rawlib.bam",
+                "sample": "1418",
+                "type": "mapped_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_030/IonXpress_030_rawlib.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_030/IonXpress_030_rawlib.bam"
+            },
+            {
+                "barcode": "IonXpress_030",
+                "filename": "IonXpress_030_rawlib.bam.bai",
+                "sample": "1418",
+                "type": "mapped_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_030/IonXpress_030_rawlib.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_030/IonXpress_030_rawlib.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_030",
+                "filename": "IonXpress_030_rawlib_processed.bam",
+                "sample": "1418",
+                "type": "processed_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_030/IonXpress_030_rawlib_processed.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_030/IonXpress_030_rawlib_processed.bam"
+            },
+            {
+                "barcode": "IonXpress_030",
+                "filename": "IonXpress_030_rawlib_processed.bam.bai",
+                "sample": "1418",
+                "type": "processed_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_030/IonXpress_030_rawlib_processed.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_030/IonXpress_030_rawlib_processed.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_030",
+                "filename": "small_variants_filtered.vcf",
+                "sample": "1418",
+                "type": "filtered_variants_vcf",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_030/small_variants_filtered.vcf",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_030/small_variants_filtered.vcf"
+            },
+            {
+                "barcode": "IonXpress_031",
+                "filename": "TSVC_variants_IonXpress_031.vcf.gz",
+                "sample": "1286",
+                "type": "variants_vcf_gz",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_031/TSVC_variants_IonXpress_031.vcf.gz",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_031/TSVC_variants_IonXpress_031.vcf.gz"
+            },
+            {
+                "barcode": "IonXpress_031",
+                "filename": "TSVC_variants_IonXpress_031.vcf.gz.tbi",
+                "sample": "1286",
+                "type": "variants_vcf_gz_tbi",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_031/TSVC_variants_IonXpress_031.vcf.gz.tbi",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_031/TSVC_variants_IonXpress_031.vcf.gz.tbi"
+            },
+            {
+                "barcode": "IonXpress_031",
+                "filename": "alleles_IonXpress_031.xls",
+                "sample": "1286",
+                "type": "alleles_xls",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_031/alleles_IonXpress_031.xls",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_031/alleles_IonXpress_031.xls"
+            },
+            {
+                "barcode": "IonXpress_031",
+                "filename": "IonXpress_031_rawlib.bam",
+                "sample": "1286",
+                "type": "mapped_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_031/IonXpress_031_rawlib.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_031/IonXpress_031_rawlib.bam"
+            },
+            {
+                "barcode": "IonXpress_031",
+                "filename": "IonXpress_031_rawlib.bam.bai",
+                "sample": "1286",
+                "type": "mapped_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_031/IonXpress_031_rawlib.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_031/IonXpress_031_rawlib.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_031",
+                "filename": "IonXpress_031_rawlib_processed.bam",
+                "sample": "1286",
+                "type": "processed_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_031/IonXpress_031_rawlib_processed.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_031/IonXpress_031_rawlib_processed.bam"
+            },
+            {
+                "barcode": "IonXpress_031",
+                "filename": "IonXpress_031_rawlib_processed.bam.bai",
+                "sample": "1286",
+                "type": "processed_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_031/IonXpress_031_rawlib_processed.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_031/IonXpress_031_rawlib_processed.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_031",
+                "filename": "small_variants_filtered.vcf",
+                "sample": "1286",
+                "type": "filtered_variants_vcf",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_031/small_variants_filtered.vcf",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_031/small_variants_filtered.vcf"
+            },
+            {
+                "barcode": "IonXpress_032",
+                "filename": "TSVC_variants_IonXpress_032.vcf.gz",
+                "sample": "HL-44-1",
+                "type": "variants_vcf_gz",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_032/TSVC_variants_IonXpress_032.vcf.gz",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_032/TSVC_variants_IonXpress_032.vcf.gz"
+            },
+            {
+                "barcode": "IonXpress_032",
+                "filename": "TSVC_variants_IonXpress_032.vcf.gz.tbi",
+                "sample": "HL-44-1",
+                "type": "variants_vcf_gz_tbi",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_032/TSVC_variants_IonXpress_032.vcf.gz.tbi",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_032/TSVC_variants_IonXpress_032.vcf.gz.tbi"
+            },
+            {
+                "barcode": "IonXpress_032",
+                "filename": "alleles_IonXpress_032.xls",
+                "sample": "HL-44-1",
+                "type": "alleles_xls",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_032/alleles_IonXpress_032.xls",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_032/alleles_IonXpress_032.xls"
+            },
+            {
+                "barcode": "IonXpress_032",
+                "filename": "IonXpress_032_rawlib.bam",
+                "sample": "HL-44-1",
+                "type": "mapped_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_032/IonXpress_032_rawlib.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_032/IonXpress_032_rawlib.bam"
+            },
+            {
+                "barcode": "IonXpress_032",
+                "filename": "IonXpress_032_rawlib.bam.bai",
+                "sample": "HL-44-1",
+                "type": "mapped_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_032/IonXpress_032_rawlib.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_032/IonXpress_032_rawlib.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_032",
+                "filename": "IonXpress_032_rawlib_processed.bam",
+                "sample": "HL-44-1",
+                "type": "processed_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_032/IonXpress_032_rawlib_processed.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_032/IonXpress_032_rawlib_processed.bam"
+            },
+            {
+                "barcode": "IonXpress_032",
+                "filename": "IonXpress_032_rawlib_processed.bam.bai",
+                "sample": "HL-44-1",
+                "type": "processed_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_032/IonXpress_032_rawlib_processed.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_032/IonXpress_032_rawlib_processed.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_032",
+                "filename": "small_variants_filtered.vcf",
+                "sample": "HL-44-1",
+                "type": "filtered_variants_vcf",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_032/small_variants_filtered.vcf",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_032/small_variants_filtered.vcf"
+            },
+            {
+                "barcode": "IonXpress_033",
+                "filename": "TSVC_variants_IonXpress_033.vcf.gz",
+                "sample": "CV026",
+                "type": "variants_vcf_gz",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_033/TSVC_variants_IonXpress_033.vcf.gz",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_033/TSVC_variants_IonXpress_033.vcf.gz"
+            },
+            {
+                "barcode": "IonXpress_033",
+                "filename": "TSVC_variants_IonXpress_033.vcf.gz.tbi",
+                "sample": "CV026",
+                "type": "variants_vcf_gz_tbi",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_033/TSVC_variants_IonXpress_033.vcf.gz.tbi",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_033/TSVC_variants_IonXpress_033.vcf.gz.tbi"
+            },
+            {
+                "barcode": "IonXpress_033",
+                "filename": "alleles_IonXpress_033.xls",
+                "sample": "CV026",
+                "type": "alleles_xls",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_033/alleles_IonXpress_033.xls",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_033/alleles_IonXpress_033.xls"
+            },
+            {
+                "barcode": "IonXpress_033",
+                "filename": "IonXpress_033_rawlib.bam",
+                "sample": "CV026",
+                "type": "mapped_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_033/IonXpress_033_rawlib.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_033/IonXpress_033_rawlib.bam"
+            },
+            {
+                "barcode": "IonXpress_033",
+                "filename": "IonXpress_033_rawlib.bam.bai",
+                "sample": "CV026",
+                "type": "mapped_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_033/IonXpress_033_rawlib.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_033/IonXpress_033_rawlib.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_033",
+                "filename": "IonXpress_033_rawlib_processed.bam",
+                "sample": "CV026",
+                "type": "processed_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_033/IonXpress_033_rawlib_processed.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_033/IonXpress_033_rawlib_processed.bam"
+            },
+            {
+                "barcode": "IonXpress_033",
+                "filename": "IonXpress_033_rawlib_processed.bam.bai",
+                "sample": "CV026",
+                "type": "processed_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_033/IonXpress_033_rawlib_processed.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_033/IonXpress_033_rawlib_processed.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_033",
+                "filename": "small_variants_filtered.vcf",
+                "sample": "CV026",
+                "type": "filtered_variants_vcf",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_033/small_variants_filtered.vcf",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_033/small_variants_filtered.vcf"
+            },
+            {
+                "barcode": "IonXpress_054",
+                "filename": "TSVC_variants_IonXpress_054.vcf.gz",
+                "sample": "1971.03",
+                "type": "variants_vcf_gz",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_054/TSVC_variants_IonXpress_054.vcf.gz",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_054/TSVC_variants_IonXpress_054.vcf.gz"
+            },
+            {
+                "barcode": "IonXpress_054",
+                "filename": "TSVC_variants_IonXpress_054.vcf.gz.tbi",
+                "sample": "1971.03",
+                "type": "variants_vcf_gz_tbi",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_054/TSVC_variants_IonXpress_054.vcf.gz.tbi",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_054/TSVC_variants_IonXpress_054.vcf.gz.tbi"
+            },
+            {
+                "barcode": "IonXpress_054",
+                "filename": "alleles_IonXpress_054.xls",
+                "sample": "1971.03",
+                "type": "alleles_xls",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_054/alleles_IonXpress_054.xls",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_054/alleles_IonXpress_054.xls"
+            },
+            {
+                "barcode": "IonXpress_054",
+                "filename": "IonXpress_054_rawlib.bam",
+                "sample": "1971.03",
+                "type": "mapped_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_054/IonXpress_054_rawlib.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_054/IonXpress_054_rawlib.bam"
+            },
+            {
+                "barcode": "IonXpress_054",
+                "filename": "IonXpress_054_rawlib.bam.bai",
+                "sample": "1971.03",
+                "type": "mapped_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_054/IonXpress_054_rawlib.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_054/IonXpress_054_rawlib.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_054",
+                "filename": "IonXpress_054_rawlib_processed.bam",
+                "sample": "1971.03",
+                "type": "processed_bam",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_054/IonXpress_054_rawlib_processed.bam",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_054/IonXpress_054_rawlib_processed.bam"
+            },
+            {
+                "barcode": "IonXpress_054",
+                "filename": "IonXpress_054_rawlib_processed.bam.bai",
+                "sample": "1971.03",
+                "type": "processed_bam_bai",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_054/IonXpress_054_rawlib_processed.bam.bai",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_054/IonXpress_054_rawlib_processed.bam.bai"
+            },
+            {
+                "barcode": "IonXpress_054",
+                "filename": "small_variants_filtered.vcf",
+                "sample": "1971.03",
+                "type": "filtered_variants_vcf",
+                "download_path": "/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_054/small_variants_filtered.vcf",
+                "server_path": "/results/analysis/output/Home/SN1-65-SNP-HID_analysis_144/plugin_out/variantCaller_out.587/IonXpress_054/small_variants_filtered.vcf"
+            }
+        ],
+        "targets_bed": "/results/uploads/BED/209/hg19_aln/unmerged/detail/IAD66589_181_SNP-HID-p2-L_Target_regions.bed",
+        "barcoded": "TRUE",
+        "Library Type": "AmpliSeq",
+        "hotspots_bed": "/results/uploads/BED/211/hg19_aln/unmerged/detail/IAD66589_181_SNP-HID-p2-L_Hotspots.bed",
+        "Target Regions": "IAD66589_181_SNP-HID-p2-L_Target_regions",
+        "Trim Reads": "TRUE",
+        "barcodes": {
+            "IonXpress_005": {
+                "hotspots": {
+                    "homo_snps": 118,
+                    "no_call": 1251,
+                    "het_indels": 0,
+                    "het_snps": 224,
+                    "variants": 342,
+                    "other": 0,
+                    "homo_indels": 0
+                },
+                "variants": {
+                    "homo_snps": 195,
+                    "no_call": 1251,
+                    "het_indels": 27,
+                    "het_snps": 339,
+                    "variants": 581,
+                    "other": 1,
+                    "homo_indels": 19
+                }
+            },
+            "IonXpress_013": {
+                "hotspots": {
+                    "homo_snps": 107,
+                    "no_call": 1253,
+                    "het_indels": 0,
+                    "het_snps": 233,
+                    "variants": 340,
+                    "other": 0,
+                    "homo_indels": 0
+                },
+                "variants": {
+                    "homo_snps": 173,
+                    "no_call": 1253,
+                    "het_indels": 34,
+                    "het_snps": 352,
+                    "variants": 572,
+                    "other": 0,
+                    "homo_indels": 13
+                }
+            },
+            "IonXpress_007": {
+                "hotspots": {
+                    "homo_snps": 119,
+                    "no_call": 1248,
+                    "het_indels": 0,
+                    "het_snps": 226,
+                    "variants": 345,
+                    "other": 0,
+                    "homo_indels": 0
+                },
+                "variants": {
+                    "homo_snps": 178,
+                    "no_call": 1248,
+                    "het_indels": 26,
+                    "het_snps": 364,
+                    "variants": 587,
+                    "other": 2,
+                    "homo_indels": 17
+                }
+            },
+            "IonXpress_009": {
+                "hotspots": {
+                    "homo_snps": 114,
+                    "no_call": 1244,
+                    "het_indels": 0,
+                    "het_snps": 235,
+                    "variants": 349,
+                    "other": 0,
+                    "homo_indels": 0
+                },
+                "variants": {
+                    "homo_snps": 183,
+                    "no_call": 1244,
+                    "het_indels": 31,
+                    "het_snps": 375,
+                    "variants": 601,
+                    "other": 0,
+                    "homo_indels": 12
+                }
+            },
+            "IonXpress_054": {
+                "hotspots": {
+                    "homo_snps": 0,
+                    "no_call": 1593,
+                    "het_indels": 0,
+                    "het_snps": 0,
+                    "variants": 0,
+                    "other": 0,
+                    "homo_indels": 0
+                },
+                "variants": {
+                    "homo_snps": 0,
+                    "no_call": 1593,
+                    "het_indels": 0,
+                    "het_snps": 0,
+                    "variants": 0,
+                    "other": 0,
+                    "homo_indels": 0
+                }
+            },
+            "IonXpress_008": {
+                "hotspots": {
+                    "homo_snps": 120,
+                    "no_call": 1240,
+                    "het_indels": 0,
+                    "het_snps": 233,
+                    "variants": 353,
+                    "other": 0,
+                    "homo_indels": 0
+                },
+                "variants": {
+                    "homo_snps": 186,
+                    "no_call": 1240,
+                    "het_indels": 23,
+                    "het_snps": 368,
+                    "variants": 593,
+                    "other": 1,
+                    "homo_indels": 15
+                }
+            },
+            "IonXpress_033": {
+                "hotspots": {
+                    "homo_snps": 0,
+                    "no_call": 1593,
+                    "het_indels": 0,
+                    "het_snps": 0,
+                    "variants": 0,
+                    "other": 0,
+                    "homo_indels": 0
+                },
+                "variants": {
+                    "homo_snps": 0,
+                    "no_call": 1593,
+                    "het_indels": 0,
+                    "het_snps": 0,
+                    "variants": 0,
+                    "other": 0,
+                    "homo_indels": 0
+                }
+            },
+            "IonXpress_001": {
+                "hotspots": {
+                    "homo_snps": 119,
+                    "no_call": 1260,
+                    "het_indels": 0,
+                    "het_snps": 214,
+                    "variants": 333,
+                    "other": 0,
+                    "homo_indels": 0
+                },
+                "variants": {
+                    "homo_snps": 187,
+                    "no_call": 1260,
+                    "het_indels": 30,
+                    "het_snps": 320,
+                    "variants": 557,
+                    "other": 3,
+                    "homo_indels": 17
+                }
+            },
+            "IonXpress_031": {
+                "hotspots": {
+                    "homo_snps": 0,
+                    "no_call": 1593,
+                    "het_indels": 0,
+                    "het_snps": 0,
+                    "variants": 0,
+                    "other": 0,
+                    "homo_indels": 0
+                },
+                "variants": {
+                    "homo_snps": 0,
+                    "no_call": 1593,
+                    "het_indels": 0,
+                    "het_snps": 0,
+                    "variants": 0,
+                    "other": 0,
+                    "homo_indels": 0
+                }
+            },
+            "IonXpress_006": {
+                "hotspots": {
+                    "homo_snps": 118,
+                    "no_call": 1263,
+                    "het_indels": 0,
+                    "het_snps": 212,
+                    "variants": 330,
+                    "other": 0,
+                    "homo_indels": 0
+                },
+                "variants": {
+                    "homo_snps": 191,
+                    "no_call": 1263,
+                    "het_indels": 27,
+                    "het_snps": 328,
+                    "variants": 564,
+                    "other": 1,
+                    "homo_indels": 17
+                }
+            },
+            "IonXpress_015": {
+                "hotspots": {
+                    "homo_snps": 0,
+                    "no_call": 1593,
+                    "het_indels": 0,
+                    "het_snps": 0,
+                    "variants": 0,
+                    "other": 0,
+                    "homo_indels": 0
+                },
+                "variants": {
+                    "homo_snps": 0,
+                    "no_call": 1593,
+                    "het_indels": 0,
+                    "het_snps": 0,
+                    "variants": 0,
+                    "other": 0,
+                    "homo_indels": 0
+                }
+            },
+            "IonXpress_004": {
+                "hotspots": {
+                    "homo_snps": 0,
+                    "no_call": 1593,
+                    "het_indels": 0,
+                    "het_snps": 0,
+                    "variants": 0,
+                    "other": 0,
+                    "homo_indels": 0
+                },
+                "variants": {
+                    "homo_snps": 0,
+                    "no_call": 1593,
+                    "het_indels": 0,
+                    "het_snps": 0,
+                    "variants": 0,
+                    "other": 0,
+                    "homo_indels": 0
+                }
+            },
+            "IonXpress_030": {
+                "hotspots": {
+                    "homo_snps": 0,
+                    "no_call": 1593,
+                    "het_indels": 0,
+                    "het_snps": 0,
+                    "variants": 0,
+                    "other": 0,
+                    "homo_indels": 0
+                },
+                "variants": {
+                    "homo_snps": 0,
+                    "no_call": 1593,
+                    "het_indels": 0,
+                    "het_snps": 0,
+                    "variants": 0,
+                    "other": 0,
+                    "homo_indels": 0
+                }
+            },
+            "IonXpress_032": {
+                "hotspots": {
+                    "homo_snps": 110,
+                    "no_call": 1234,
+                    "het_indels": 0,
+                    "het_snps": 249,
+                    "variants": 359,
+                    "other": 0,
+                    "homo_indels": 0
+                },
+                "variants": {
+                    "homo_snps": 162,
+                    "no_call": 1234,
+                    "het_indels": 36,
+                    "het_snps": 382,
+                    "variants": 599,
+                    "other": 0,
+                    "homo_indels": 19
+                }
+            },
+            "IonXpress_014": {
+                "hotspots": {
+                    "homo_snps": 0,
+                    "no_call": 1593,
+                    "het_indels": 0,
+                    "het_snps": 0,
+                    "variants": 0,
+                    "other": 0,
+                    "homo_indels": 0
+                },
+                "variants": {
+                    "homo_snps": 0,
+                    "no_call": 1593,
+                    "het_indels": 0,
+                    "het_snps": 0,
+                    "variants": 0,
+                    "other": 0,
+                    "homo_indels": 0
+                }
+            },
+            "IonXpress_017": {
+                "hotspots": {
+                    "homo_snps": 109,
+                    "no_call": 1253,
+                    "het_indels": 0,
+                    "het_snps": 231,
+                    "variants": 340,
+                    "other": 0,
+                    "homo_indels": 0
+                },
+                "variants": {
+                    "homo_snps": 172,
+                    "no_call": 1253,
+                    "het_indels": 31,
+                    "het_snps": 368,
+                    "variants": 582,
+                    "other": 0,
+                    "homo_indels": 11
+                }
+            },
+            "IonXpress_016": {
+                "hotspots": {
+                    "homo_snps": 0,
+                    "no_call": 1593,
+                    "het_indels": 0,
+                    "het_snps": 0,
+                    "variants": 0,
+                    "other": 0,
+                    "homo_indels": 0
+                },
+                "variants": {
+                    "homo_snps": 0,
+                    "no_call": 1593,
+                    "het_indels": 0,
+                    "het_snps": 0,
+                    "variants": 0,
+                    "other": 0,
+                    "homo_indels": 0
+                }
+            },
+            "IonXpress_002": {
+                "hotspots": {
+                    "homo_snps": 117,
+                    "no_call": 1248,
+                    "het_indels": 0,
+                    "het_snps": 228,
+                    "variants": 345,
+                    "other": 0,
+                    "homo_indels": 0
+                },
+                "variants": {
+                    "homo_snps": 183,
+                    "no_call": 1248,
+                    "het_indels": 25,
+                    "het_snps": 345,
+                    "variants": 578,
+                    "other": 2,
+                    "homo_indels": 23
+                }
+            },
+            "IonXpress_003": {
+                "hotspots": {
+                    "homo_snps": 0,
+                    "no_call": 1593,
+                    "het_indels": 0,
+                    "het_snps": 0,
+                    "variants": 0,
+                    "other": 0,
+                    "homo_indels": 0
+                },
+                "variants": {
+                    "homo_snps": 0,
+                    "no_call": 1593,
+                    "het_indels": 0,
+                    "het_snps": 0,
+                    "variants": 0,
+                    "other": 0,
+                    "homo_indels": 0
+                }
+            },
+            "IonXpress_010": {
+                "hotspots": {
+                    "homo_snps": 134,
+                    "no_call": 1259,
+                    "het_indels": 0,
+                    "het_snps": 200,
+                    "variants": 334,
+                    "other": 0,
+                    "homo_indels": 0
+                },
+                "variants": {
+                    "homo_snps": 202,
+                    "no_call": 1259,
+                    "het_indels": 34,
+                    "het_snps": 306,
+                    "variants": 558,
+                    "other": 1,
+                    "homo_indels": 15
+                }
+            }
+        }
+    },
+    "inodes": "1623",
+    "id": 587,
+    "apikey": "None"
 }
