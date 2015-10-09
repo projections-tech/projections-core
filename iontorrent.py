@@ -310,10 +310,14 @@ class TorrentSuiteProjector(Projector):
         bed_prototype.name = "environment['config']['meta']['targetregions_id'] + '.bed'"
         bed_prototype.uri = "[ '{0}' + path.basename(context[2]['filesystempath']) + '/plugin_out/'" \
                                 " + path.basename(environment['path']) " \
-                                " + '/' + fetch_context('{1}'" \
-                                " + context[1]['plan'])['barcodedSamples'][context[3]['name']]['barcodes'][0]" \
-                                "+ '/' + environment['config']['meta']['targetregions_id'] + '.bed' ]".format(self.driver.files_url,
+                                " + '/' + environment['config']['meta']['targetregions_id'] + '.bed' ]".format(self.driver.files_url,
                                                                                                 self.driver.host_url)
+
+        local_settings_prototype = ProjectionPrototype('file', plugin_result_prototype)
+        local_settings_prototype.name = " 'variant_caller_settings.json' "
+        local_settings_prototype.uri = "[ '{0}' + path.basename(context[2]['filesystempath']) + '/plugin_out/'" \
+                                " + path.basename(environment['path']) " \
+                                " + '/' + 'local_parameters.json' ]".format(self.driver.files_url, self.driver.host_url)
 
         for variant_file_name in ['TSVC_variants.vcf', 'all.merged.vcf', 'indel_assembly.vcf',
                                                       'indel_variants.vcf', 'small_variants.left.vcf',
@@ -340,7 +344,9 @@ class TorrentSuiteProjector(Projector):
         sample_prototype.children[bam_prototype.name] = bam_prototype
         sample_prototype.children[plugin_result_prototype.name] = plugin_result_prototype
 
+        plugin_result_prototype.children[local_settings_prototype.name] = local_settings_prototype
         plugin_result_prototype.children[bed_prototype.name] = bed_prototype
+
 
         return {'/': experiment_prototype}
 
