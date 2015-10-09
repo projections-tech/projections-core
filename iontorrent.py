@@ -7,7 +7,6 @@ import io
 import re
 import json
 import os
-import stat
 import sys
 import time
 import urllib.request

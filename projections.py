@@ -319,6 +319,7 @@ class Projector:
         for key, prototype in prototypes.items():
             # Set current prototype context to current environment for children node to use
             prototype.context = environment
+            logger.info('Current env: %s', environment)
             # Get context of current node from contexts of parent nodes
             context = prototype.get_context()
             logger.info('Prototype context: %s', len(context))
