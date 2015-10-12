@@ -23,12 +23,24 @@ logger = logging.getLogger('iontorrent_projection')
 
 class TorrentSuiteDriver(ProjectionDriver):
     def __init__(self, host_url, user, password):
+        """
+        Initialize driver which will be used to interact with host.
+        :param host_url: URL of host string
+        :param user: user name string
+        :param password: password string
+        """
         self.host_url = 'http://{}'.format(host_url)
         self.api_url = 'http://{}/rundb/api/v1/'.format(host_url)
         self.files_url = urljoin(self.host_url, '/auth/output/Home/')
         self.authenticate(self.host_url, user, password)
 
     def authenticate(self, host_url, user, password):
+        """
+        Creates authorization handler for dirver.
+        :param host_url: URL of host string
+        :param user: user name string
+        :param password: password string
+        """
         password_manager = urllib.request.HTTPPasswordMgrWithDefaultRealm()
         password_manager.add_password(None, host_url, user, password)
 
@@ -63,6 +75,10 @@ class TorrentSuiteDriver(ProjectionDriver):
 
 class TorrentSuiteProjector(Projector):
     def __init__(self, driver):
+        """
+        Initializes Projector with driver, assigns root projection, builds prototype and projection tree.
+        :param driver: instance of TorrntSuiteDriver
+        """
         assert isinstance(driver, ProjectionDriver), 'Check that driver object is subclass of ProjectionDriver'
         self.driver = driver
 
