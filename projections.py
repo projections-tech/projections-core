@@ -22,7 +22,7 @@ class Tree(object):
         """
         Initializes Tree node with optional arguments name and data
         :param name: Name of current node
-        :param data: Field that holdes data associated with current node
+        :param data: Field that holds data associated with current node
         """
         self.name = name
         self.data = data
