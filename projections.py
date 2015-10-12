@@ -37,10 +37,10 @@ class Tree(object):
         """
         temp = []
         while True:
-            chunk = os.path.split(path)
             head, tail = os.path.split(path)
             if head == '/' or head == '':
-                temp += tail[::-1]
+                temp.append(tail)
+                temp.append(head)
                 return temp[::-1]
             temp.append(tail)
             path = head
@@ -111,10 +111,10 @@ class Tree(object):
         """
         to_yield = [self]
         while to_yield:
-            node = to_yield.pop(0)
-            for c in self.children.values():
+            node = to_yield.pop()
+            for c in node.children.values():
                 to_yield.append(c)
-            yield node.name
+            yield node
 
     def find_node_by_path(self, path_to_node):
         """

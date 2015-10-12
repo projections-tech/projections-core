@@ -30,11 +30,6 @@ class TestTreeStructure(TestCase):
             self.assertTrue(self.tree.find(i, field='name'),
                             msg='Testing Tree find() method for object with name: {0}'.format(i))
 
-    def test_traverse_preorder_method(self):
-        self.assertListEqual(['root']+list(range(6)),
-                             [n.name for n in self.tree.traverse_pre_order()],
-                             msg='Checking traverse order for preorder method.')
-
     def test_path_to_node_method(self):
         """
         Tests Tree path_to_node_method
@@ -64,12 +59,46 @@ class TestTreeStructure(TestCase):
             child_list = sorted(children_dict.keys())
             self.assertListEqual(child_list, exp_list, msg='Checking node descendants method.')
 
+    def test_traverse_preorder_method(self):
+        """
+        Checks order of preorder traversal of Tree
+        """
+        self.assertListEqual(['root']+list(range(6)),
+                             [n.name for n in self.tree.traverse_pre_order()],
+                             msg='Checking traverse order for preorder method.')
+
     def test_traverse_post_order(self):
+        """
+        Checks order of post order traversal of Tree
+        """
         traverse_order = [0, 2, 3, 4, 5, 1, 'root']
         traverse_result = [n.name for n in self.tree.traverse_post_order()]
-        self.assertListEqual(traverse_order, traverse_result)
+        self.assertListEqual(traverse_order, traverse_result,
+                             msg='Checking order of traverse_post_order method: {}'.format(traverse_result))
 
     def test_traverse_breadth_first(self):
-        traverse_order = [0, 2, 3, 4, 5, 1, 'root']
+        """
+        Checks order of breadth first traversal of Tree
+        """
+        traverse_order = ['root', 1, 5, 4, 3, 2, 0]
         traverse_result = [n.name for n in self.tree.traverse_breadth_first()]
-        self.assertListEqual(traverse_order, traverse_result)
+        self.assertListEqual(traverse_order, traverse_result,
+                             msg='Checking order of traverse_breadth_first: {}'.format(traverse_result))
+
+    def test_find_node_by_path(self):
+        """
+        Checks if node is on path using Tree find_node_by_path method
+        """
+        tree = Tree(name='/')
+        node_1 = Tree(name='experiments')
+        node_1.parent = tree
+        node_2 = Tree(name='results')
+        node_2.parent = node_1
+
+        tree.children[node_1.name] = node_1
+        node_1.children[node_2.name] = node_2
+
+        path = '/experiments/results'
+        node_by_path = tree.find_node_by_path(path)
+        self.assertTrue(node_by_path.name == 'results',
+                        msg='Checking if node: {0} is on path: {1}'.format(node_by_path.name, path))
