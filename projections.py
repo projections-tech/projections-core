@@ -19,6 +19,11 @@ class Tree(object):
     Projection classes
     """
     def __init__(self, name=None, data=None):
+        """
+        Initializes Tree node with optional arguments name and data
+        :param name: Name of current node
+        :param data: Field that holdes data associated with current node
+        """
         self.name = name
         self.data = data
         self.parent = None
@@ -33,17 +38,18 @@ class Tree(object):
         temp = []
         while True:
             chunk = os.path.split(path)
-            if chunk[0] == '/' or chunk[0] == '':
-                temp += chunk[::-1]
+            head, tail = os.path.split(path)
+            if head == '/' or head == '':
+                temp += tail[::-1]
                 return temp[::-1]
-            temp += [chunk[1]]
-            path = chunk[0]
+            temp.append(tail)
+            path = head
 
     def tree_to_list(self):
         """
         Converts list of lists tree to Tree of Trees
         """
-        return [self.data]+[c[1].tree_to_list() for c in self.children.items()]
+        return [self.data]+[c.tree_to_list() for c in self.children.values()]
 
     def find(self, value, field='data'):
         """
@@ -58,7 +64,7 @@ class Tree(object):
         if class_attr == value:
             return self
         else:
-            for k, c in self.children.items():
+            for c in self.children.values():
                 result = c.find(value, field=field)
                 if not result is None:
                     return result
@@ -79,14 +85,14 @@ class Tree(object):
         """
         Returns list of descendants of current node
         """
-        return [c[1] for c in self.children.items()]
+        return self.children.values()
 
     def traverse_pre_order(self):
         """
         Used to traverse tree in pre order manner
         """
         yield self.data
-        for k, c in self.children.items():
+        for c in self.children.values():
             for v in c.traverse_pre_order():
                 yield v
 
@@ -94,7 +100,7 @@ class Tree(object):
         """
         Used to traverse tree in ppost order manner
         """
-        for k, c in self.children.items():
+        for c in self.children.values():
             for v in c.traverse_post_order():
                 yield v
         yield self.data
@@ -106,7 +112,7 @@ class Tree(object):
         to_yield = [self]
         while to_yield != []:
             node = to_yield.pop(0)
-            for k, c in node.children.items():
+            for c in self.children.values():
                 to_yield.append(c)
             yield node.data
 

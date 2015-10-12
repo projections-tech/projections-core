@@ -42,13 +42,13 @@ class MockResource(object):
         """
         Reply to basic authorization call, should be overridden in resource-specific manner
         """
-        pass
+        return NotImplementedError('Authorization is not implemented!')
 
     def prepare_responses(self):
         """
         Prepare responses for resource specific set of URI's. Should be overridden in resource-specific manner
         """
-        pass
+        return NotImplementedError('Responses are not currently implemented!')
 
     def __del__(self):
         httpretty.disable()
