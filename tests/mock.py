@@ -34,6 +34,7 @@ class MockResource(object):
     def get_last_request_to_mock(self):
         """
         Returns last request to current mock
+        :return: tuple. first element is response method, second is path
         """
         last_request = httpretty.last_request()
         return httpretty.last_request().method, last_request.path
@@ -58,6 +59,9 @@ class MockResource(object):
 class TorrentSuiteMock(MockResource):
 
     def mock_auth_response(self):
+        """
+        Defines mock resource response to authorization request
+        """
         uri = 'http://{}/'.format(self.mock_url)
         httpretty.register_uri(httpretty.GET, uri=uri, status=200)
 
