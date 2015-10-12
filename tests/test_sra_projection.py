@@ -12,7 +12,7 @@ DATA_FOLDER = 'tests/data'
 
 # Import logging configuration from the file provided
 logging.config.fileConfig('logging.cfg')
-logger = logging.getLogger('test_sra_projection')
+logger = logging.getLogger('sra_test')
 
 # TODO: remove connection parameters to configuration
 USER = 'ionadmin'
@@ -21,7 +21,7 @@ PASSWORD = '0ECu1lW'
 class SRAProjectionManager(TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.mock_resource = SRAMock('mocksra.com','tests/mock_resource')
+        cls.mock_resource = SRAMock('mocksra.com', 'tests/mock_resource')
 
     def setUp(self):
         self.mock_url = self.mock_resource.mock_url
