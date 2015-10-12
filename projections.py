@@ -85,36 +85,36 @@ class Tree(object):
         """
         Returns list of descendants of current node
         """
-        return self.children.values()
+        return list(self.children.values())
 
     def traverse_pre_order(self):
         """
         Used to traverse tree in pre order manner
         """
-        yield self.data
+        yield self
         for c in self.children.values():
             for v in c.traverse_pre_order():
                 yield v
 
     def traverse_post_order(self):
         """
-        Used to traverse tree in ppost order manner
+        Used to traverse tree in post order manner
         """
         for c in self.children.values():
             for v in c.traverse_post_order():
                 yield v
-        yield self.data
+        yield self
 
     def traverse_breadth_first(self):
         """
         Used to traverse tree breadth first
         """
         to_yield = [self]
-        while to_yield != []:
+        while to_yield:
             node = to_yield.pop(0)
             for c in self.children.values():
                 to_yield.append(c)
-            yield node.data
+            yield node.name
 
     def find_node_by_path(self, path_to_node):
         """
