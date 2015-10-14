@@ -5,13 +5,13 @@ import logging.config
 import io
 import json
 import os
-import stat
 import sys
 import time
 import xmltodict
 import subprocess
 from Bio import Entrez
-import httpretty
+from tests.mock import SRAMock
+
 
 from projections import Projection,  ProjectionDriver, ProjectionTree, Projector, ProjectionPrototype
 from filesystem import ProjectionFilesystem
@@ -20,6 +20,7 @@ from fuse import FUSE
 
 logger = logging.getLogger('sra_projection')
 
+
 class SRADriver(ProjectionDriver):
     def __init__(self, email):
         Entrez.email = email
@@ -27,18 +28,26 @@ class SRADriver(ProjectionDriver):
         self.query_cache = {}
 
     def get_content(self, query):
+        """
+        Loads content from SRA using Biopython in driver cache, with queries in format: "query_type:query"
+        :param query: str containing query to SRA
+        :return: dict of query contents
+        """
         query = query.split(':')
         logger.debug('Current query: %s', query)
         query_type = query[0]
-
+        # Query looks as: 'query:Test_species'
         if query_type == 'query':
+            # Returns esearch response dict.
             esearch_handle = Entrez.esearch(db='sra', term=query[1], retmax=[2])
             return Entrez.read(esearch_handle)
+        # Query looks as 'search_id:102354'
         elif query_type == 'search_id':
             if query[1] not in self.query_cache:
                 fetch_handler = Entrez.efetch(db='sra', id=query[1])
                 sample_dict = xmltodict.parse(fetch_handler.read())
                 search_query_contents = sample_dict['EXPERIMENT_PACKAGE_SET']['EXPERIMENT_PACKAGE']
+                # Adding resources to cache dict with their IDs as keys
                 self.query_cache[query[1]] = search_query_contents
                 self.query_cache[search_query_contents['EXPERIMENT']['@accession']] = search_query_contents
                 self.query_cache[search_query_contents['RUN_SET']['RUN']['@accession']] = search_query_contents['RUN_SET']['RUN']['@accession']+'.sam'
@@ -51,12 +60,13 @@ class SRADriver(ProjectionDriver):
     def load_content(self, query):
         logger.debug('Loading query: %s', query)
         query = query.split(':')
-
         query_type = query[0]
+
         if query_type == 'get_experiment_runs':
             return subprocess.check_output(['./sratoolkit.2.5.2-ubuntu64/bin/sam-dump', query[1]])
         else:
             return json.dumps(self.query_cache[query[1]]).encode()
+
 
 class SRAProjector(Projector):
     def __init__(self, driver):
@@ -155,11 +165,14 @@ class SRAProjector(Projector):
 
         return file_header, resource_io
 
+
 # For smoke testing
 def main(mountpoint, data_folder, foreground=True):
     # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
+    mock_resource = SRAMock('http://eutils.ncbi.nlm.nih.gov', 'tests/mock_resource')
+
     sra_driver = SRADriver('vsvekolkin@parseq.pro')
     projection_filesystem.projection_manager = SRAProjector(sra_driver)
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)

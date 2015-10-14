@@ -1,10 +1,7 @@
-import os
 import logging
 import logging.config
 from unittest import TestCase, skip
 from .mock import SRAMock
-import httpretty
-
 
 import sra
 
@@ -25,7 +22,6 @@ class SRAProjectionManager(TestCase):
         cls.mock_resource = SRAMock('http://eutils.ncbi.nlm.nih.gov', 'tests/mock_resource')
 
     def setUp(self):
-        self.mock_url = self.mock_resource.mock_url
         driver = sra.SRADriver('test')
         try:
             self.sra_projector = sra.SRAProjector(driver)
