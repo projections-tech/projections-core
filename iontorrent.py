@@ -76,7 +76,7 @@ class TorrentSuiteProjector(Projector):
     def __init__(self, driver):
         """
         Initializes Projector with driver, assigns root projection, builds prototype and projection tree.
-        :param driver: instance of TorrntSuiteDriver
+        :param driver: instance of TorrentSuiteDriver
         """
         assert isinstance(driver, ProjectionDriver), 'Check that driver object is subclass of ProjectionDriver'
         self.driver = driver

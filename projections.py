@@ -237,7 +237,7 @@ class ProjectionPrototype(Tree):
 
         :param type: describe the type of the generated projections. Current implementation uses 'directory' and 'file' types
         """
-        # Inititalize Tree class, passing current object as Tree data field
+        # Initialize Tree class, passing current object as Tree data field
         super().__init__(name, self)
         self.parent = parent
 
