@@ -34,6 +34,7 @@ class MockResource(object):
     def get_last_request_to_mock(self):
         """
         Returns last request to current mock
+        :return: tuple. first element is response method, second is path
         """
         last_request = httpretty.last_request()
         return httpretty.last_request().method, last_request.path
@@ -42,13 +43,13 @@ class MockResource(object):
         """
         Reply to basic authorization call, should be overridden in resource-specific manner
         """
-        pass
+        return NotImplementedError('Authorization is not implemented!')
 
     def prepare_responses(self):
         """
         Prepare responses for resource specific set of URI's. Should be overridden in resource-specific manner
         """
-        pass
+        return NotImplementedError('Responses are not currently implemented!')
 
     def __del__(self):
         httpretty.disable()
@@ -58,6 +59,9 @@ class MockResource(object):
 class TorrentSuiteMock(MockResource):
 
     def mock_auth_response(self):
+        """
+        Defines mock resource response to authorization request
+        """
         uri = 'http://{}/'.format(self.mock_url)
         httpretty.register_uri(httpretty.GET, uri=uri, status=200)
 
