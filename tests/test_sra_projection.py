@@ -34,8 +34,6 @@ class SRAProjectionManager(TestCase):
         """
         created_projections = self.sra_projector.projections
 
-        logger.debug(created_projections.keys())
-
         # Test if number of created projections equals to expected number of projections
         self.assertEqual(5, len(created_projections),
                          msg='Checking if SRA projector created 5 projections, current number: {}'.format(len(created_projections)))
