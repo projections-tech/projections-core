@@ -12,10 +12,6 @@ DATA_FOLDER = 'tests/data'
 logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('sra_test')
 
-# TODO: remove connection parameters to configuration
-USER = 'ionadmin'
-PASSWORD = '0ECu1lW'
-
 class SRAProjectionManager(TestCase):
     @classmethod
     def setUpClass(cls):
