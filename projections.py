@@ -335,7 +335,6 @@ class Projector:
             for uri in URIs:
                 # Get content for a projection
                 content = self.driver.get_content(uri)
-                logger.info(content)
                 logger.debug('ENV: %s, CONTENT: %s', environment, content)
                 name = eval(prototype.name, locals())
 

@@ -65,7 +65,7 @@ class SRAProjector(Projector):
 
         # Initializing projection tree with root projection.
         self.projection_tree = ProjectionTree()
-        self.root_projection = Projection('/', 'query:Streptococcus:2')
+        self.root_projection = Projection('/', 'query:Streptococcus:1')
         self.projection_tree.add_projection(self.root_projection, None)
 
         prototypes = self.prepare_prototypes()
