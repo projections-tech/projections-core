@@ -11,6 +11,7 @@ import time
 import xmltodict
 import subprocess
 from Bio import Entrez
+import httpretty
 
 from projections import Projection,  ProjectionDriver, ProjectionTree, Projector, ProjectionPrototype
 from filesystem import ProjectionFilesystem
@@ -36,8 +37,6 @@ class SRADriver(ProjectionDriver):
         elif query_type == 'search_id':
             if query[1] not in self.query_cache:
                 fetch_handler = Entrez.efetch(db='sra', id=query[1])
-                with open('efetch_query.xml', 'w') as f:
-                    f.write(fetch_handler.read())
                 sample_dict = xmltodict.parse(fetch_handler.read())
                 search_query_contents = sample_dict['EXPERIMENT_PACKAGE_SET']['EXPERIMENT_PACKAGE']
                 self.query_cache[query[1]] = search_query_contents

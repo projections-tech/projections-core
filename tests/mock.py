@@ -115,8 +115,10 @@ class SRAMock(MockResource):
         Prepares mock SRA replies to requests
         """
         uri_dict = {
-            'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?email=vsvekolkin%40parseq.pro&retmax=2&term=Streptococcus&db=sra&tool=sra_projection_manager':
-                'esearch_query.xml'
+            '/entrez/eutils/esearch.fcgi.*':
+                'esearch_query.xml',
+            '/entrez/eutils/efetch.fcgi.*':
+                'efetch_query.xml'
         }
         content_types_dict = {
             '.json': 'application/json',
@@ -132,7 +134,7 @@ class SRAMock(MockResource):
                 content_type = ''
             with open(os.path.join(self.content_dir, file_name), 'rb') as f:
                 httpretty.register_uri(httpretty.GET,
-                                       uri,
+                                       re.compile(self.mock_url + uri),
                                        body=f.read(),
                                        status=200,
                                        content_type=content_type,
