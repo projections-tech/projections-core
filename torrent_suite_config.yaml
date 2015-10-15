@@ -11,7 +11,7 @@ snp_variants_vcf_prototype: &snp_variants_vcf_prototype
 small_variants_sorted_vcf_prototype: &small_variants_sorted_vcf_prototype
   type: file
   children: None
-  name:  " 'TSVC_variants.vcf' "
+  name:  " 'small_variants.sorted.vcf' "
   uri: "['/auth/output/Home/'+path.basename(context[2]['filesystempath']) + '/plugin_out/' + path.basename(environment['path'])  + '/' + fetch_context(context[1]['plan'])['barcodedSamples'][context[3]['name']]['barcodes'][0] + '/small_variants.sorted.vcf']"
 
 small_variants_filtered_vcf_prototype: &small_variants_filtered_vcf_prototype
@@ -60,8 +60,7 @@ local_settings_prototype: &local_settings_prototype
   type: file
   children: None
   name:  " 'variant_caller_settings.json' "
-  uri: "['/auth/output/Home/' + path.basename(context[2]['filesystempath']) + '/plugin_out/' + path.basename(environment['path'])  + '/' + 'local_parameters.json' ]"
-
+  uri: "['/auth/output/Home/' + path.basename(context[2]['filesystempath']) + '/plugin_out/' + path.basename(environment['path'])  + '/local_parameters.json' ]"
 bed_prototype: &bed_prototype
   type: file
   children: None
