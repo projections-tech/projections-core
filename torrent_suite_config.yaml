@@ -1,6 +1,8 @@
 ---
 dialect: python
 resource_uri: mockiontorrent.com
+user: ionadmin
+password: ionadmin
 
 snp_variants_vcf_prototype: &snp_variants_vcf_prototype
   type: file
