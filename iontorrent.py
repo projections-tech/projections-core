@@ -12,7 +12,7 @@ import time
 import urllib.request
 from urllib.parse import urljoin
 
-from projections import Projection,  ProjectionDriver, ProjectionTree, Projector, ProjectionPrototype
+from projections import Projection, ProjectionDriver, ProjectionTree, Projector, ProjectionPrototype, PrototypeDeserializer
 from filesystem import ProjectionFilesystem
 from fuse import FUSE
 from tests.mock import TorrentSuiteMock
@@ -33,9 +33,22 @@ class TorrentSuiteDriver(ProjectionDriver):
         self.files_url = urljoin(self.host_url, '/auth/output/Home/')
         self.authenticate(self.host_url, user, password)
 
+    def __prepare_uri(self, uri):
+        """
+        Adds appropriate prefix to uri according to uri context
+        :param uri: URI string
+        :return: URI string
+        """
+        if re.match('/rundb/api/v1/', uri):
+            return uri.replace('/rundb/api/v1/', self.api_url)
+        elif re.match('/auth/output/Home/', uri):
+            return uri.replace('/auth/output/Home/', self.files_url)
+        else:
+            return self.api_url + uri
+
     def authenticate(self, host_url, user, password):
         """
-        Creates authorization handler for dirver.
+        Creates authorization handler for driver.
         :param host_url: URL of host string
         :param user: user name string
         :param password: password string
@@ -61,14 +74,22 @@ class TorrentSuiteDriver(ProjectionDriver):
         :param uri: URI string
         :return: dict of URI contents
         """
+
+        uri = self.__prepare_uri(uri)
+
         with urllib.request.urlopen(uri) as f:
             if re.search('\.bam$', uri) or re.search('\.vcf$', uri) or re.search('\.bed$', uri):
                 return b''
             else:
                 return json.loads(f.readall().decode('utf-8'))
-        # TODO write this function in a way which automatically assigns right host address according to request
 
     def load_content(self, uri):
+        """
+        Load uri contents
+        :param uri: URI string
+        :return: content bytes
+        """
+        uri = self.__prepare_uri(uri)
         with urllib.request.urlopen(uri) as f:
             return f.readall()
 
@@ -83,96 +104,29 @@ class TorrentSuiteProjector(Projector):
 
         # Initializing projection tree with root projection.
         self.projection_tree = ProjectionTree()
-        self.root_projection = Projection('/', self.driver.api_url + 'experiment?status=run&limit=1&order_by=-id')
+        self.root_projection = Projection('/', 'experiment?status=run&limit=1&order_by=-id')
         self.projection_tree.add_projection(self.root_projection, None)
 
-        prototypes = self.prepare_prototypes()
-        self.create_projection_tree(prototypes, projection_tree=self.projection_tree, parent_projection=self.root_projection)
+        self.projection_deserializer = PrototypeDeserializer('torrent_suite_config.yaml')
+        root_prototype = self.projection_deserializer.prototype_tree
+        self.create_projection_tree({'/': root_prototype},
+                                    projection_tree=self.projection_tree,
+                                    parent_projection=self.root_projection)
         self.projections = self.projection_tree.projections
 
-    def prepare_prototypes(self):
+    def old_prepare_prototypes(self):
         """
         This method is STUB, in future prototype deserialization will be implemented
         :return: root prototype object
         """
-        # TODO implement resource uri resolution in driver
-        experiment_prototype = ProjectionPrototype('directory')
-        experiment_prototype.name = "content['displayName'].replace(' ', '_')"
-        experiment_prototype.uri = '["{0}"+object["resource_uri"] for object in environment["objects"]]'.format(self.driver.host_url)
-
-        exp_metadata_prototype = ProjectionPrototype('file', experiment_prototype)
-        exp_metadata_prototype.name = "'metadata.json'"
-        exp_metadata_prototype.uri = '["{0}" + environment["resource_uri"]]'.format(self.driver.host_url)
-
-        exp_plan_metadata_prototype = ProjectionPrototype('file', experiment_prototype)
-        exp_plan_metadata_prototype.name = "'plannedexperiment.json'"
-        exp_plan_metadata_prototype.uri = '["{0}" + environment["plan"]]'.format(self.driver.host_url)
-
-        result_prototype = ProjectionPrototype('directory', experiment_prototype)
-        result_prototype.name = "path.split(content['filesystempath'])[1]"
-        result_prototype.uri = "['{0}' + res for res in environment['results']]".format(self.driver.host_url)
-
-        sample_prototype = ProjectionPrototype('directory', result_prototype)
-        sample_prototype.name = "content['name']"
-        sample_prototype.uri = "['{0}' + sample['resource_uri'] for sample in context[1]['samples']]".format(self.driver.host_url)
-
-        sample_metadata_prototype = ProjectionPrototype('file', experiment_prototype)
-        sample_metadata_prototype.name = "'metadata.json'"
-        sample_metadata_prototype.uri = '["{0}" + environment["resource_uri"]]'.format(self.driver.host_url)
-
-        bam_prototype = ProjectionPrototype('file', sample_prototype)
-        bam_prototype.name = "environment['name']+'.bam'"
-        bam_prototype.uri = "['{0}'+ path.split(context[2]['filesystempath'])[1] + '/'" \
-                            "+fetch_context('{1}'+context[1]['plan'])['barcodedSamples'][environment['name']]['barcodes'][0]" \
-                            " + '_rawlib.bam']".format(self.driver.files_url, self.driver.host_url)
-
-        plugin_result_prototype = ProjectionPrototype('directory', sample_prototype)
-        plugin_result_prototype.name = "path.basename(content['path'])"
-        plugin_result_prototype.uri = "['{0}' + p_res for p_res in context[2]['pluginresults']" \
-                                      " if 'variant' in fetch_context('{0}' + p_res)['pluginName'] and 'VFNA' not in fetch_context('{0}' + p_res)['pluginName']]".format(self.driver.host_url)
-
-        bed_prototype = ProjectionPrototype('file', plugin_result_prototype)
-        bed_prototype.name = "path.basename(environment['store']['targets_bed'])"
-        bed_prototype.uri = "[ '{0}' + path.basename(context[2]['filesystempath']) + '/plugin_out/'" \
-                                " + path.basename(environment['path']) " \
-                                " + '/' + path.basename(environment['store']['targets_bed'])]".format(self.driver.files_url,
-                                                                                                self.driver.host_url)
-
-        local_settings_prototype = ProjectionPrototype('file', plugin_result_prototype)
-        local_settings_prototype.name = " 'variant_caller_settings.json' "
-        local_settings_prototype.uri = "[ '{0}' + path.basename(context[2]['filesystempath']) + '/plugin_out/'" \
-                                " + path.basename(environment['path']) " \
-                                " + '/' + 'local_parameters.json' ]".format(self.driver.files_url, self.driver.host_url)
 
         for variant_file_name in ['TSVC_variants.vcf', 'all.merged.vcf', 'indel_assembly.vcf',
                                                       'indel_variants.vcf', 'small_variants.left.vcf',
                                                       'small_variants.vcf', 'small_variants_filtered.vcf',
                                                       'small_variants.sorted.vcf', 'SNP_variants.vcf']:
-            vcf_prototype = ProjectionPrototype('file', plugin_result_prototype)
+            vcf_prototype = ProjectionPrototype('file', None)
             vcf_prototype.name = "'{0}'".format(variant_file_name)
-            vcf_prototype.uri = "['{0}' + path.basename(context[2]['filesystempath']) + '/plugin_out/'" \
-                                " + path.basename(environment['path']) " \
-                                " + '/' + fetch_context('{1}'" \
-                                " + context[1]['plan'])['barcodedSamples'][context[3]['name']]['barcodes'][0] " \
-                                " + '/{2}']".format(self.driver.files_url,
-                                                    self.driver.host_url,
-                                                    variant_file_name)
-            plugin_result_prototype.children[vcf_prototype.name] = vcf_prototype
-
-        experiment_prototype.children[result_prototype.name] = result_prototype
-        experiment_prototype.children[exp_metadata_prototype.name] = exp_metadata_prototype
-        experiment_prototype.children[exp_plan_metadata_prototype] = exp_plan_metadata_prototype
-
-        result_prototype.children[sample_prototype.name] = sample_prototype
-
-        sample_prototype.children[sample_metadata_prototype.name] = sample_metadata_prototype
-        sample_prototype.children[bam_prototype.name] = bam_prototype
-        sample_prototype.children[plugin_result_prototype.name] = plugin_result_prototype
-
-        plugin_result_prototype.children[local_settings_prototype.name] = local_settings_prototype
-        plugin_result_prototype.children[bed_prototype.name] = bed_prototype
-
-        return {'/': experiment_prototype}
+            vcf_prototype.uri = "['/auth/output/Home/'+path.basename(context[2]['filesystempath']) + '/plugin_out/' + path.basename(environment['path'])  + '/' + fetch_context(context[1]['plan'])['barcodedSamples'][context[3]['name']]['barcodes'][0] + '/{0}']".format(variant_file_name)
 
     def is_managing_path(self, path):
         return path in self.projections
