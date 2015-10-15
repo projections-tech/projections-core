@@ -13,7 +13,7 @@ from Bio import Entrez
 from tests.mock import SRAMock
 
 
-from projections import Projection,  ProjectionDriver, ProjectionTree, Projector, ProjectionPrototype
+from projections import Projection,  ProjectionDriver, ProjectionTree, Projector, ProjectionPrototype, PrototypeDeserializer
 from filesystem import ProjectionFilesystem
 from fuse import FUSE
 
@@ -69,7 +69,7 @@ class SRADriver(ProjectionDriver):
 
 
 class SRAProjector(Projector):
-    def __init__(self, driver):
+    def __init__(self, driver, root_prototype):
         assert isinstance(driver, ProjectionDriver), 'Check that driver object is subclass of ProjectionDriver'
         self.driver = driver
 
@@ -78,8 +78,7 @@ class SRAProjector(Projector):
         self.root_projection = Projection('/', 'query:Streptococcus:1')
         self.projection_tree.add_projection(self.root_projection, None)
 
-        prototypes = self.prepare_prototypes()
-        self.create_projection_tree(prototypes, projection_tree=self.projection_tree, parent_projection=self.root_projection)
+        self.create_projection_tree({'/': root_prototype}, projection_tree=self.projection_tree, parent_projection=self.root_projection)
         self.projections = self.projection_tree.projections
 
     def prepare_prototypes(self):
@@ -173,8 +172,10 @@ def main(mountpoint, data_folder, foreground=True):
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
     mock_resource = SRAMock('http://eutils.ncbi.nlm.nih.gov', 'tests/mock_resource')
 
+    projection_configuration = PrototypeDeserializer('sra_config.yaml')
+
     sra_driver = SRADriver('vsvekolkin@parseq.pro')
-    projection_filesystem.projection_manager = SRAProjector(sra_driver)
+    projection_filesystem.projection_manager = SRAProjector(sra_driver, projection_configuration.prototype_tree)
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
     return fuse
 

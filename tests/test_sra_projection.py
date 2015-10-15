@@ -2,7 +2,7 @@ import logging
 import logging.config
 from unittest import TestCase, skip
 from .mock import SRAMock
-
+from projections import PrototypeDeserializer
 import sra
 
 MOUNT_POINT = 'tests/mnt'
@@ -19,10 +19,11 @@ class SRAProjectionManager(TestCase):
 
     def setUp(self):
         driver = sra.SRADriver('test')
+        projection_configuration = PrototypeDeserializer('sra_config.yaml')
         try:
-            self.sra_projector = sra.SRAProjector(driver)
+            self.sra_projector = sra.SRAProjector(driver, projection_configuration.prototype_tree)
         except:
-            logger.debug(self.mock_resource.get_last_request_to_mock())
+            logger.debug('Encountered request to unmocked resource: %s', self.mock_resource.get_last_request_to_mock())
 
     def test_create_projections(self):
         """
