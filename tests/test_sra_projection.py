@@ -12,6 +12,7 @@ DATA_FOLDER = 'tests/data'
 logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('sra_test')
 
+
 class SRAProjectionManager(TestCase):
     @classmethod
     def setUpClass(cls):

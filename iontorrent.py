@@ -93,11 +93,13 @@ class TorrentSuiteDriver(ProjectionDriver):
         with urllib.request.urlopen(uri) as f:
             return f.readall()
 
+
 class TorrentSuiteProjector(Projector):
-    def __init__(self, driver, root_prototype):
+    def __init__(self, driver, prototype_tree):
         """
-        Initializes Projector with driver, assigns root projection, builds prototype and projection tree.
+        Initializes Torrent Suite Projector with driver, assigns root projection, builds prototype and projection tree.
         :param driver: instance of TorrentSuiteDriver
+        :param prototype_tree: tree of ProjectionPrototype objects to build projection upon
         """
         assert isinstance(driver, ProjectionDriver), 'Check that driver object is subclass of ProjectionDriver'
         self.driver = driver
@@ -107,7 +109,7 @@ class TorrentSuiteProjector(Projector):
         self.root_projection = Projection('/', 'experiment?status=run&limit=1&order_by=-id')
         self.projection_tree.add_projection(self.root_projection, None)
 
-        self.create_projection_tree({'/': root_prototype},
+        self.create_projection_tree({'/': prototype_tree},
                                     projection_tree=self.projection_tree,
                                     parent_projection=self.root_projection)
         self.projections = self.projection_tree.projections

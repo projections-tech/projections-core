@@ -70,6 +70,11 @@ class SRADriver(ProjectionDriver):
 
 class SRAProjector(Projector):
     def __init__(self, driver, root_prototype):
+        """
+        Initializes SRA Projector with driver, assigns root projection, builds prototype and projection tree.
+        :param driver: instance of SRADriver
+        :param prototype_tree: tree of ProjectionPrototype objects to build projection upon
+        """
         assert isinstance(driver, ProjectionDriver), 'Check that driver object is subclass of ProjectionDriver'
         self.driver = driver
 
