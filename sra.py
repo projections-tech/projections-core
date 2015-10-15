@@ -13,7 +13,7 @@ from Bio import Entrez
 from tests.mock import SRAMock
 
 
-from projections import Projection,  ProjectionDriver, ProjectionTree, Projector, ProjectionPrototype, PrototypeDeserializer
+from projections import Projection,  ProjectionDriver, ProjectionTree, Projector, PrototypeDeserializer
 from filesystem import ProjectionFilesystem
 from fuse import FUSE
 
@@ -85,29 +85,6 @@ class SRAProjector(Projector):
 
         self.create_projection_tree({'/': root_prototype}, projection_tree=self.projection_tree, parent_projection=self.root_projection)
         self.projections = self.projection_tree.projections
-
-    def prepare_prototypes(self):
-        query_prototype = ProjectionPrototype('directory')
-        query_prototype.name = "environment['QueryTranslation']"
-        query_prototype.uri = "['search_id:'+id for id in environment['IdList']]"
-
-        experiment_prototype = ProjectionPrototype('directory', query_prototype)
-        experiment_prototype.name = "environment['EXPERIMENT']['@accession']"
-        experiment_prototype.uri = "['experiment_id:'+environment['EXPERIMENT']['@accession']]"
-
-        experiment_meta_prototype = ProjectionPrototype('file', experiment_prototype)
-        experiment_meta_prototype.name = "'metadata.json'"
-        experiment_meta_prototype.uri = "['experiment_id:'+environment['EXPERIMENT']['@accession']]"
-
-        run_prototype = ProjectionPrototype('file', experiment_prototype)
-        run_prototype.name = "content"
-        run_prototype.uri = "['get_experiment_runs:'+environment['RUN_SET']['RUN']['@accession']]"
-
-        query_prototype.children[experiment_prototype.name] = experiment_prototype
-        experiment_prototype.children[run_prototype.name] = run_prototype
-        experiment_prototype.children[experiment_meta_prototype.name] = experiment_meta_prototype
-
-        return {'/': query_prototype}
 
     def is_managing_path(self, path):
         return path in self.projections
