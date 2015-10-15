@@ -236,3 +236,7 @@ class TestPrototypeDeserializer(TestCase):
         for element in expected_uri:
             self.assertIn(element, test_pre_order_uri,
                           msg='Checking existance of projection with uri {} in a tree.'.format(element))
+        # Test correctness of "type" fields of nodes
+        expected_types = ['directory', 'directory', 'file', 'file']
+        test_pre_order_uri = [n.type for n in root_prototype.traverse_pre_order()]
+        self.assertListEqual(expected_types, test_pre_order_uri, msg='Checking if prototypes types are correct')
