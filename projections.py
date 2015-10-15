@@ -244,8 +244,6 @@ class ProjectionPrototype(Tree):
 
         self.type = type
         # TODO: consider logical synchronization of name and uri
-        # Dialect specific description that is used as a generator for projection names
-        self.name = None
         # Dialect specific description that is used as a generator for projection usi's
         self.uri = None
         self.context = None
@@ -274,49 +272,19 @@ class PrototypeDeserializer(object):
         """
         self.prototype_tree = self.read_projections(data_path)
 
-    def traverse_yaml_dict(self, yaml_dict, start_key):
+    def get_prototypes_tree(self, yaml_dict, parent=None):
         """
-        Generator to traverse YAML dict starting from start_key
-        :yields tree in form of list of lists with leafs ending in None
-        """
-        if start_key in yaml_dict:
-            for item in yaml_dict[start_key]['children']:
-                if not item == 'None':
-                    temp = [item]
-                    for sub_item in self.traverse_yaml_dict(yaml_dict, item):
-                        temp += [sub_item]
-                    yield temp
-                else:
-                    yield None
-
-    def get_prototypes_list(self, yaml_dict, start_key):
-        """
-        Creates prototype Tree in form of list of lists with prototype names as items
-        staring from start_key
-        :param yaml_dict: dict of YAML configuration file contents
-        :param start_key: key from which to start building of tree
-        :return tree in form of list of lists
-        """
-        temp_tree = [start_key]
-        for item in self.traverse_yaml_dict(yaml_dict, start_key):
-            temp_tree.append(item)
-        return temp_tree
-
-    def get_prototypes_tree(self, yaml_dict, alist, parent=None):
-        """
-        Constructs ProjectionPrototype tree from list of lists of Prototype names
-        :param yaml_dict: dict of YAML configuration file contents
-        :param alist: tree in from of list of lists
+        Constructs ProjectionPrototype tree from root dictionary
+        :param yaml_dict: dict for root element
         :param parent: parent prototype for tree node
         :return root ProjectionPrototype object
         """
-        values = yaml_dict[alist[0]]
-        t = ProjectionPrototype(name=alist[0], type=values['type'])
-        t.name = values['name']
-        t.uri = values['uri']
+        t = ProjectionPrototype(type=yaml_dict['type'])
+        t.name = yaml_dict['name']
+        t.uri = yaml_dict['uri']
         t.parent = parent
-        if alist[1]:
-            t.children = {self.get_prototypes_tree(yaml_dict, x, parent=t).name: self.get_prototypes_tree(yaml_dict, x, parent=t) for x in alist[1:]}
+        if isinstance(yaml_dict['children'], dict):
+            t.children = {x[0]: self.get_prototypes_tree(x[1], parent=t) for x in yaml_dict['children'].items()}
             return t
         else:
             return t
@@ -329,8 +297,7 @@ class PrototypeDeserializer(object):
         """
         with open(data_path) as y_f:
             yaml_dict = yaml.safe_load(y_f)
-        prototype_list = self.get_prototypes_list(yaml_dict, 'root')
-        return self.get_prototypes_tree(yaml_dict, prototype_list)
+        return self.get_prototypes_tree(yaml_dict['root'])
 
 
 class ProjectionDriver(object):
