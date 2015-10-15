@@ -263,6 +263,7 @@ class ProjectionPrototype(Tree):
         # TODO rewrite this code to use namedtuple from collections in order to achieve dot notation of context
         return [node.context for node in self.path_to_node()]
 
+
 class PrototypeDeserializer(object):
     """
     Used to deserialize Prototype tree from YAML configuration files
@@ -330,6 +331,7 @@ class PrototypeDeserializer(object):
             yaml_dict = yaml.safe_load(y_f)
         prototype_list = self.get_prototypes_list(yaml_dict, 'root')
         return self.get_prototypes_tree(yaml_dict, prototype_list)
+
 
 class ProjectionDriver(object):
     """

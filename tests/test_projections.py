@@ -15,6 +15,7 @@ from projections import Tree, ProjectionPrototype, Projector, Projection, Projec
 logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('test_projections')
 
+
 class TestDriver(ProjectionDriver):
     """
     This class does not perform actual testing. It's providing test data and may be replaces with mock object.
@@ -56,6 +57,7 @@ class TestDriver(ProjectionDriver):
 
         assert False is True, 'Test driver can\'t handle resource request, aborting!'
 
+
 class TestProjector(TestCase):
 
     def test_create_projection_tree(self):
@@ -90,7 +92,7 @@ class TestProjector(TestCase):
         projection_tree = ProjectionTree()
         projection_tree.add_projection(root, None)
 
-        projector.create_projection_tree({'/':experiment_prototype}, projection_tree=projection_tree, parent_projection=root)
+        projector.create_projection_tree({'/': experiment_prototype}, projection_tree=projection_tree, parent_projection=root)
 
         dir_paths = ['/', '/experiment_0', '/experiment_1', '/experiment_2',
                  '/experiment_1/result_1', '/experiment_1/result_2',
@@ -111,6 +113,7 @@ class TestProjector(TestCase):
             projection = projection_tree.projections[file_path]
             self.assertTrue(projection.type == stat.S_IFREG, 'Check that this is a file projection')
 
+
 class TestTreeStructure(TestCase):
     def setUp(self):
         self.tree = Tree(name='root')
@@ -120,7 +123,7 @@ class TestTreeStructure(TestCase):
             self.tree.children[node.name] = node
 
         sub_node = node
-        for i in range(2,6):
+        for i in range(2, 6):
             node = Tree(name=i)
             node.parent = sub_node
             sub_node.children[node.name] = node
@@ -208,6 +211,7 @@ class TestTreeStructure(TestCase):
         self.assertTrue(node_by_path.name == 'results',
                         msg='Checking if node: {0} is on path: {1}'.format(node_by_path.name, path))
 
+
 class TestPrototypeDeserializer(TestCase):
     def setUp(self):
         self.deserializer = PrototypeDeserializer('tests/test_projection_config.yaml')
@@ -239,4 +243,4 @@ class TestPrototypeDeserializer(TestCase):
         # Test correctness of "type" fields of nodes
         expected_types = ['directory', 'directory', 'file', 'file']
         test_pre_order_uri = [n.type for n in root_prototype.traverse_pre_order()]
-        self.assertListEqual(expected_types, test_pre_order_uri, msg='Checking if prototypes types are correct')
+        self.assertListEqual(expected_types, test_pre_order_uri, msg='Checking if prototypes types are correct.')
