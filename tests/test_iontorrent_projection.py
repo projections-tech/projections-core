@@ -5,7 +5,7 @@ import logging
 import logging.config
 from unittest import TestCase, skip
 from tests.mock import TorrentSuiteMock
-
+from projections import PrototypeDeserializer
 
 import iontorrent
 
@@ -27,9 +27,9 @@ class TestTorrentSuiteProjector(TestCase):
         cls.mock_resource = TorrentSuiteMock('mockiontorrent.com', 'tests/mock_resource')
 
     def setUp(self):
-        self.mock_url = self.mock_resource.mock_url
-        driver = iontorrent.TorrentSuiteDriver(self.mock_url, USER, PASSWORD)
-        self.iontorrent = iontorrent.TorrentSuiteProjector(driver)
+        projection_configuration = PrototypeDeserializer('torrent_suite_config.yaml')
+        driver = iontorrent.TorrentSuiteDriver(projection_configuration.resource_uri, USER, PASSWORD)
+        self.iontorrent = iontorrent.TorrentSuiteProjector(driver, projection_configuration.prototype_tree)
 
     def test_full_projection(self):
         """

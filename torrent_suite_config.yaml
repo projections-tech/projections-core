@@ -1,6 +1,6 @@
 ---
 dialect: python
-resource_uri: testtorrentsuite.com
+resource_uri: mockiontorrent.com
 
 snp_variants_vcf_prototype: &snp_variants_vcf_prototype
   type: file

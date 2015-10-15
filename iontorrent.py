@@ -94,7 +94,7 @@ class TorrentSuiteDriver(ProjectionDriver):
             return f.readall()
 
 class TorrentSuiteProjector(Projector):
-    def __init__(self, driver):
+    def __init__(self, driver, root_prototype):
         """
         Initializes Projector with driver, assigns root projection, builds prototype and projection tree.
         :param driver: instance of TorrentSuiteDriver
@@ -107,8 +107,6 @@ class TorrentSuiteProjector(Projector):
         self.root_projection = Projection('/', 'experiment?status=run&limit=1&order_by=-id')
         self.projection_tree.add_projection(self.root_projection, None)
 
-        self.projection_deserializer = PrototypeDeserializer('torrent_suite_config.yaml')
-        root_prototype = self.projection_deserializer.prototype_tree
         self.create_projection_tree({'/': root_prototype},
                                     projection_tree=self.projection_tree,
                                     parent_projection=self.root_projection)
@@ -181,10 +179,12 @@ def main(mountpoint, data_folder, foreground=True):
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
     mock_torrent_suite = TorrentSuiteMock('mockiontorrent.com', 'tests/mock_resource')
-    mock_url = mock_torrent_suite.mock_url
 
-    projection_dirver = TorrentSuiteDriver(mock_url, 'ionadmin', '0ECu1lW')
-    projection_filesystem.projection_manager = TorrentSuiteProjector(projection_dirver)
+    projection_configuration = PrototypeDeserializer('torrent_suite_config.yaml')
+
+    projection_dirver = TorrentSuiteDriver(projection_configuration.resource_uri, 'ionadmin', '0ECu1lW')
+    projection_filesystem.projection_manager = TorrentSuiteProjector(projection_dirver,
+                                                                     projection_configuration.prototype_tree)
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
     return fuse
 
@@ -200,7 +200,6 @@ if __name__ == '__main__':
         exit(1)
 
     main(sys.argv[1], sys.argv[2])
-
 
 
 
