@@ -7,7 +7,6 @@ import stat
 import time
 import threading
 import yaml
-from collections import namedtuple
 
 # Import logging configuration from the file provided
 logging.config.fileConfig('logging.cfg')
@@ -73,14 +72,14 @@ class Tree(object):
 
     def path_to_node(self):
         """
-        Returns full path to current node from root
+        Returns full path to current node from root. Node parent have index 0, parents parent 1 and so on.
         """
         result = []
         parent, child = self.parent, self
         while parent:
             result.append(parent)
             parent, child = parent.parent, parent
-        return result[::-1]
+        return result
 
     def node_descendants(self):
         """
@@ -258,7 +257,6 @@ class ProjectionPrototype(Tree):
         """
         Get context of current node defined by contexts of upper nodes
         """
-        # TODO rewrite this code to use namedtuple from collections in order to achieve dot notation of context
         return [node.context for node in self.path_to_node()]
 
 

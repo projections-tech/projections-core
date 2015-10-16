@@ -8,66 +8,66 @@ snp_variants_vcf_prototype: &snp_variants_vcf_prototype
   type: file
   children: None
   name:  " 'SNP_variants.vcf' "
-  uri: "['/auth/output/Home/'+path.basename(context[2]['filesystempath']) + '/plugin_out/' + path.basename(environment['path'])  + '/' + fetch_context(context[1]['plan'])['barcodedSamples'][context[3]['name']]['barcodes'][0] + '/SNP_variants.vcf']"
+  uri: "['/auth/output/Home/' + path.basename(context[1]['filesystempath']) + '/plugin_out/' + path.basename(environment['path']) + '/' + fetch_context(context[2]['plan'])['barcodedSamples'][context[0]['name']]['barcodes'][0] + '/SNP_variants.vcf']"
 
 small_variants_sorted_vcf_prototype: &small_variants_sorted_vcf_prototype
   type: file
   children: None
   name:  " 'small_variants.sorted.vcf' "
-  uri: "['/auth/output/Home/'+path.basename(context[2]['filesystempath']) + '/plugin_out/' + path.basename(environment['path'])  + '/' + fetch_context(context[1]['plan'])['barcodedSamples'][context[3]['name']]['barcodes'][0] + '/small_variants.sorted.vcf']"
+  uri: "['/auth/output/Home/' + path.basename(context[1]['filesystempath']) + '/plugin_out/' + path.basename(environment['path']) + '/' + fetch_context(context[2]['plan'])['barcodedSamples'][context[0]['name']]['barcodes'][0] + '/small_variants.sorted.vcf']"
 
 small_variants_filtered_vcf_prototype: &small_variants_filtered_vcf_prototype
   type: file
   children: None
   name:  " 'small_variants_filtered.vcf' "
-  uri: "['/auth/output/Home/'+path.basename(context[2]['filesystempath']) + '/plugin_out/' + path.basename(environment['path'])  + '/' + fetch_context(context[1]['plan'])['barcodedSamples'][context[3]['name']]['barcodes'][0] + '/small_variants_filtered.vcf']"
+  uri: "['/auth/output/Home/' + path.basename(context[1]['filesystempath']) + '/plugin_out/' + path.basename(environment['path']) + '/' + fetch_context(context[2]['plan'])['barcodedSamples'][context[0]['name']]['barcodes'][0] + '/small_variants_filtered.vcf']"
 
 small_variants_vcf_prototype: &small_variants_vcf_prototype
   type: file
   children: None
   name:  " 'small_variants.vcf' "
-  uri: "['/auth/output/Home/'+path.basename(context[2]['filesystempath']) + '/plugin_out/' + path.basename(environment['path'])  + '/' + fetch_context(context[1]['plan'])['barcodedSamples'][context[3]['name']]['barcodes'][0] + '/small_variants.vcf']"
+  uri: "['/auth/output/Home/' + path.basename(context[1]['filesystempath']) + '/plugin_out/' + path.basename(environment['path']) + '/' + fetch_context(context[2]['plan'])['barcodedSamples'][context[0]['name']]['barcodes'][0] + '/small_variants.vcf']"
 
 small_variants_left_vcf_prototype: &small_variants_left_vcf_prototype
   type: file
   children: None
   name:  " 'small_variants.left.vcf' "
-  uri: "['/auth/output/Home/'+path.basename(context[2]['filesystempath']) + '/plugin_out/' + path.basename(environment['path'])  + '/' + fetch_context(context[1]['plan'])['barcodedSamples'][context[3]['name']]['barcodes'][0] + '/small_variants.left.vcf']"
+  uri: "['/auth/output/Home/' + path.basename(context[1]['filesystempath']) + '/plugin_out/' + path.basename(environment['path']) + '/' + fetch_context(context[2]['plan'])['barcodedSamples'][context[0]['name']]['barcodes'][0] + '/small_variants.left.vcf']"
 
 indel_assembly_vcf_prototype: &indel_assembly_vcf_prototype
   type: file
   children: None
   name:  " 'indel_assembly.vcf' "
-  uri: "['/auth/output/Home/'+path.basename(context[2]['filesystempath']) + '/plugin_out/' + path.basename(environment['path'])  + '/' + fetch_context(context[1]['plan'])['barcodedSamples'][context[3]['name']]['barcodes'][0] + '/indel_assembly.vcf']"
+  uri: "['/auth/output/Home/' + path.basename(context[1]['filesystempath']) + '/plugin_out/' + path.basename(environment['path']) + '/' + fetch_context(context[2]['plan'])['barcodedSamples'][context[0]['name']]['barcodes'][0] + '/indel_assembly.vcf']"
 
 all_merged_vcf_prototype: &all_merged_vcf_prototype
   type: file
   children: None
   name:  " 'all.merged.vcf' "
-  uri: "['/auth/output/Home/'+path.basename(context[2]['filesystempath']) + '/plugin_out/' + path.basename(environment['path'])  + '/' + fetch_context(context[1]['plan'])['barcodedSamples'][context[3]['name']]['barcodes'][0] + '/all.merged.vcf']"
+  uri: "['/auth/output/Home/' + path.basename(context[1]['filesystempath']) + '/plugin_out/' + path.basename(environment['path']) + '/' + fetch_context(context[2]['plan'])['barcodedSamples'][context[0]['name']]['barcodes'][0] + '/all.merged.vcf']"
 
 indel_variants_vcf_prototype: &indel_variants_vcf_prototype
   type: file
   children: None
   name:  " 'indel_variants.vcf' "
-  uri: "['/auth/output/Home/'+path.basename(context[2]['filesystempath']) + '/plugin_out/' + path.basename(environment['path'])  + '/' + fetch_context(context[1]['plan'])['barcodedSamples'][context[3]['name']]['barcodes'][0] + '/indel_variants.vcf']"
+  uri: "['/auth/output/Home/' + path.basename(context[1]['filesystempath']) + '/plugin_out/' + path.basename(environment['path']) + '/' + fetch_context(context[2]['plan'])['barcodedSamples'][context[0]['name']]['barcodes'][0] + '/indel_variants.vcf']"
 
 tsvc_vcf_prototype: &tsvc_vcf_prototype
   type: file
   children: None
   name:  " 'TSVC_variants.vcf' "
-  uri: "['/auth/output/Home/'+path.basename(context[2]['filesystempath']) + '/plugin_out/' + path.basename(environment['path'])  + '/' + fetch_context(context[1]['plan'])['barcodedSamples'][context[3]['name']]['barcodes'][0] + '/TSVC_variants.vcf']"
+  uri: "['/auth/output/Home/' + path.basename(context[1]['filesystempath']) + '/plugin_out/' + path.basename(environment['path']) + '/' + fetch_context(context[2]['plan'])['barcodedSamples'][context[0]['name']]['barcodes'][0] + '/TSVC_variants.vcf']"
 
 local_settings_prototype: &local_settings_prototype
   type: file
   children: None
   name:  " 'variant_caller_settings.json' "
-  uri: "['/auth/output/Home/' + path.basename(context[2]['filesystempath']) + '/plugin_out/' + path.basename(environment['path'])  + '/local_parameters.json' ]"
+  uri: "['/auth/output/Home/' + path.basename(context[1]['filesystempath']) + '/plugin_out/' + path.basename(environment['path']) + '/local_parameters.json' ]"
 bed_prototype: &bed_prototype
   type: file
   children: None
   name:  "path.basename(environment['store']['targets_bed'])"
-  uri: "['/auth/output/Home/' + path.basename(context[2]['filesystempath']) + '/plugin_out/'+ path.basename(environment['path'])  + '/' + path.basename(environment['store']['targets_bed'])]"
+  uri: "['/auth/output/Home/' + path.basename(context[1]['filesystempath']) + '/plugin_out/'+ path.basename(environment['path']) + '/' + path.basename(environment['store']['targets_bed'])]"
 
 plugin_result_prototype: &plugin_result_prototype
   type: directory
@@ -84,13 +84,13 @@ plugin_result_prototype: &plugin_result_prototype
     small_variants_sorted_vcf_prototype: *small_variants_sorted_vcf_prototype
     snp_variants_vcf_prototype: *snp_variants_vcf_prototype
   name: "path.basename(content['path'])"
-  uri: "[p_res for p_res in context[2]['pluginresults'] if 'variant' in fetch_context(p_res)['pluginName'] and 'VFNA' not in fetch_context(p_res)['pluginName']]"
+  uri: "[p_res for p_res in context[0]['pluginresults'] if 'variant' in fetch_context(p_res)['pluginName'] and 'VFNA' not in fetch_context(p_res)['pluginName']]"
 
 bam_prototype: &bam_prototype
   type: file
   children: None
   name:  "environment['name']+'.bam'"
-  uri: "['/auth/output/Home/'+path.split(context[2]['filesystempath'])[1] + '/'+fetch_context(context[1]['plan'])['barcodedSamples'][environment['name']]['barcodes'][0] + '_rawlib.bam']"
+  uri: "['/auth/output/Home/'+path.split(context[0]['filesystempath'])[1] + '/'+fetch_context(context[1]['plan'])['barcodedSamples'][environment['name']]['barcodes'][0] + '_rawlib.bam']"
 
 sample_metadata_prototype: &sample_metadata_prototype
   type: file
@@ -105,7 +105,7 @@ sample_prototype: &sample_prototype
     bam_prototype: *bam_prototype
     plugin_result_prototype: *plugin_result_prototype
   name: "content['name']"
-  uri: "[sample['resource_uri'] for sample in context[1]['samples']]"
+  uri: "[sample['resource_uri'] for sample in context[0]['samples']]"
 
 result_prototype: &result_prototype
   type: directory
