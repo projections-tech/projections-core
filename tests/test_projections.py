@@ -135,11 +135,14 @@ class TestTree(TestCase):
         Tests Tree find method
         """
         for i in range(3):
-            self.assertIsInstance(self.tree.find('{0}'.format(i)), Tree, msg='Testing Tree find() method for object with name: {0}'.format(i))
+            self.assertIsInstance(self.tree.find('{0}'.format(i)), Tree,
+                                  msg='Testing Tree find() method for object with name: {0}'.format(i))
             for j in range(3):
-                self.assertIsInstance(self.tree.find('{0}.{1}'.format(i, j)), Tree, msg='Testing Tree find() method for object with name: {0}.{1}'.format(i, j))
+                self.assertIsInstance(self.tree.find('{0}.{1}'.format(i, j)), Tree,
+                                      msg='Testing Tree find() method for object with name: {0}.{1}'.format(i, j))
                 for k in range(3):
-                    self.assertIsInstance(self.tree.find('{0}.{1}.{2}'.format(i, j, k)), Tree, msg='Testing Tree find() method for object with name: {0}.{1}.{2}'.format(i, j, k))
+                    self.assertIsInstance(self.tree.find('{0}.{1}.{2}'.format(i, j, k)), Tree,
+                                          msg='Testing Tree find() method for object with name: {0}.{1}.{2}'.format(i, j, k))
 
     def test_get_path(self):
         """
@@ -161,22 +164,21 @@ class TestTree(TestCase):
                                  [n.name for n in current_node.get_path()],
                                  msg='Checking path to node: {}'.format(i))
 
-    def test_node_descendants(self):
+    def test_get_children(self):
         """
-        Checks node descendants method of Tree
+        Checks get_children method of Tree
         """
-        expected_child_lists = [[0, 1], [2, 3, 4, 5]]
-
-        for children_dict, exp_list in zip((self.tree.children, self.tree.find(1).children), expected_child_lists):
-            exp_list = set(exp_list)
-            child_list = set(children_dict.keys())
-            self.assertSetEqual(child_list, exp_list, msg='Checking node descendants method.')
+        pass
 
     def test_traverse_preorder(self):
         """
         Checks order of preorder traversal of Tree
         """
-        self.assertListEqual(['root']+list(range(6)),
+        traverse_order = ['root', '0', '0.0', '0.0.0', '0.0.1', '0.0.2', '0.1', '0.1.0', '0.1.1', '0.1.2', '0.2',
+                          '0.2.0', '0.2.1', '0.2.2', '1', '1.0', '1.0.0', '1.0.1', '1.0.2', '1.1', '1.1.0', '1.1.1',
+                          '1.1.2', '1.2', '1.2.0', '1.2.1', '1.2.2', '2', '2.0', '2.0.0', '2.0.1', '2.0.2', '2.1',
+                          '2.1.0', '2.1.1', '2.1.2', '2.2', '2.2.0', '2.2.1', '2.2.2']
+        self.assertListEqual(traverse_order,
                              [n.name for n in self.tree.traverse_pre_order()],
                              msg='Checking traverse order for preorder method.')
 
@@ -184,7 +186,10 @@ class TestTree(TestCase):
         """
         Checks order of post order traversal of Tree
         """
-        traverse_order = [0, 2, 3, 4, 5, 1, 'root']
+        traverse_order = ['0.0.0', '0.0.1', '0.0.2', '0.0', '0.1.0', '0.1.1', '0.1.2', '0.1', '0.2.0', '0.2.1', '0.2.2',
+                          '0.2', '0', '1.0.0', '1.0.1', '1.0.2', '1.0', '1.1.0', '1.1.1', '1.1.2', '1.1', '1.2.0', '1.2.1',
+                          '1.2.2', '1.2', '1', '2.0.0', '2.0.1', '2.0.2', '2.0', '2.1.0', '2.1.1', '2.1.2', '2.1', '2.2.0',
+                          '2.2.1', '2.2.2', '2.2', '2', 'root']
         traverse_result = [n.name for n in self.tree.traverse_post_order()]
         self.assertListEqual(traverse_order, traverse_result,
                              msg='Checking order of traverse_post_order method: {}'.format(traverse_result))
@@ -193,7 +198,10 @@ class TestTree(TestCase):
         """
         Checks order of depth first traversal of Tree
         """
-        traverse_order = ['root', 1, 5, 4, 3, 2, 0]
+        traverse_order = ['root', '2', '2.2', '2.2.2', '2.2.1', '2.2.0', '2.1', '2.1.2', '2.1.1', '2.1.0', '2.0',
+                          '2.0.2', '2.0.1', '2.0.0', '1', '1.2', '1.2.2', '1.2.1', '1.2.0', '1.1', '1.1.2', '1.1.1',
+                          '1.1.0', '1.0', '1.0.2', '1.0.1', '1.0.0', '0', '0.2', '0.2.2', '0.2.1', '0.2.0', '0.1',
+                          '0.1.2', '0.1.1', '0.1.0', '0.0', '0.0.2', '0.0.1', '0.0.0']
         traverse_result = [n.name for n in self.tree.traverse_depth_first()]
         self.assertListEqual(traverse_order, traverse_result,
                              msg='Checking order of traverse_breadth_first: {}'.format(traverse_result))

@@ -64,7 +64,7 @@ class Tree(object):
         if self.name == name:
             return self
         else:
-            for c in self.children.values():
+            for c in self.get_children():
                 result = c.find(name)
                 if not result is None:
                     return result
@@ -85,14 +85,14 @@ class Tree(object):
         """
         Returns list of children of current node
         """
-        return list(self.children.values())
+        return sorted(list(self.children.values()), key=lambda x: x.name)
 
     def traverse_pre_order(self):
         """
         Used to traverse tree in pre order manner
         """
         yield self
-        for c in self.children.values():
+        for c in self.get_children():
             for v in c.traverse_pre_order():
                 yield v
 
@@ -100,7 +100,7 @@ class Tree(object):
         """
         Used to traverse tree in post order manner
         """
-        for c in self.children.values():
+        for c in self.get_children():
             for v in c.traverse_post_order():
                 yield v
         yield self
@@ -112,7 +112,7 @@ class Tree(object):
         to_yield = [self]
         while to_yield:
             node = to_yield.pop()
-            for c in node.children.values():
+            for c in node.get_children():
                 to_yield.append(c)
             yield node
 
