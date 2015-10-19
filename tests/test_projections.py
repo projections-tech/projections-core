@@ -119,15 +119,12 @@ class TestTree(TestCase):
         self.tree = Tree(name='root')
         for i in range(3):
             first_level = Tree(name='{0}'.format(i))
-            first_level.parent = self.tree
             self.tree.add_child(first_level)
             for j in range(3):
                 second_level = Tree(name='{0}.{1}'.format(i, j))
-                second_level.parent = first_level
                 first_level.add_child(second_level)
                 for k in range(3):
                     third_level = Tree(name='{0}.{1}.{2}'.format(i, j, k))
-                    third_level.parent = second_level
                     second_level.add_child(third_level)
 
     def test_find(self):
@@ -238,7 +235,6 @@ class TestTree(TestCase):
         node_by_path = tree.find_node_by_path(path)
         self.assertTrue(node_by_path.name == 'results',
                         msg='Checking if node: {0} is on path: {1}'.format(node_by_path.name, path))
-
 
 
 class TestPrototypeDeserializer(TestCase):

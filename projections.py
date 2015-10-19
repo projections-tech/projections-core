@@ -46,6 +46,7 @@ class Tree(object):
             path = head
 
     def add_child(self, node):
+        node.parent = self
         self.children[node.name] = node
 
     def tree_to_list(self):
