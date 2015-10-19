@@ -20,13 +20,13 @@ class TorrentSuiteMock(MockResource):
             '/rundb/api/v1/experiment\?status=run\&limit=(\d+)\&order_by=-id':
                 'experiments.json',
             '/rundb/api/v1/experiment/24/':
-                'experiments_metadata_24.json',
+                'experiments_24.json',
             '/rundb/api/v1/experiment/25/':
-                'experiments_metadata_25.json',
+                'experiments_25.json',
             '/rundb/api/v1/plannedexperiment/31/':
-                'plannedexperiment_metadata_31.json',
+                'plannedexperiment_31.json',
             '/rundb/api/v1/plannedexperiment/32/':
-                'plannedexperiment_metadata_32.json',
+                'plannedexperiment_32.json',
             '/rundb/api/v1/results/8/':
                 'results_8.json',
             '/rundb/api/v1/results/9/':
