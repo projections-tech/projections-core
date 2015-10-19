@@ -107,7 +107,7 @@ class Tree(object):
 
     def get_tree_nodes(self):
         """
-        Generator that traverses tree, yields nodes in current tree, with no specific order.
+        Generator that traverses current tree, yields nodes in current tree, with no specific order.
         """
         yield self
         for c in self.children.values():
