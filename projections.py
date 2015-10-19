@@ -76,6 +76,13 @@ class Tree(object):
         """
         return self.children.values()
 
+    def get_children_names(self):
+        '''
+        Returns list of children names
+        :return: list of children names strings
+        '''
+        return [c.name for c in self.get_children()]
+
     def find_node_by_path(self, path_to_node):
         """
         Finds node in a tree according to path, by iterating path parts on part at a time on level of tree structure,
