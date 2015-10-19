@@ -105,6 +105,16 @@ class Tree(object):
             return None
         return temp_node
 
+    def get_tree_nodes(self):
+        """
+        Generator that traverses tree, yields nodes in current tree, with no specific order.
+        """
+        yield self
+        for c in self.children.values():
+            for v in c.get_tree_nodes():
+                yield v
+
+
 
 class Projection(object):
     """

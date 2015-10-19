@@ -220,24 +220,24 @@ class TestPrototypeDeserializer(TestCase):
         """
         root_prototype = self.deserializer.prototype_tree
         # Test if nodes are ProjectionPrototype instances
-        test_pre_order = [n for n in root_prototype.traverse_pre_order()]
-        for n in test_pre_order:
+        test_nodes_list = [n for n in root_prototype.get_tree_nodes()]
+        for n in test_nodes_list:
             self.assertIsInstance(n, ProjectionPrototype,
                                   msg='Checking if object: {0} is instance of ProjectionPrototype'.format(root_prototype))
         # Test correctness of "name" fields of nodes
         expected_names = ['root_dir', 'results_dir', 'test_bam.bam', 'test_vcf.vcf']
-        test_pre_order_names = [n.name for n in root_prototype.traverse_pre_order()]
+        test_names = [n.name for n in root_prototype.get_tree_nodes()]
         for element in expected_names:
-            self.assertIn(element, test_pre_order_names,
+            self.assertIn(element, test_names,
                           msg='Checking existance of projection with name {} in a tree.'.format(element))
         # Test correctness of "uri" fields of nodes
         expected_uri = ['[object["uri"] for object in environment]', "environment['results']",
                         "[environment['data_vcf']]", "[environment['data_bam']]"]
-        test_pre_order_uri = [n.uri for n in root_prototype.traverse_pre_order()]
+        test_pre_order_uri = [n.uri for n in root_prototype.get_tree_nodes()]
         for element in expected_uri:
             self.assertIn(element, test_pre_order_uri,
                           msg='Checking existance of projection with uri {} in a tree.'.format(element))
         # Test correctness of "type" fields of nodes
         expected_types = ['directory', 'directory', 'file', 'file']
-        test_pre_order_uri = [n.type for n in root_prototype.traverse_pre_order()]
+        test_pre_order_uri = [n.type for n in root_prototype.get_tree_nodes()]
         self.assertListEqual(expected_types, test_pre_order_uri, msg='Checking if prototypes types are correct.')
