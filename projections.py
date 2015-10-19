@@ -45,27 +45,27 @@ class Tree(object):
             temp.append(tail)
             path = head
 
+    def add_child(self, node):
+        self.children[node.name] = node
+
     def tree_to_list(self):
         """
         Converts list of lists tree to Tree of Trees
         """
         return [self.data]+[c.tree_to_list() for c in self.children.values()]
 
-    def find(self, value, field='data'):
+    def find(self, name):
         """
         Find node in tree according to its field: name or value
-        :param value: value by which Node is searched
-        :param field: "data" or "name" field of class Tree
+        :param value:
         :return: node in Tree, which is Tree object
         """
 
-        class_attr = getattr(self, field)
-
-        if class_attr == value:
+        if self.name == name:
             return self
         else:
             for c in self.children.values():
-                result = c.find(value, field=field)
+                result = c.find(name)
                 if not result is None:
                     return result
             return None
@@ -126,7 +126,7 @@ class Tree(object):
         for item in path:
             if temp_node is None:
                 return None
-            temp_node = temp_node.find(item, field='name')
+            temp_node = temp_node.find(item)
         return temp_node
 
 

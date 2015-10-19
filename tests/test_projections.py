@@ -114,28 +114,26 @@ class TestProjector(TestCase):
             self.assertTrue(projection.type == stat.S_IFREG, 'Check that this is a file projection')
 
 
-class TestTreeStructure(TestCase):
+class TestTree(TestCase):
     def setUp(self):
         self.tree = Tree(name='root')
         for i in range(2):
             node = Tree(name=i)
             node.parent = self.tree
-            self.tree.children[node.name] = node
+            self.tree.add_child(node)
 
         sub_node = node
         for i in range(2, 6):
             node = Tree(name=i)
             node.parent = sub_node
-            sub_node.children[node.name] = node
-
-        self.last_node = node
+            sub_node.add_child(node)
 
     def test_find(self):
         """
         Tests Tree find method
         """
         for i in range(6):
-            self.assertTrue(self.tree.find(i, field='name'),
+            self.assertTrue(self.tree.find(i),
                             msg='Testing Tree find() method for object with name: {0}'.format(i))
 
     def test_path_to_node(self):
@@ -147,13 +145,13 @@ class TestTreeStructure(TestCase):
 
         # Checking path to children of root node
         for i in range(2):
-            current_node = self.tree.find(i, field='name')
+            current_node = self.tree.find(i)
             self.assertListEqual(['root'],
                                  [n.name for n in current_node.path_to_node()],
                                  msg='Checking path to node: {}'.format(i))
         # Checking path to children for subnode with name '1'
         for i in range(2, 6):
-            current_node = self.tree.find(i, field='name')
+            current_node = self.tree.find(i)
             self.assertListEqual([1, 'root'],
                                  [n.name for n in current_node.path_to_node()],
                                  msg='Checking path to node: {}'.format(i))
@@ -163,7 +161,7 @@ class TestTreeStructure(TestCase):
         Checks node descendants method of Tree
         """
         expected_child_lists = [[0, 1], [2, 3, 4, 5]]
-        for children_dict, exp_list in zip((self.tree.children, self.tree.find(1, field='name').children), expected_child_lists):
+        for children_dict, exp_list in zip((self.tree.children, self.tree.find(1).children), expected_child_lists):
             child_list = sorted(children_dict.keys())
             self.assertListEqual(child_list, exp_list, msg='Checking node descendants method.')
 
