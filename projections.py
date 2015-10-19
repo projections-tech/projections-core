@@ -56,7 +56,7 @@ class Tree(object):
 
     def find(self, name):
         """
-        Find node in tree according to its field: name or value
+        Find node in tree according to its name
         :param value:
         :return: node in Tree, which is Tree object, None if no corresponding node where found
         """
@@ -83,7 +83,7 @@ class Tree(object):
 
     def get_children(self):
         """
-        Returns list of children of current node
+        Returns sorted by name list of children of current node
         """
         return sorted(list(self.children.values()), key=lambda x: x.name)
 
