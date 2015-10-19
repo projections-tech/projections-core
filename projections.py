@@ -119,14 +119,18 @@ class Tree(object):
     def find_node_by_path(self, path_to_node):
         """
         Finds node in a tree according to path, by iterating path parts on part at a time on level of tree structure,
-        per iteration
+        per iteration, assuming that starting node is root of path_to_node.
         """
         path = self.__split_path_in_parts(path_to_node)
         temp_node = self
-        for item in path:
-            if temp_node is None:
-                return None
-            temp_node = temp_node.find(item)
+        if temp_node.name == path[0]:
+            for item in path[1:]:
+                if item in temp_node.children:
+                    temp_node = temp_node.children[item]
+                else:
+                    return None
+        else:
+            return None
         return temp_node
 
 

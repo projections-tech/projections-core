@@ -240,6 +240,7 @@ class TestTree(TestCase):
                         msg='Checking if node: {0} is on path: {1}'.format(node_by_path.name, path))
 
 
+
 class TestPrototypeDeserializer(TestCase):
     def setUp(self):
         self.deserializer = PrototypeDeserializer('tests/test_projection_config.yaml')
