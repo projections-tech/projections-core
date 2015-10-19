@@ -136,24 +136,24 @@ class TestTree(TestCase):
             self.assertTrue(self.tree.find(i),
                             msg='Testing Tree find() method for object with name: {0}'.format(i))
 
-    def test_path_to_node(self):
+    def test_get_path(self):
         """
         Tests Tree path_to_node_method
         """
         # Checking path to root node which is empty
-        self.assertListEqual([], self.tree.path_to_node())
+        self.assertListEqual([], self.tree.get_path())
 
         # Checking path to children of root node
         for i in range(2):
             current_node = self.tree.find(i)
             self.assertListEqual(['root'],
-                                 [n.name for n in current_node.path_to_node()],
+                                 [n.name for n in current_node.get_path()],
                                  msg='Checking path to node: {}'.format(i))
         # Checking path to children for subnode with name '1'
         for i in range(2, 6):
             current_node = self.tree.find(i)
             self.assertListEqual([1, 'root'],
-                                 [n.name for n in current_node.path_to_node()],
+                                 [n.name for n in current_node.get_path()],
                                  msg='Checking path to node: {}'.format(i))
 
     def test_node_descendants(self):

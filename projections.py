@@ -58,7 +58,7 @@ class Tree(object):
         """
         Find node in tree according to its field: name or value
         :param value:
-        :return: node in Tree, which is Tree object
+        :return: node in Tree, which is Tree object, None if no corresponding node where found
         """
 
         if self.name == name:
@@ -70,7 +70,7 @@ class Tree(object):
                     return result
             return None
 
-    def path_to_node(self):
+    def get_path(self):
         """
         Returns full path to current node from root. Node parent have index 0, parents parent 1 and so on.
         """
@@ -81,9 +81,9 @@ class Tree(object):
             parent, child = parent.parent, parent
         return result
 
-    def node_descendants(self):
+    def get_children(self):
         """
-        Returns list of descendants of current node
+        Returns list of children of current node
         """
         return list(self.children.values())
 
@@ -257,7 +257,7 @@ class ProjectionPrototype(Tree):
         """
         Get context of current node defined by contexts of upper nodes
         """
-        return [node.context for node in self.path_to_node()]
+        return [node.context for node in self.get_path()]
 
 
 class PrototypeDeserializer(object):
