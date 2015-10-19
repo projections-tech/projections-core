@@ -53,7 +53,7 @@ class Tree(object):
         """
         Converts list of lists tree to Tree of Trees
         """
-        return [self.data]+[c.tree_to_list() for c in self.children.values()]
+        return [self.data] + [c.tree_to_list() for c in self.children.values()]
 
     def find(self, name):
         """
@@ -86,36 +86,7 @@ class Tree(object):
         """
         Returns sorted by name list of children of current node
         """
-        return sorted(list(self.children.values()), key=lambda x: x.name)
-
-    def traverse_pre_order(self):
-        """
-        Used to traverse tree in pre order manner
-        """
-        yield self
-        for c in self.get_children():
-            for v in c.traverse_pre_order():
-                yield v
-
-    def traverse_post_order(self):
-        """
-        Used to traverse tree in post order manner
-        """
-        for c in self.get_children():
-            for v in c.traverse_post_order():
-                yield v
-        yield self
-
-    def traverse_depth_first(self):
-        """
-        Used to traverse tree depth first
-        """
-        to_yield = [self]
-        while to_yield:
-            node = to_yield.pop()
-            for c in node.get_children():
-                to_yield.append(c)
-            yield node
+        return list(self.children.values())
 
     def find_node_by_path(self, path_to_node):
         """

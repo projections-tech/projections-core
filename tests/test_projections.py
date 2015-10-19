@@ -116,15 +116,26 @@ class TestProjector(TestCase):
 
 class TestTree(TestCase):
     def setUp(self):
-        self.tree = Tree(name='root')
+        self.tree = Tree(name=None)
+
+        self.first_level_names = []
+        self.second_level_names = []
+        self.third_level_names = []
+
         for i in range(3):
-            first_level = Tree(name='{0}'.format(i))
+            f_name = '{0}'.format(i)
+            self.first_level_names.append(f_name)
+            first_level = Tree(name=f_name)
             self.tree.add_child(first_level)
             for j in range(3):
-                second_level = Tree(name='{0}.{1}'.format(i, j))
+                s_name = '{0}.{1}'.format(i, j)
+                self.second_level_names.append(s_name)
+                second_level = Tree(s_name)
                 first_level.add_child(second_level)
                 for k in range(3):
-                    third_level = Tree(name='{0}.{1}.{2}'.format(i, j, k))
+                    t_name = '{0}.{1}.{2}'.format(i, j, k)
+                    self.third_level_names.append(t_name)
+                    third_level = Tree(name=t_name)
                     second_level.add_child(third_level)
 
     def test_find(self):
@@ -148,18 +159,18 @@ class TestTree(TestCase):
         # Checking get_path for root node which is empty list
         self.assertListEqual([], self.tree.get_path())
 
-        for i, first_level_child in enumerate(self.tree.get_children()):
-            self.assertListEqual(['root'],
+        for first_level_child in self.tree.get_children():
+            self.assertListEqual([None],
                                  [n.name for n in first_level_child.get_path()],
                                  msg='Checking path to first level nodes of a tree')
 
-            for j, second_level_child in enumerate(first_level_child.get_children()):
-                self.assertEqual(['root', str(i)],
+            for second_level_child in first_level_child.get_children():
+                self.assertEqual([None, first_level_child.name],
                                  [n.name for n in second_level_child.get_path()],
                                  msg='Checking path to second level nodes of a tree')
 
-                for k, third_level_child in enumerate(second_level_child.get_children()):
-                    self.assertEqual(['root', str(i),'{0}.{1}'.format(i, j)],
+                for third_level_child in second_level_child.get_children():
+                    self.assertEqual([None, first_level_child.name, second_level_child.name],
                                      [n.name for n in third_level_child.get_path()],
                                      msg='Checking path to third level nodes of a tree')
 
@@ -167,56 +178,17 @@ class TestTree(TestCase):
         """
         Checks get_children method of Tree
         """
-        for i, first_level_child in enumerate(self.tree.get_children()):
-            self.assertEqual(str(i),
-                             first_level_child.name,
-                             msg='Checking name to first level nodes of a tree')
+        for first_level_child in self.tree.get_children():
+            self.assertIn(first_level_child.name, self.first_level_names,
+                          msg='Checking name to first level nodes of a tree')
 
             for j, second_level_child in enumerate(first_level_child.get_children()):
-                self.assertEqual('{0}.{1}'.format(i,j),
-                                 second_level_child.name,
+                self.assertIn(second_level_child.name, self.second_level_names,
                                  msg='Checking name to second level nodes of a tree')
 
                 for k, third_level_child in enumerate(second_level_child.get_children()):
-                    self.assertEqual('{0}.{1}.{2}'.format(i, j, k),
-                                     third_level_child.name,
-                                     msg='Checking name to third level nodes of a tree')
-
-    def test_traverse_preorder(self):
-        """
-        Checks order of preorder traversal of Tree
-        """
-        traverse_order = ['root', '0', '0.0', '0.0.0', '0.0.1', '0.0.2', '0.1', '0.1.0', '0.1.1', '0.1.2', '0.2',
-                          '0.2.0', '0.2.1', '0.2.2', '1', '1.0', '1.0.0', '1.0.1', '1.0.2', '1.1', '1.1.0', '1.1.1',
-                          '1.1.2', '1.2', '1.2.0', '1.2.1', '1.2.2', '2', '2.0', '2.0.0', '2.0.1', '2.0.2', '2.1',
-                          '2.1.0', '2.1.1', '2.1.2', '2.2', '2.2.0', '2.2.1', '2.2.2']
-        self.assertListEqual(traverse_order,
-                             [n.name for n in self.tree.traverse_pre_order()],
-                             msg='Checking traverse order for preorder method.')
-
-    def test_traverse_post_order(self):
-        """
-        Checks order of post order traversal of Tree
-        """
-        traverse_order = ['0.0.0', '0.0.1', '0.0.2', '0.0', '0.1.0', '0.1.1', '0.1.2', '0.1', '0.2.0', '0.2.1', '0.2.2',
-                          '0.2', '0', '1.0.0', '1.0.1', '1.0.2', '1.0', '1.1.0', '1.1.1', '1.1.2', '1.1', '1.2.0', '1.2.1',
-                          '1.2.2', '1.2', '1', '2.0.0', '2.0.1', '2.0.2', '2.0', '2.1.0', '2.1.1', '2.1.2', '2.1', '2.2.0',
-                          '2.2.1', '2.2.2', '2.2', '2', 'root']
-        traverse_result = [n.name for n in self.tree.traverse_post_order()]
-        self.assertListEqual(traverse_order, traverse_result,
-                             msg='Checking order of traverse_post_order method: {}'.format(traverse_result))
-
-    def test_traverse_depth_first(self):
-        """
-        Checks order of depth first traversal of Tree
-        """
-        traverse_order = ['root', '2', '2.2', '2.2.2', '2.2.1', '2.2.0', '2.1', '2.1.2', '2.1.1', '2.1.0', '2.0',
-                          '2.0.2', '2.0.1', '2.0.0', '1', '1.2', '1.2.2', '1.2.1', '1.2.0', '1.1', '1.1.2', '1.1.1',
-                          '1.1.0', '1.0', '1.0.2', '1.0.1', '1.0.0', '0', '0.2', '0.2.2', '0.2.1', '0.2.0', '0.1',
-                          '0.1.2', '0.1.1', '0.1.0', '0.0', '0.0.2', '0.0.1', '0.0.0']
-        traverse_result = [n.name for n in self.tree.traverse_depth_first()]
-        self.assertListEqual(traverse_order, traverse_result,
-                             msg='Checking order of traverse_breadth_first: {}'.format(traverse_result))
+                    self.assertIn(third_level_child.name, self.third_level_names,
+                                  msg='Checking name to third level nodes of a tree')
 
     def test_find_node_by_path(self):
         """
