@@ -39,9 +39,13 @@ class Tree(object):
         while True:
             head, tail = os.path.split(path)
             if head == '/' or head == '':
-                temp.append(tail)
-                temp.append(head)
-                return temp[::-1]
+                if tail == '':
+                    return [head]
+                else:
+                    temp.append(tail)
+                    if not head == '':
+                        temp.append(head)
+                    return temp[::-1]
             temp.append(tail)
             path = head
 
@@ -94,6 +98,7 @@ class Tree(object):
         per iteration, assuming that starting node is root of path_to_node.
         """
         path = self.__split_path_in_parts(path_to_node)
+        logger.debug('Splitted path: %s', path)
         temp_node = self
         if temp_node.name == path[0]:
             for item in path[1:]:

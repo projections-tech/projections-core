@@ -165,12 +165,12 @@ class TestTree(TestCase):
                                  msg='Checking path to first level nodes of a tree')
 
             for second_level_child in first_level_child.get_children():
-                self.assertEqual([None, first_level_child.name],
+                self.assertListEqual([None, first_level_child.name],
                                  [n.name for n in second_level_child.get_path()],
                                  msg='Checking path to second level nodes of a tree')
 
                 for third_level_child in second_level_child.get_children():
-                    self.assertEqual([None, first_level_child.name, second_level_child.name],
+                    self.assertListEqual([None, first_level_child.name, second_level_child.name],
                                      [n.name for n in third_level_child.get_path()],
                                      msg='Checking path to third level nodes of a tree')
 
@@ -200,13 +200,20 @@ class TestTree(TestCase):
         node_2 = Tree(name='results')
         node_2.parent = node_1
 
-        tree.children[node_1.name] = node_1
-        node_1.children[node_2.name] = node_2
+        tree.add_child(node_1)
+        node_1.add_child(node_2)
 
         path = '/experiments/results'
         node_by_path = tree.find_node_by_path(path)
         self.assertTrue(node_by_path.name == 'results',
                         msg='Checking if node: {0} is on path: {1}'.format(node_by_path.name, path))
+
+        path_2 = 'experiments/results'
+        node_by_path_2 = node_1.find_node_by_path(path_2)
+        self.assertTrue(node_by_path_2.name == 'results',
+                        msg='Checking if node: {0} is on path: {1}'.format(node_by_path_2.name, path_2))
+
+
 
 
 class TestPrototypeDeserializer(TestCase):
