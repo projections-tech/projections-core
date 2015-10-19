@@ -138,20 +138,6 @@ class TestTree(TestCase):
                     third_level = Tree(name=t_name)
                     second_level.add_child(third_level)
 
-    def test_find(self):
-        """
-        Tests Tree find method
-        """
-        for i in range(3):
-            self.assertIsInstance(self.tree.find('{0}'.format(i)), Tree,
-                                  msg='Testing Tree find() method for object with name: {0}'.format(i))
-            for j in range(3):
-                self.assertIsInstance(self.tree.find('{0}.{1}'.format(i, j)), Tree,
-                                      msg='Testing Tree find() method for object with name: {0}.{1}'.format(i, j))
-                for k in range(3):
-                    self.assertIsInstance(self.tree.find('{0}.{1}.{2}'.format(i, j, k)), Tree,
-                                          msg='Testing Tree find() method for object with name: {0}.{1}.{2}'.format(i, j, k))
-
     def test_get_path(self):
         """
         Tests Tree get_path

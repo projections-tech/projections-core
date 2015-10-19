@@ -59,22 +59,6 @@ class Tree(object):
         """
         return [self.data] + [c.tree_to_list() for c in self.children.values()]
 
-    def find(self, name):
-        """
-        Find node in tree according to its name
-        :param value:
-        :return: node in Tree, which is Tree object, None if no corresponding node where found
-        """
-
-        if self.name == name:
-            return self
-        else:
-            for c in self.get_children():
-                result = c.find(name)
-                if not result is None:
-                    return result
-            return None
-
     def get_path(self):
         """
         Returns nodes list from root to current node.
@@ -88,9 +72,9 @@ class Tree(object):
 
     def get_children(self):
         """
-        Returns sorted by name list of children of current node
+        Returns children iterator of current node
         """
-        return list(self.children.values())
+        return self.children.values()
 
     def find_node_by_path(self, path_to_node):
         """
