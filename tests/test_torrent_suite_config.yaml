@@ -63,6 +63,7 @@ local_settings_prototype: &local_settings_prototype
   children: None
   name:  " 'variant_caller_settings.json' "
   uri: "['/auth/output/Home/' + path.basename(context[1]['filesystempath']) + '/plugin_out/' + path.basename(environment['path']) + '/local_parameters.json' ]"
+
 bed_prototype: &bed_prototype
   type: file
   children: None
