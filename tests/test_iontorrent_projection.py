@@ -37,7 +37,6 @@ class TestTorrentSuiteProjector(TestCase):
         Tests projections correctness of full projection creation.
         """
         projection_paths_list = self.iontorrent.projections.keys()
-        exp_dirs = ['/test_experiment_1', '/test_experiment_2']
         run_name = 'test_run'
 
         # Checking number of created projections,
@@ -46,13 +45,15 @@ class TestTorrentSuiteProjector(TestCase):
                          msg='Checking total number of projections,'
                              ' expecting 39, got: {}.'.format(len(projection_paths_list)))
 
-        for exp_dir in exp_dirs:
+        for exp_dir in self.mock_resource.get_experiments():
+            exp_dir = '/' + exp_dir
             # Checking metadata projection creation for experiments
             for meta_name in ['metadata.json', 'plannedexperiment.json']:
                 meta_data_path = os.path.join(exp_dir, meta_name)
                 self.assertTrue(meta_data_path in projection_paths_list,
                                 msg='Checking metadata projections for experiment {}.'.format(exp_dir))
 
+            logger.debug(self.mock_resource.get_experiments())
             # Checking BAM file projections creation on expected paths
             bam_file_path = os.path.join(exp_dir, run_name, 'sample_1', 'sample_1.bam')
             self.assertIn(bam_file_path, projection_paths_list,

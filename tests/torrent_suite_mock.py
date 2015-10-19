@@ -1,5 +1,6 @@
 import os
 import re
+import json
 import httpretty
 from tests.mock import MockResource
 
@@ -63,3 +64,13 @@ class TorrentSuiteMock(MockResource):
                                        status=200,
                                        content_type=content_type,
                                        match_querystring=True)
+
+    def get_experiments(self):
+        """
+        Returns list of current mock experiments names
+        :return: list of experiments names strings
+        """
+        with open(os.path.join(self.content_dir, 'experiments.json')) as ex_f:
+            experiments = json.load(ex_f)
+            return [exp['displayName'] for exp in experiments['objects']]
+
