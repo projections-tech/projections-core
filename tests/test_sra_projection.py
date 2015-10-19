@@ -20,7 +20,7 @@ class SRAProjectionManager(TestCase):
 
     def setUp(self):
         driver = sra.SRADriver('test')
-        projection_configuration = PrototypeDeserializer('sra_config.yaml')
+        projection_configuration = PrototypeDeserializer('tests/test_sra_config.yaml')
         try:
             self.sra_projector = sra.SRAProjector(driver, projection_configuration.prototype_tree)
         except:

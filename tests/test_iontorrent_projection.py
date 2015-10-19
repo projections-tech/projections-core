@@ -27,7 +27,8 @@ class TestTorrentSuiteProjector(TestCase):
         cls.mock_resource = TorrentSuiteMock('mockiontorrent.com', 'tests/mock_resource/torrent_suite_mock_data')
 
     def setUp(self):
-        projection_configuration = PrototypeDeserializer('torrent_suite_config.yaml')
+        # Loading test config for Torrent Suite projection
+        projection_configuration = PrototypeDeserializer('tests/test_torrent_suite_config.yaml')
         driver = iontorrent.TorrentSuiteDriver(projection_configuration.resource_uri, USER, PASSWORD)
         self.iontorrent = iontorrent.TorrentSuiteProjector(driver, projection_configuration.prototype_tree)
 
