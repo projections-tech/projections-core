@@ -152,7 +152,7 @@ class TestTree(TestCase):
         # Checking path to children for subnode with name '1'
         for i in range(2, 6):
             current_node = self.tree.find(i)
-            self.assertListEqual([1, 'root'],
+            self.assertListEqual(['root', 1],
                                  [n.name for n in current_node.get_path()],
                                  msg='Checking path to node: {}'.format(i))
 

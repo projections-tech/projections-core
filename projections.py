@@ -79,7 +79,7 @@ class Tree(object):
         while parent:
             result.append(parent)
             parent, child = parent.parent, parent
-        return result
+        return result[::-1]
 
     def get_children(self):
         """
@@ -364,6 +364,7 @@ class Projector:
             prototype.context = environment
             # Get context of current node from contexts of parent nodes
             context = prototype.get_context()
+            context = context[::-1]
             logger.info('Prototype context: %s', len(context))
             logger.info('Creating projections for a prototype: %s', prototype)
 
