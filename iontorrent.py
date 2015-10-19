@@ -15,7 +15,7 @@ from urllib.parse import urljoin
 from projections import Projection, ProjectionDriver, ProjectionTree, Projector, PrototypeDeserializer
 from filesystem import ProjectionFilesystem
 from fuse import FUSE
-from tests.mock import TorrentSuiteMock
+from tests.torrent_suite_mock import TorrentSuiteMock
 
 logger = logging.getLogger('iontorrent_projection')
 

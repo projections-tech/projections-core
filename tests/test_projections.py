@@ -130,7 +130,7 @@ class TestTreeStructure(TestCase):
 
         self.last_node = node
 
-    def test_find_method(self):
+    def test_find(self):
         """
         Tests Tree find method
         """
@@ -138,7 +138,7 @@ class TestTreeStructure(TestCase):
             self.assertTrue(self.tree.find(i, field='name'),
                             msg='Testing Tree find() method for object with name: {0}'.format(i))
 
-    def test_path_to_node_method(self):
+    def test_path_to_node(self):
         """
         Tests Tree path_to_node_method
         """
@@ -167,7 +167,7 @@ class TestTreeStructure(TestCase):
             child_list = sorted(children_dict.keys())
             self.assertListEqual(child_list, exp_list, msg='Checking node descendants method.')
 
-    def test_traverse_preorder_method(self):
+    def test_traverse_preorder(self):
         """
         Checks order of preorder traversal of Tree
         """

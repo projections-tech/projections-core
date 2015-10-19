@@ -10,7 +10,7 @@ import time
 import xmltodict
 import subprocess
 from Bio import Entrez
-from tests.mock import SRAMock
+from tests.sra_mock import SRAMock
 
 
 from projections import Projection,  ProjectionDriver, ProjectionTree, Projector, PrototypeDeserializer

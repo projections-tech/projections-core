@@ -4,7 +4,7 @@ import os
 import logging
 import logging.config
 from unittest import TestCase, skip
-from tests.mock import TorrentSuiteMock
+from tests.torrent_suite_mock import TorrentSuiteMock
 from projections import PrototypeDeserializer
 
 import iontorrent
@@ -24,7 +24,7 @@ PASSWORD = 'password'
 class TestTorrentSuiteProjector(TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.mock_resource = TorrentSuiteMock('mockiontorrent.com', 'tests/mock_resource')
+        cls.mock_resource = TorrentSuiteMock('mockiontorrent.com', 'tests/mock_resource/torrent_suite_mock_data')
 
     def setUp(self):
         projection_configuration = PrototypeDeserializer('torrent_suite_config.yaml')
@@ -40,7 +40,7 @@ class TestTorrentSuiteProjector(TestCase):
         run_name = 'test_run'
 
         # Checking number of created projections,
-        # we expect 372 projections for two experiments with 5 samples and variant_calling
+        # we expect 39 projections for two experiments with 1 sample and variant_calling
         self.assertEqual(len(projection_paths_list), 39,
                          msg='Checking total number of projections,'
                              ' expecting 39, got: {}.'.format(len(projection_paths_list)))

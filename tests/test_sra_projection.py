@@ -1,7 +1,7 @@
 import logging
 import logging.config
 from unittest import TestCase, skip
-from .mock import SRAMock
+from tests.sra_mock import SRAMock
 from projections import PrototypeDeserializer
 import sra
 
@@ -16,7 +16,7 @@ logger = logging.getLogger('sra_test')
 class SRAProjectionManager(TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.mock_resource = SRAMock('http://eutils.ncbi.nlm.nih.gov', 'tests/mock_resource')
+        cls.mock_resource = SRAMock('http://eutils.ncbi.nlm.nih.gov', 'tests/mock_resource/sra_mock_data')
 
     def setUp(self):
         driver = sra.SRADriver('test')
