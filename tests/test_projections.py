@@ -117,24 +117,29 @@ class TestProjector(TestCase):
 class TestTree(TestCase):
     def setUp(self):
         self.tree = Tree(name='root')
-        for i in range(2):
-            node = Tree(name=i)
-            node.parent = self.tree
-            self.tree.add_child(node)
-
-        sub_node = node
-        for i in range(2, 6):
-            node = Tree(name=i)
-            node.parent = sub_node
-            sub_node.add_child(node)
+        for i in range(3):
+            first_level = Tree(name='{0}'.format(i))
+            first_level.parent = self.tree
+            self.tree.add_child(first_level)
+            for j in range(3):
+                second_level = Tree(name='{0}.{1}'.format(i, j))
+                second_level.parent = first_level
+                first_level.add_child(second_level)
+                for k in range(3):
+                    third_level = Tree(name='{0}.{1}.{2}'.format(i, j, k))
+                    third_level.parent = second_level
+                    second_level.add_child(third_level)
 
     def test_find(self):
         """
         Tests Tree find method
         """
-        for i in range(6):
-            self.assertIsInstance(self.tree.find(i), Tree,
-                                  msg='Testing Tree find() method for object with name: {0}'.format(i))
+        for i in range(3):
+            self.assertIsInstance(self.tree.find('{0}'.format(i)), Tree, msg='Testing Tree find() method for object with name: {0}'.format(i))
+            for j in range(3):
+                self.assertIsInstance(self.tree.find('{0}.{1}'.format(i, j)), Tree, msg='Testing Tree find() method for object with name: {0}.{1}'.format(i, j))
+                for k in range(3):
+                    self.assertIsInstance(self.tree.find('{0}.{1}.{2}'.format(i, j, k)), Tree, msg='Testing Tree find() method for object with name: {0}.{1}.{2}'.format(i, j, k))
 
     def test_get_path(self):
         """
