@@ -105,9 +105,9 @@ class Tree(object):
                 yield v
         yield self
 
-    def traverse_breadth_first(self):
+    def traverse_depth_first(self):
         """
-        Used to traverse tree breadth first
+        Used to traverse tree depth first
         """
         to_yield = [self]
         while to_yield:

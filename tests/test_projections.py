@@ -133,8 +133,8 @@ class TestTree(TestCase):
         Tests Tree find method
         """
         for i in range(6):
-            self.assertTrue(self.tree.find(i),
-                            msg='Testing Tree find() method for object with name: {0}'.format(i))
+            self.assertIsInstance(self.tree.find(i), Tree,
+                                  msg='Testing Tree find() method for object with name: {0}'.format(i))
 
     def test_get_path(self):
         """
@@ -161,9 +161,11 @@ class TestTree(TestCase):
         Checks node descendants method of Tree
         """
         expected_child_lists = [[0, 1], [2, 3, 4, 5]]
+
         for children_dict, exp_list in zip((self.tree.children, self.tree.find(1).children), expected_child_lists):
-            child_list = sorted(children_dict.keys())
-            self.assertListEqual(child_list, exp_list, msg='Checking node descendants method.')
+            exp_list = set(exp_list)
+            child_list = set(children_dict.keys())
+            self.assertSetEqual(child_list, exp_list, msg='Checking node descendants method.')
 
     def test_traverse_preorder(self):
         """
@@ -182,12 +184,12 @@ class TestTree(TestCase):
         self.assertListEqual(traverse_order, traverse_result,
                              msg='Checking order of traverse_post_order method: {}'.format(traverse_result))
 
-    def test_traverse_breadth_first(self):
+    def test_traverse_depth_first(self):
         """
-        Checks order of breadth first traversal of Tree
+        Checks order of depth first traversal of Tree
         """
         traverse_order = ['root', 1, 5, 4, 3, 2, 0]
-        traverse_result = [n.name for n in self.tree.traverse_breadth_first()]
+        traverse_result = [n.name for n in self.tree.traverse_depth_first()]
         self.assertListEqual(traverse_order, traverse_result,
                              msg='Checking order of traverse_breadth_first: {}'.format(traverse_result))
 
