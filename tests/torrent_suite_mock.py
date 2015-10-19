@@ -23,10 +23,14 @@ class TorrentSuiteMock(MockResource):
                 'experiments_metadata_24.json',
             '/rundb/api/v1/experiment/25/':
                 'experiments_metadata_25.json',
-            '/rundb/api/v1/plannedexperiment/(\d+)/':
+            '/rundb/api/v1/plannedexperiment/31/':
                 'plannedexperiment_metadata_31.json',
-            '/rundb/api/v1/results/(\d+)/':
+            '/rundb/api/v1/plannedexperiment/32/':
+                'plannedexperiment_metadata_32.json',
+            '/rundb/api/v1/results/8/':
                 'results_8.json',
+            '/rundb/api/v1/results/9/':
+                'results_9.json',
             '/rundb/api/v1/pluginresult/(\d+)/':
                 'plugin_result.json',
             '/rundb/api/v1/sample/(\d+)/':

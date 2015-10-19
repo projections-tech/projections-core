@@ -342,14 +342,14 @@
     "notes": "Sample names were created artificially to enable barcoded run analysis.",
     "pgmName": "PGM_test",
     "pinnedRepResult": false,
-    "plan": "/rundb/api/v1/plannedexperiment/31/",
+    "plan": "/rundb/api/v1/plannedexperiment/32/",
     "platform": "PGM",
     "rawdatastyle": "single",
     "reagentBarcode": "",
     "resource_uri": "/rundb/api/v1/experiment/24/",
     "resultDate": "2013-11-22T07:42:22.000972+00:00",
     "results": [
-        "/rundb/api/v1/results/8/"
+        "/rundb/api/v1/results/9/"
     ],
     "reverse_primer": "Ion Kit",
     "runMode": "single",
