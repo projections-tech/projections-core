@@ -72,7 +72,7 @@ class Tree(object):
 
     def get_path(self):
         """
-        Returns full path to current node from root. Node parent have index 0, parents parent 1 and so on.
+        Returns nodes list from root to current node.
         """
         result = []
         parent, child = self.parent, self
