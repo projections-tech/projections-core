@@ -196,24 +196,33 @@ class TestTree(TestCase):
         """
         tree = Tree(name='/')
         node_1 = Tree(name='experiments')
-        node_1.parent = tree
+        node_1_1 = Tree(name='a')
+        node_1_2 = Tree(name='b')
         node_2 = Tree(name='results')
-        node_2.parent = node_1
+        node_2_1 = Tree(name='a')
+        node_2_2 = Tree(name='b')
 
         tree.add_child(node_1)
         node_1.add_child(node_2)
+        node_1.add_child(node_1_1)
+        node_1.add_child(node_1_2)
+        node_2.add_child(node_2_1)
+        node_2.add_child(node_2_2)
 
-        path = '/experiments/results'
-        node_by_path = tree.find_node_by_path(path)
+        path_to_node_name_dict = {'/': '/', '/experiments': 'experiments', '/experiments/results': 'results',
+                                  '/experiments/a': 'a', '/experiments/b': 'b', '/experiments/results/a': 'a',
+                                  '/experiments/results/b': 'b'}
+
+        for path, node_name in path_to_node_name_dict.items():
+            node_by_path = tree.find_node_by_path(path)
+            self.assertTrue(node_by_path.name == node_name,
+                            msg='Checking if node is on path: {0}'.format(path))
+
+        # Test find node by path starting not from root node
+        path = 'experiments/results'
+        node_by_path = node_1.find_node_by_path(path)
         self.assertTrue(node_by_path.name == 'results',
                         msg='Checking if node: {0} is on path: {1}'.format(node_by_path.name, path))
-
-        path_2 = 'experiments/results'
-        node_by_path_2 = node_1.find_node_by_path(path_2)
-        self.assertTrue(node_by_path_2.name == 'results',
-                        msg='Checking if node: {0} is on path: {1}'.format(node_by_path_2.name, path_2))
-
-
 
 
 class TestPrototypeDeserializer(TestCase):
