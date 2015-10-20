@@ -54,7 +54,6 @@ class SRADriver(ProjectionDriver):
                 # Run set is most times dict, but sometimes list, treating dict as list to resolve inconsistency
                 if isinstance(search_query_contents['RUN_SET']['RUN'], list):
                     for run in search_query_contents['RUN_SET']['RUN']:
-                        logger.info(pprint.pprint(run))
                         self.query_cache[run['@accession']] = run['@accession'] + '.sam'
                 else:
                     self.query_cache[search_query_contents['RUN_SET']['RUN']['@accession']] = search_query_contents['RUN_SET']['RUN']['@accession']+'.sam'
