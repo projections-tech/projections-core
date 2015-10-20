@@ -8,28 +8,6 @@
     "autoName": null,
     "barcodeId": "IonXpress",
     "barcodedSamples": {
-        "sample_1": {
-            "barcodeSampleInfo": {
-                "IonXpress_001": {
-                    "description": "test",
-                    "externalId": ""
-                }
-            },
-            "barcodes": [
-                "IonXpress_001"
-            ]
-        },
-        "sample_2": {
-            "barcodeSampleInfo": {
-                "IonXpress_002": {
-                    "description": "test",
-                    "externalId": ""
-                }
-            },
-            "barcodes": [
-                "IonXpress_002"
-            ]
-        },
         "sample_3": {
             "barcodeSampleInfo": {
                 "IonXpress_003": {
@@ -50,17 +28,6 @@
             },
             "barcodes": [
                 "IonXpress_004"
-            ]
-        },
-        "sample_5": {
-            "barcodeSampleInfo": {
-                "IonXpress_005": {
-                    "description": "test",
-                    "externalId": ""
-                }
-            },
-            "barcodes": [
-                "IonXpress_005"
             ]
         }
     },

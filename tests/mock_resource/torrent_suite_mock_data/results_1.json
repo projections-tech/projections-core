@@ -7,11 +7,11 @@
     "bamLink": "/output/Home/test_run/R_2012_08_31_00_21_53_Sequoia_SN1-14-Newborn_5_samples_from_CV_Run_11_hg19_v3.bam",
     "diskusage": 3511,
     "eas": "/rundb/api/v1/experimentanalysissettings/27/",
-    "experiment": "/rundb/api/v1/experiment/24/",
+    "experiment": "/rundb/api/v1/experiment/1/",
     "fastqLink": "/output/Home/test_run/basecaller_results/R_2012_08_31_00_21_53_Sequoia_SN1-14-Newborn_5_samples_from_CV_Run_11_hg19_v3.fastq",
-    "filesystempath": "/results/analysis/output/Home/test_run",
+    "filesystempath": "/results/analysis/output/Home/test_run_1",
     "framesProcessed": 58,
-    "id": 8,
+    "id": 1,
     "libmetrics": [
         "/rundb/api/v1/libmetrics/7/"
     ],
@@ -820,13 +820,7 @@
         }
     },
     "pluginresults": [
-        "/rundb/api/v1/pluginresult/77/",
-        "/rundb/api/v1/pluginresult/50/",
-        "/rundb/api/v1/pluginresult/49/",
-        "/rundb/api/v1/pluginresult/39/",
-        "/rundb/api/v1/pluginresult/24/",
-        "/rundb/api/v1/pluginresult/23/",
-        "/rundb/api/v1/pluginresult/15/"
+        "/rundb/api/v1/pluginresult/1/"
     ],
     "processedCycles": 125,
     "processedflows": 500,
@@ -848,7 +842,7 @@
         "webServerPath": "/output"
     },
     "representative": false,
-    "resource_uri": "/rundb/api/v1/results/8/",
+    "resource_uri": "/rundb/api/v1/results/1/",
     "resultsName": "Run_11_hg19_v3",
     "resultsType": "",
     "runid": "GD95I",

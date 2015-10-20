@@ -59,39 +59,6 @@
                     "barcodes": [
                         "IonXpress_002"
                     ]
-                },
-                "sample_3": {
-                    "barcodeSampleInfo": {
-                        "IonXpress_003": {
-                            "description": "test",
-                            "externalId": ""
-                        }
-                    },
-                    "barcodes": [
-                        "IonXpress_003"
-                    ]
-                },
-                "sample_4": {
-                    "barcodeSampleInfo": {
-                        "IonXpress_004": {
-                            "description": "test",
-                            "externalId": ""
-                        }
-                    },
-                    "barcodes": [
-                        "IonXpress_004"
-                    ]
-                },
-                "sample_5": {
-                    "barcodeSampleInfo": {
-                        "IonXpress_005": {
-                            "description": "test",
-                            "externalId": ""
-                        }
-                    },
-                    "barcodes": [
-                        "IonXpress_005"
-                    ]
                 }
             },
             "base_recalibration_mode": "standard_recal",
@@ -140,7 +107,7 @@
             "beadfindargs": "justBeadFind",
             "calibrateargs": "",
             "date": "2013-11-21T07:45:38.000437+00:00",
-            "experiment": "/rundb/api/v1/experiment/24/",
+            "experiment": "/rundb/api/v1/experiment/1/",
             "hotSpotRegionBedFile": "",
             "id": 25,
             "ionstatsargs": "",
@@ -159,7 +126,8 @@
             "reference": "hg19",
             "resource_uri": "/rundb/api/v1/experimentanalysissettings/25/",
             "results": [
-                "/rundb/api/v1/results/6/"
+                "/rundb/api/v1/results/1/",
+                "/rundb/api/v1/results/2/"
             ],
             "selectedPlugins": {},
             "status": "run",
@@ -202,7 +170,8 @@
             "reference": "hg19_v3",
             "resource_uri": "/rundb/api/v1/experimentanalysissettings/27/",
             "results": [
-                "/rundb/api/v1/results/8/"
+                "/rundb/api/v1/results/1/",
+                "/rundb/api/v1/results/2/"
             ],
             "selectedPlugins": {},
             "status": "run",
@@ -386,14 +355,15 @@
     "notes": "Sample names were created artificially to enable barcoded run analysis.",
     "pgmName": "PGM_test",
     "pinnedRepResult": false,
-    "plan": "/rundb/api/v1/plannedexperiment/31/",
+    "plan": "/rundb/api/v1/plannedexperiment/1/",
     "platform": "PGM",
     "rawdatastyle": "single",
     "reagentBarcode": "",
-    "resource_uri": "/rundb/api/v1/experiment/24/",
+    "resource_uri": "/rundb/api/v1/experiment/1/",
     "resultDate": "2013-11-22T07:42:22.000972+00:00",
     "results": [
-        "/rundb/api/v1/results/8/"
+        "/rundb/api/v1/results/1/",
+        "/rundb/api/v1/results/2/"
     ],
     "reverse_primer": "Ion Kit",
     "runMode": "single",
@@ -405,12 +375,26 @@
             "description": "test",
             "displayedName": "sample_1",
             "experiments": [
-                "/rundb/api/v1/experiment/24/"
+                "/rundb/api/v1/experiment/1/"
             ],
             "externalId": "",
-            "id": 7,
+            "id": 1,
             "name": "sample_1",
-            "resource_uri": "/rundb/api/v1/sample/7/",
+            "resource_uri": "/rundb/api/v1/sample/1/",
+            "sampleSets": [],
+            "status": "run"
+        },
+        {
+            "date": "2014-03-27T04:37:47.000144+00:00",
+            "description": "test",
+            "displayedName": "sample_2",
+            "experiments": [
+                "/rundb/api/v1/experiment/1/"
+            ],
+            "externalId": "",
+            "id": 2,
+            "name": "sample_2",
+            "resource_uri": "/rundb/api/v1/sample/2/",
             "sampleSets": [],
             "status": "run"
         }

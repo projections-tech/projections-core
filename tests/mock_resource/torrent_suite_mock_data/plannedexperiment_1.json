@@ -29,39 +29,6 @@
             "barcodes": [
                 "IonXpress_002"
             ]
-        },
-        "sample_3": {
-            "barcodeSampleInfo": {
-                "IonXpress_003": {
-                    "description": "test",
-                    "externalId": ""
-                }
-            },
-            "barcodes": [
-                "IonXpress_003"
-            ]
-        },
-        "sample_4": {
-            "barcodeSampleInfo": {
-                "IonXpress_004": {
-                    "description": "test",
-                    "externalId": ""
-                }
-            },
-            "barcodes": [
-                "IonXpress_004"
-            ]
-        },
-        "sample_5": {
-            "barcodeSampleInfo": {
-                "IonXpress_005": {
-                    "description": "test",
-                    "externalId": ""
-                }
-            },
-            "barcodes": [
-                "IonXpress_005"
-            ]
         }
     },
     "base_recalibration_mode": "standard_recal",
