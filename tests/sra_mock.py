@@ -14,9 +14,9 @@ class SRAMock(MockResource):
         """
         uris = {
             '/entrez/eutils/esearch.fcgi.*':
-                'esearch_query.xml',
+                'sra_mock_data/esearch_query.xml',
             '/entrez/eutils/efetch.fcgi.*':
-                'efetch_query.xml'
+                'sra_mock_data/efetch_query.xml'
         }
         content_types = {
             '.json': 'application/json',
