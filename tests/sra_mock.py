@@ -23,7 +23,7 @@ class SRAMock(MockResource):
             '.bam': 'application/octet-stream',
             '.bed': 'text/csv',
             '.vcf': 'text/csv',
-            '.xml': 'text/xml'
+            '.xml': 'text/xml; charset=UTF-8'
         }
         for uri, file_name in uris.items():
             _, file_extension = os.path.splitext(file_name)
