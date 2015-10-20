@@ -253,7 +253,7 @@ class PrototypeDeserializer(object):
         Initialize class, passing path to YAML configuration file
         """
 
-        self.prototype_tree, self.resource_uri = self.read_projections(data_path)
+        self.prototype_tree, self.resource_uri, self.root_projection_uri = self.read_projections(data_path)
 
     def get_prototypes_tree(self, yaml_dict, parent=None):
         """
@@ -280,7 +280,7 @@ class PrototypeDeserializer(object):
         """
         with open(data_path) as y_f:
             yaml_dict = yaml.safe_load(y_f)
-        return self.get_prototypes_tree(yaml_dict['root']), yaml_dict['resource_uri']
+        return self.get_prototypes_tree(yaml_dict['root']), yaml_dict['resource_uri'], yaml_dict['root_projection_uri']
 
 
 class ProjectionDriver(object):

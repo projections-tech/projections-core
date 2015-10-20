@@ -95,7 +95,7 @@ class TorrentSuiteDriver(ProjectionDriver):
 
 
 class TorrentSuiteProjector(Projector):
-    def __init__(self, driver, prototype_tree):
+    def __init__(self, driver, root_projection, prototype_tree):
         """
         Initializes Torrent Suite Projector with driver, assigns root projection, builds prototype and projection tree.
         :param driver: instance of TorrentSuiteDriver
@@ -106,7 +106,7 @@ class TorrentSuiteProjector(Projector):
 
         # Initializing projection tree with root projection.
         self.projection_tree = ProjectionTree()
-        self.root_projection = Projection('/', 'experiment?status=run&limit=1&order_by=-id')
+        self.root_projection = root_projection
         self.projection_tree.add_projection(self.root_projection, None)
 
         self.create_projection_tree({'/': prototype_tree},
@@ -183,9 +183,10 @@ def main(mountpoint, data_folder, foreground=True):
     mock_torrent_suite = TorrentSuiteMock('mockiontorrent.com', 'tests/mock_resource/torrent_suite_mock_data')
 
     projection_configuration = PrototypeDeserializer('torrent_suite_config.yaml')
-
+    root_projection = Projection('/', projection_configuration.root_projection_uri)
     projection_dirver = TorrentSuiteDriver(projection_configuration.resource_uri, 'ionadmin', '0ECu1lW')
     projection_filesystem.projection_manager = TorrentSuiteProjector(projection_dirver,
+                                                                     root_projection,
                                                                      projection_configuration.prototype_tree)
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
     return fuse
