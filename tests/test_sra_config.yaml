@@ -8,7 +8,7 @@ run_prototype: &run_prototype
   type: file
   children: None
   name:  "content"
-  uri: "['get_experiment_runs:'+environment['RUN_SET']['RUN']['@accession']]"
+  uri: "['load_run:'+ run for run in fetch_context('get_experiment_runs:'+environment['EXPERIMENT']['@accession'])]"
 
 experiment_meta_prototype: &experiment_meta_prototype
   type: file
