@@ -5,26 +5,30 @@ from tests.mock import MockResource
 
 
 class SRAMock(MockResource):
+    """
+    Mock SRA resource for test purposes
+    """
     def prepare_responses(self):
         """
         Prepares mock SRA replies to requests
         """
-        uri_dict = {
+        uris = {
             '/entrez/eutils/esearch.fcgi.*':
                 'esearch_query.xml',
             '/entrez/eutils/efetch.fcgi.*':
                 'efetch_query.xml'
         }
-        content_types_dict = {
+        content_types = {
             '.json': 'application/json',
-            '.bam': 'application/bam',
-            '.bed': 'application/bed',
-            '.vcf': 'application/vcf'
+            '.bam': 'application/octet-stream',
+            '.bed': 'text/csv',
+            '.vcf': 'text/csv',
+            '.xml': 'text/xml'
         }
-        for uri, file_name in uri_dict.items():
+        for uri, file_name in uris.items():
             _, file_extension = os.path.splitext(file_name)
-            if file_extension in content_types_dict:
-                content_type = content_types_dict[file_extension]
+            if file_extension in content_types:
+                content_type = content_types[file_extension]
             else:
                 content_type = ''
             with open(os.path.join(self.content_dir, file_name), 'rb') as f:

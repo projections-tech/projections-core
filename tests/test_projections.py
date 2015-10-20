@@ -20,6 +20,7 @@ class TestDriver(ProjectionDriver):
     """
     This class does not perform actual testing. It's providing test data and may be replaces with mock object.
     """
+
     def get_content(self, uri):
         logger.info('Requesting content for uri: %s', uri)
 
@@ -115,6 +116,7 @@ class TestProjector(TestCase):
 
 
 class TestTree(TestCase):
+
     def setUp(self):
         self.tree = Tree(name=None)
 
@@ -212,6 +214,7 @@ class TestTree(TestCase):
 
 
 class TestPrototypeDeserializer(TestCase):
+
     def setUp(self):
         self.deserializer = PrototypeDeserializer('tests/test_projection_config.yaml')
 

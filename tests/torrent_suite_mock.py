@@ -17,7 +17,7 @@ class TorrentSuiteMock(MockResource):
         """
         Prepares mock Torrent Suite replies to requests
         """
-        uri_dict = {
+        uris = {
             '/rundb/api/v1/experiment\?status=run\&limit=(\d+)\&order_by=-id':
                 'experiments.json',
             '/rundb/api/v1/experiment/24/':
@@ -45,16 +45,17 @@ class TorrentSuiteMock(MockResource):
             '/auth/output/Home/test_run/plugin_out/variantCaller_out[\.\d+]*/IonXpress_00(\d+)/.*vcf':
                 'mock_vcf.vcf'
         }
-        content_types_dict = {
+        content_types = {
             '.json': 'application/json',
-            '.bam': 'application/bam',
-            '.bed': 'application/bed',
-            '.vcf': 'application/vcf'
+            '.bam': 'application/octet-stream',
+            '.bed': 'text/csv',
+            '.vcf': 'text/csv',
+            '.xml': 'text/xml'
         }
-        for uri, file_name in uri_dict.items():
+        for uri, file_name in uris.items():
             _, file_extension = os.path.splitext(file_name)
-            if file_extension in content_types_dict:
-                content_type = content_types_dict[file_extension]
+            if file_extension in content_types:
+                content_type = content_types[file_extension]
             else:
                 content_type = ''
             with open(os.path.join(self.content_dir, file_name), 'rb') as f:

@@ -18,6 +18,7 @@ class Tree(object):
     Generic tree class which holds common methods for "tree" structure, must be subclassed to create Prototype and
     Projection classes
     """
+
     def __init__(self, name=None, data=None):
         """
         Initializes Tree node with optional arguments name and data
@@ -246,6 +247,7 @@ class PrototypeDeserializer(object):
     """
     Used to deserialize Prototype tree from YAML configuration files
     """
+
     def __init__(self, data_path):
         """
         Initialize class, passing path to YAML configuration file
