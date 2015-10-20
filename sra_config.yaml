@@ -2,7 +2,7 @@
 dialect: python
 resource_uri: http://eutils.ncbi.nlm.nih.gov'
 
-root_projection_uri: 'query:Streptococcus:10'
+root_projection_uri: 'query:Streptococcus:1'
 
 run_prototype: &run_prototype
   type: file

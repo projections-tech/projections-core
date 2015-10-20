@@ -2,13 +2,13 @@
 dialect: python
 resource_uri: http://eutils.ncbi.nlm.nih.gov'
 
-root_projection_uri: 'query:Volvox:1'
+root_projection_uri: 'query:Volvox:10'
 
 run_prototype: &run_prototype
   type: file
   children: None
   name:  "content"
-  uri: "['get_experiment_runs:'+environment['RUN_SET']['RUN']['@accession']]"
+  uri: "['load_run:'+ run for run in fetch_context('get_experiment_runs:'+environment['EXPERIMENT']['@accession'])]"
 
 experiment_meta_prototype: &experiment_meta_prototype
   type: file
