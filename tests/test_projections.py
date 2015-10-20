@@ -221,7 +221,6 @@ class TestPrototypeDeserializer(TestCase):
     def test_prototype_deserialization(self):
         """
         Tests test_projection_config deserialization in to ProjectionPrototype tree
-        :return:
         """
         root_prototype = self.deserializer.prototype_tree
         # Test if nodes are ProjectionPrototype instances

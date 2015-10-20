@@ -69,7 +69,7 @@ class SRADriver(ProjectionDriver):
 
 
 class SRAProjector(Projector):
-    def __init__(self, driver, root_prototype):
+    def __init__(self, driver, root_projection, root_prototype):
         """
         Initializes SRA Projector with driver, assigns root projection, builds prototype and projection tree.
         :param driver: instance of SRADriver
@@ -80,7 +80,7 @@ class SRAProjector(Projector):
 
         # Initializing projection tree with root projection.
         self.projection_tree = ProjectionTree()
-        self.root_projection = Projection('/', 'query:Streptococcus:1')
+        self.root_projection = root_projection
         self.projection_tree.add_projection(self.root_projection, None)
 
         self.create_projection_tree({'/': root_prototype}, projection_tree=self.projection_tree, parent_projection=self.root_projection)
@@ -157,7 +157,11 @@ def main(mountpoint, data_folder, foreground=True):
     projection_configuration = PrototypeDeserializer('sra_config.yaml')
 
     sra_driver = SRADriver('vsvekolkin@parseq.pro')
-    projection_filesystem.projection_manager = SRAProjector(sra_driver, projection_configuration.prototype_tree)
+
+    root_projection = Projection('/', projection_configuration.root_projection_uri)
+
+    projection_filesystem.projection_manager = SRAProjector(sra_driver, root_projection,
+                                                            projection_configuration.prototype_tree)
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
     return fuse
 

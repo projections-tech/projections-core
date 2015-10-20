@@ -2,6 +2,8 @@
 dialect: python
 resource_uri: testtorrentsuite.com
 
+root_projection_uri: 'test_uri'
+
 bam_file: &bam_file
   type: file
   children: None
