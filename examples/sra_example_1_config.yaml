@@ -1,0 +1,32 @@
+---
+dialect: python
+resource_uri: http://eutils.ncbi.nlm.nih.gov'
+
+root_projection_uri: 'query:Streptococcus:2'
+
+run_prototype: &run_prototype
+  type: file
+  children: None
+  name:  "content"
+  uri: "['get_experiment_runs:'+environment['RUN_SET']['RUN']['@accession']]"
+
+experiment_meta_prototype: &experiment_meta_prototype
+  type: file
+  children: None
+  name:  "'metadata.json'"
+  uri: "['experiment_id:'+environment['EXPERIMENT']['@accession']]"
+
+experiment_prototype: &experiment_prototype
+  type: directory
+  children:
+    experiment_meta_prototype: *experiment_meta_prototype
+    run_prototype: *run_prototype
+  name: "environment['EXPERIMENT']['@accession']"
+  uri: "['experiment_id:'+environment['EXPERIMENT']['@accession']]"
+
+root:
+  type: directory
+  children:
+    experiment_prototype: *experiment_prototype
+  name: "environment['QueryTranslation']"
+  uri: "['search_id:'+id for id in environment['IdList']]"
