@@ -348,7 +348,7 @@ class Projector:
             # Get context of current node from contexts of parent nodes
             context = prototype.get_context()
             context = context[::-1]
-            logger.info('Prototype context: %s', len(context))
+
             logger.info('Creating projections for a prototype: %s', prototype)
 
             # TODO: eval is not safe, consider safer alternative, e.g. JsonPath
