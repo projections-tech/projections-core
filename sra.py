@@ -50,10 +50,22 @@ class SRADriver(ProjectionDriver):
                 # Adding resources to cache dict with their IDs as keys
                 self.query_cache[query[1]] = search_query_contents
                 self.query_cache[search_query_contents['EXPERIMENT']['@accession']] = search_query_contents
-                self.query_cache[search_query_contents['RUN_SET']['RUN']['@accession']] = search_query_contents['RUN_SET']['RUN']['@accession']+'.sam'
+                # Run set is most times dict, but sometimes list, treating dict as list to resolve inconsistency
+                if isinstance(search_query_contents['RUN_SET']['RUN'], list):
+                    for run in search_query_contents['RUN_SET']['RUN']:
+                        self.query_cache[run['@accession']] = run['@accession'] + '.sam'
+                else:
+                    self.query_cache[search_query_contents['RUN_SET']['RUN']['@accession']] = search_query_contents['RUN_SET']['RUN']['@accession']+'.sam'
                 return search_query_contents
             else:
                 return self.query_cache[query[1]]
+        elif query_type == 'get_experiment_runs':
+            experiment_data = self.query_cache[query[1]]
+            # Run set is most times dict, but sometimes list, treating dict as list to resolve inconsistency
+            if isinstance(experiment_data['RUN_SET']['RUN'], list):
+                return [run['@accession'] for run in experiment_data['RUN_SET']['RUN']]
+            else:
+                return [experiment_data['RUN_SET']['RUN']['@accession']]
         else:
             return self.query_cache[query[1]]
 
