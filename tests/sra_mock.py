@@ -14,16 +14,16 @@ class SRAMock(MockResource):
         """
         uris = {
             '/entrez/eutils/esearch.fcgi.*':
-                'esearch_query.xml',
+                'sra_mock_data/esearch_query.xml',
             '/entrez/eutils/efetch.fcgi.*':
-                'efetch_query.xml'
+                'sra_mock_data/efetch_query.xml'
         }
         content_types = {
             '.json': 'application/json',
             '.bam': 'application/octet-stream',
             '.bed': 'text/csv',
             '.vcf': 'text/csv',
-            '.xml': 'text/xml'
+            '.xml': 'text/xml; charset=UTF-8'
         }
         for uri, file_name in uris.items():
             _, file_extension = os.path.splitext(file_name)

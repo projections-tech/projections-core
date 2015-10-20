@@ -39,7 +39,7 @@ class SRADriver(ProjectionDriver):
         # Query looks as: 'query:Test_species'
         if query_type == 'query':
             # Returns esearch response dict.
-            esearch_handle = Entrez.esearch(db='sra', term=query[1], retmax=[2])
+            esearch_handle = Entrez.esearch(db='sra', term=query[1], retmax=query[2])
             return Entrez.read(esearch_handle)
         # Query looks as 'search_id:102354'
         elif query_type == 'search_id':
@@ -152,7 +152,7 @@ def main(mountpoint, data_folder, foreground=True):
     # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
-    mock_resource = SRAMock('http://eutils.ncbi.nlm.nih.gov', 'tests/mock_resource')
+    #mock_resource = SRAMock('http://eutils.ncbi.nlm.nih.gov', 'tests/mock_resource')
 
     projection_configuration = PrototypeDeserializer('sra_config.yaml')
 
