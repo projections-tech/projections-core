@@ -162,11 +162,16 @@ class TestTorrentSuiteProjector(TestCase):
                 self.assertIn(vcf_file_path, projection_paths_list, msg='VCF path: {}'.format(vcf_file_path))
 
     def test_projection_contraction(self):
+        """
+        Test filtration of projections.
+        """
+        # This config specifies projection that is created from resource root, with filtering of experiment name,
+        # run name, and only TSVC VCF file for variant calling
         projection_configuration = PrototypeDeserializer('tests/test_torrent_suite_projection_filtering_config.yaml')
         root_projection = Projection('/', projection_configuration.root_projection_uri)
         driver = iontorrent.TorrentSuiteDriver(projection_configuration.resource_uri, USER, PASSWORD)
         iontorrent_projector = iontorrent.TorrentSuiteProjector(driver, root_projection,
-                                                           projection_configuration.prototype_tree)
+                                                                projection_configuration.prototype_tree)
 
         projection_paths_list = iontorrent_projector.projections.keys()
 
