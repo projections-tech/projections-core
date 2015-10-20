@@ -4,6 +4,8 @@ resource_uri: mockiontorrent.com
 user: ionadmin
 password: ionadmin
 
+root_projection_uri: 'experiment?status=run&limit=1&order_by=-id'
+
 snp_variants_vcf_prototype: &snp_variants_vcf_prototype
   type: file
   children: None

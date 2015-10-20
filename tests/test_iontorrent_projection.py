@@ -172,72 +172,71 @@ class TestTorrentSuiteProjector(TestCase):
 
 
         # Checking number of created projections,
-        self.assertEqual(len(projection_paths_list), 67,
+        self.assertEqual(len(projection_paths_list), 19,
                          msg='Checking total number of projections,'
-                             ' expecting 67, got: {}.'.format(len(projection_paths_list)))
+                             ' expecting 19, got: {}.'.format(len(projection_paths_list)))
 
         # Representation of mock internal structure
         experiment_contents = {
-            '/test_experiment_1':
-                {
-                    'test_run_1': ['sample_1', 'sample_2'],
-                    'test_run_2': ['sample_1', 'sample_2']
-                },
-            '/test_experiment_2':
-                {
-                    'test_run_3': ['sample_3', 'sample_4'],
-                    'test_run_4': ['sample_3', 'sample_4']
+                    'test_run_1': ['sample_1', 'sample_2']
                 }
-        }
 
-        for exp_dir in self.mock_resource.get_experiments():
-            exp_dir = '/' + exp_dir
-            # Checking metadata projection creation for experiments
-            for meta_name in ['metadata.json', 'plannedexperiment.json']:
-                meta_data_path = os.path.join(exp_dir, meta_name)
-                self.assertTrue(meta_data_path in projection_paths_list,
-                                msg='Checking metadata projections for experiment {}.'.format(exp_dir))
+        exp_dir = '/test_experiment_1'
 
-            for run_name, sample_ids in experiment_contents[exp_dir].items():
-                for sample_id in sample_ids:
-                    # Checking BAM file projections creation on expected paths
-                    bam_file_path = os.path.join(exp_dir, run_name, sample_id, '{0}.bam'.format(sample_id))
-                    self.assertIn(bam_file_path, projection_paths_list,
-                                  msg='Checking BAM projection existence: {}'.format(bam_file_path))
+        self.assertIn(exp_dir, projection_paths_list, msg='Checking experiment 1 dir projection creation')
 
-                    # Test sample metadata projection creation
-                    sample_meta_path = os.path.join(exp_dir, run_name, sample_id, 'metadata.json')
-                    self.assertIn(sample_meta_path, projection_paths_list,
-                                  msg='Checking metadata creation:{}'.format(sample_meta_path))
+        # Checking experiment filtration by name
+        self.assertNotIn('/test_experiment_2', projection_paths_list, msg='Checking experiment 2 dir projection is not created')
 
-                    variant_caller_dir = '.587'
-                    vc_dir_path = os.path.join(exp_dir, run_name, sample_id,
-                                               'variantCaller_out{}'.format(variant_caller_dir))
+        # Checking run filtration by name
+        self.assertNotIn('/test_experiment_1/test_run_2', projection_paths_list, msg='Checking test run 2 dir projection is not created')
 
-                    # Checking BED file projections creation
-                    bed_file_path = os.path.join(vc_dir_path, 'IAD66589_181_SNP-HID-p2-L_Target_regions.bed')
-                    self.assertIn(bed_file_path, projection_paths_list,
-                                  msg='Checking BED file projection existence: {}.'.format(bed_file_path))
+        # Checking metadata projection creation for experiments
+        for meta_name in ['metadata.json', 'plannedexperiment.json']:
+            meta_data_path = os.path.join(exp_dir, meta_name)
+            self.assertTrue(meta_data_path in projection_paths_list,
+                            msg='Checking metadata projections for experiment {}.'.format(exp_dir))
 
-                    # Checking variant caller settings projection creation
-                    vcf_settings_path = os.path.join(vc_dir_path, 'variant_caller_settings.json')
-                    self.assertIn(vcf_settings_path, projection_paths_list,
-                                  msg='Checking VC settings projection creation: {}'.format(vcf_settings_path))
+        for run_name, sample_ids in experiment_contents.items():
+            for sample_id in sample_ids:
+                # Checking BAM file projections creation on expected paths
+                bam_file_path = os.path.join(exp_dir, run_name, sample_id, '{0}.bam'.format(sample_id))
+                self.assertIn(bam_file_path, projection_paths_list,
+                              msg='Checking BAM projection existence: {}'.format(bam_file_path))
 
-                    # Checking if selected TSVC VCF file was created
-                    tsvc_vcf_file_path = os.path.join(exp_dir, run_name, sample_id,
+                # Test sample metadata projection creation
+                sample_meta_path = os.path.join(exp_dir, run_name, sample_id, 'metadata.json')
+                self.assertIn(sample_meta_path, projection_paths_list,
+                              msg='Checking metadata creation:{}'.format(sample_meta_path))
+
+                variant_caller_dir = '.587'
+                vc_dir_path = os.path.join(exp_dir, run_name, sample_id,
+                                           'variantCaller_out{}'.format(variant_caller_dir))
+
+                # Checking BED file projections creation
+                bed_file_path = os.path.join(vc_dir_path, 'IAD66589_181_SNP-HID-p2-L_Target_regions.bed')
+                self.assertIn(bed_file_path, projection_paths_list,
+                              msg='Checking BED file projection existence: {}.'.format(bed_file_path))
+
+                # Checking variant caller settings projection creation
+                vcf_settings_path = os.path.join(vc_dir_path, 'variant_caller_settings.json')
+                self.assertIn(vcf_settings_path, projection_paths_list,
+                              msg='Checking VC settings projection creation: {}'.format(vcf_settings_path))
+
+                # Checking if selected TSVC VCF file was created
+                tsvc_vcf_file_path = os.path.join(exp_dir, run_name, sample_id,
+                                             'variantCaller_out{}'.format(variant_caller_dir),
+                                             'TSVC_variants.vcf')
+                self.assertIn(tsvc_vcf_file_path, projection_paths_list, msg='VCF path: {}'.format(tsvc_vcf_file_path))
+
+                # Checking VCF files filtration
+                for variant_file_name in ['all.merged.vcf', 'indel_assembly.vcf',
+                                          'indel_variants.vcf', 'small_variants.left.vcf',
+                                          'small_variants.vcf', 'small_variants_filtered.vcf',
+                                          'small_variants.sorted.vcf', 'SNP_variants.vcf']:
+                    vcf_file_path = os.path.join(exp_dir,
+                                                 run_name,
+                                                 sample_id,
                                                  'variantCaller_out{}'.format(variant_caller_dir),
-                                                 'TSVC_variants.vcf')
-                    self.assertIn(tsvc_vcf_file_path, projection_paths_list, msg='VCF path: {}'.format(tsvc_vcf_file_path))
-
-                    # Checking VCF files filtration
-                    for variant_file_name in ['all.merged.vcf', 'indel_assembly.vcf',
-                                              'indel_variants.vcf', 'small_variants.left.vcf',
-                                              'small_variants.vcf', 'small_variants_filtered.vcf',
-                                              'small_variants.sorted.vcf', 'SNP_variants.vcf']:
-                        vcf_file_path = os.path.join(exp_dir,
-                                                     run_name,
-                                                     sample_id,
-                                                     'variantCaller_out{}'.format(variant_caller_dir),
-                                                     variant_file_name)
-                        self.assertNotIn(vcf_file_path, projection_paths_list, msg='VCF path: {}'.format(vcf_file_path))
+                                                 variant_file_name)
+                    self.assertNotIn(vcf_file_path, projection_paths_list, msg='VCF path: {}'.format(vcf_file_path))

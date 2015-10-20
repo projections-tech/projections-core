@@ -60,7 +60,7 @@ result_prototype: &result_prototype
   children:
     sample_prototype: *sample_prototype
   name: "path.split(content['filesystempath'])[1]"
-  uri: "[res for res in environment['results']]"
+  uri: "[res for res in environment['results'] if path.split(fetch_context(res)['filesystempath'])[1][-1] == '1']"
 
 exp_plan_metadata_prototype: &exp_plan_metadata_prototype
   type: file
@@ -81,4 +81,4 @@ root:
     exp_metadata_prototype: *exp_metadata_prototype
     exp_plan_metadata_prototype: *exp_plan_metadata_prototype
   name: "content['displayName'].replace(' ', '_')"
-  uri: '[object["resource_uri"] for object in environment["objects"]]'
+  uri: '[object["resource_uri"] for object in environment["objects"] if object["displayName"][-1] == "1"]'
