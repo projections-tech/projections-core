@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE eSearchResult PUBLIC "-//NLM//DTD esearch 20060628//EN" "http://eutils.ncbi.nlm.nih.gov/eutils/dtd/20060628/esearch.dtd">
+<eSearchResult><Count>33970</Count><RetMax>2</RetMax><RetStart>0</RetStart><IdList>
+<Id>1535133</Id>
+<Id>1535132</Id>
+</IdList><TranslationSet><Translation>     <From>Streptococcus</From>     <To>"Streptococcus"[Organism] OR Streptococcus[All Fields]</To>    </Translation></TranslationSet><TranslationStack>   <TermSet>    <Term>"Streptococcus"[Organism]</Term>    <Field>Organism</Field>    <Count>33356</Count>    <Explode>Y</Explode>   </TermSet>   <TermSet>    <Term>Streptococcus[All Fields]</Term>    <Field>All Fields</Field>    <Count>32507</Count>    <Explode>N</Explode>   </TermSet>   <OP>OR</OP>   <OP>GROUP</OP>  </TranslationStack><QueryTranslation>"Streptococcus"[Organism] OR Streptococcus[All Fields]</QueryTranslation></eSearchResult>

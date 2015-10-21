@@ -1,0 +1,14 @@
+{
+    "date": "2013-06-07T08:05:35.000032+00:00",
+    "description": null,
+    "displayedName": "sample_3",
+    "experiments": [
+        "/rundb/api/v1/experiment/2/"
+    ],
+    "externalId": "",
+    "id": 2,
+    "name": "sample_3",
+    "resource_uri": "/rundb/api/v1/sample/3/",
+    "sampleSets": [],
+    "status": "planned"
+}

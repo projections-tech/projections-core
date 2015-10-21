@@ -2,36 +2,57 @@
 __author__ = 'abragin'
 
 import logging
+import logging.config
 import io
+import re
 import json
 import os
-import stat
 import sys
 import time
 import urllib.request
 from urllib.parse import urljoin
 
-from projections import Projection, ProjectionManager
+from projections import Projection, ProjectionDriver, ProjectionTree, Projector, PrototypeDeserializer
 from filesystem import ProjectionFilesystem
 from fuse import FUSE
-
+from tests.torrent_suite_mock import TorrentSuiteMock
 
 logger = logging.getLogger('iontorrent_projection')
 
 
-class IonTorrentProjection(ProjectionManager):
-    def __init__(self, host, user, password):
-        logger.info('Creating Ion Torrent projection for host: %s', host)
-        self.host_url = 'http://{}'.format(host)
-        self.api_url = 'http://{}/rundb/api/v1/'.format(host)
-        self.files_url = self.host_url + '/auth/output/Home/'
+class TorrentSuiteDriver(ProjectionDriver):
+    def __init__(self, host_url, user, password):
+        """
+        Initialize driver which will be used to interact with host.
+        :param host_url: URL of host string
+        :param user: user name string
+        :param password: password string
+        """
+        self.host_url = 'http://{}'.format(host_url)
+        self.api_url = 'http://{}/rundb/api/v1/'.format(host_url)
+        self.files_url = urljoin(self.host_url, '/auth/output/Home/')
         self.authenticate(user, password)
 
-        # TODO: switch to tree-like structure instead of manual path parsing
-        self.projections = {}
-        self.create_projections()
+    def __prepare_uri(self, uri):
+        """
+        Adds appropriate prefix to uri according to uri context
+        :param uri: URI string
+        :return: URI string
+        """
+        if re.match('/rundb/api/v1/', uri):
+            return uri.replace('/rundb/api/v1/', self.api_url)
+        elif re.match('/auth/output/Home/', uri):
+            return uri.replace('/auth/output/Home/', self.files_url)
+        else:
+            return self.api_url + uri
 
     def authenticate(self, user, password):
+        """
+        Creates authorization handler for driver.
+        :param host_url: URL of host string
+        :param user: user name string
+        :param password: password string
+        """
         password_manager = urllib.request.HTTPPasswordMgrWithDefaultRealm()
         password_manager.add_password(None, self.host_url, user, password)
 
@@ -41,153 +62,57 @@ class IonTorrentProjection(ProjectionManager):
         opener = urllib.request.build_opener(handler)
 
         # use the opener to fetch a URL
-        opener.open(self.api_url)
+        opener.open(self.host_url)
 
         # Install the opener.
         # Now all calls to urllib.request.urlopen use our opener.
         urllib.request.install_opener(opener)
 
-    def create_projections(self):
+    def get_uri_contents_as_dict(self, uri):
         """
-        STUB implementation that requests predefined number of experiments.
-
-        :return: list of projections
+        Opens URI and returns dict of its contents
+        :param uri: URI string
+        :return: dict of URI contents
         """
-        # Select last five experiments that were finished (with 'run' status)
-        with urllib.request.urlopen(self.api_url+'experiment?status=run&limit=1&order_by=-id') as f:
-            experiments = json.loads(f.readall().decode('utf-8'))
-        logger.info('Got experiments data: %s', len(experiments['objects']))
 
-        projections = []
+        uri = self.__prepare_uri(uri)
+        # TODO move this functionality to caller function
+        with urllib.request.urlopen(uri) as f:
+            if re.search('\.bam$', uri) or re.search('\.vcf$', uri) or re.search('\.bed$', uri):
+                return b''
+            else:
+                return json.loads(f.readall().decode('utf-8'))
 
-        for o in experiments['objects']:
-            # Create experiment directory projection
-            logger.debug('Got experiments with id: %s, name: %s', o['id'], o['displayName'])
+    def load_uri_contents_stream(self, uri):
+        """
+        Load uri contents
+        :param uri: URI string
+        :return: content bytes
+        """
+        uri = self.__prepare_uri(uri)
+        with urllib.request.urlopen(uri) as f:
+            return f.readall()
 
-            projection = Projection('/' + o['displayName'], self.host_url+o['resource_uri'])
-            projection.type = stat.S_IFDIR
 
-            logger.debug('Created experiment projection: %s', projection)
-            projections.append(projection)
+class TorrentSuiteProjector(Projector):
+    def __init__(self, driver, root_projection, prototype_tree):
+        """
+        Initializes Torrent Suite Projector with driver, assigns root projection, builds prototype and projection tree.
+        :param driver: instance of TorrentSuiteDriver
+        :param prototype_tree: tree of ProjectionPrototype objects to build projection upon
+        """
+        assert isinstance(driver, ProjectionDriver), 'Check that driver object is subclass of ProjectionDriver'
+        self.driver = driver
 
-            # Create experiment metadata file projection
-            exp_meta_projection = Projection('/' + os.path.join(o['displayName'], 'metadata.json'),
-                                             self.host_url + o['resource_uri'])
-            logger.debug('Created experiment metadata projection: %s', exp_meta_projection)
-            exp_meta_projection.type = stat.S_IFREG
-            projections.append(exp_meta_projection)
+        # Initializing projection tree with root projection.
+        self.projection_tree = ProjectionTree()
+        self.root_projection = root_projection
+        self.projection_tree.add_projection(self.root_projection, None)
 
-            # Create experiment plan metadata projection
-            plannedexp_metadata_projection = Projection('/' + os.path.join(o['displayName'], 'plannedexperiment.json'),
-                                                        self.host_url+o['plan'])
-            logger.debug('Created planned experiment metadata projection: %s', plannedexp_metadata_projection)
-            projections.append(plannedexp_metadata_projection)
-
-            if o['eas_set']:
-                barcoded_samples = o['eas_set'][0]['barcodedSamples']
-                logger.debug('Barcoded samples found: %s', barcoded_samples)
-
-                barcodes = {}
-                for b in barcoded_samples:
-                    barcodes[b] = barcoded_samples[b]['barcodes']
-                logger.debug('Barcodes: %s', barcodes)
-
-            # Get sample barcodes data
-            with urllib.request.urlopen(self.host_url+o['plan']) as p:
-                ex_plan = json.loads(p.readall().decode('utf-8'))
-                sample_barcodes = ex_plan['barcodedSamples']
-
-            # Create experiment results directory projections
-            for r in o['results']:
-                with urllib.request.urlopen(self.host_url + r) as f:
-                    results = json.loads(f.readall().decode('utf-8'))
-
-                    path_to_files = os.path.basename(results['filesystempath'])
-
-                    path_to_results_dir = os.path.join(o['displayName'], path_to_files)
-                    results_dir_projection = Projection('/'+path_to_results_dir, urljoin(self.files_url, path_to_files))
-                    results_dir_projection.type = stat.S_IFDIR
-
-                    projections.append(results_dir_projection)
-                    results_metadata_projection = Projection(os.path.join('/'+path_to_results_dir, path_to_files+'.json'),
-                                                             self.host_url+results['resource_uri'])
-                    projections.append(results_metadata_projection)
-
-                # Dict stores each variant calling run with result variant call directory as key
-                variant_calls = dict()
-                with urllib.request.urlopen(urljoin(self.api_url, 'pluginresult?result={}'.format(results['id']))) as f:
-                    plugin_res = json.loads(f.readall().decode('utf-8'))
-                    for p in plugin_res['objects']:
-                        if 'variantCaller' in p['pluginName'] and 'VFNA' not in p['pluginName']:
-                            variant_calls[p['path']] = {'barcodes': results['pluginStore'][p['pluginName']]['barcodes'].keys(),
-                                                        'resource_uri': p['resource_uri']}
-                            # If there is bed file in "target_bed" field, create it`s projection
-                            if 'targets_bed' in results['pluginStore'][p['pluginName']]:
-                                # Bed file base name
-                                bed_file_name = os.path.basename(results['pluginStore'][p['pluginName']]['targets_bed'])
-                                # Setting up bed file URI
-                                bed_file_path = os.path.join(path_to_files, 'plugin_out',
-                                                             os.path.basename(p['path']), bed_file_name)
-                                bed_file_projection = Projection(os.path.join('/'+path_to_results_dir,
-                                                                              os.path.basename(bed_file_path)),
-                                                                 urljoin(self.files_url, bed_file_path))
-                                projections.append(bed_file_projection)
-                logger.debug('Variant Calls: %s', variant_calls)
-                # Create samples projections
-                for s in o['samples']:
-                    s_path = os.path.join(path_to_results_dir, s['name'])
-                    # Creating sample directory projection
-                    s_projection = Projection('/' + s_path, self.api_url + s['resource_uri'])
-                    s_projection.type = stat.S_IFDIR
-
-                    # Getting sample barcode
-                    sample_barcode = sample_barcodes[s['name']]['barcodes'][0]
-                    # Adding sample BAM file suffix
-                    sample_bam_name = sample_barcode + '_rawlib.bam'
-                    # Joining sample uri
-                    sample_bam_uri = urljoin(self.files_url, os.path.join(path_to_files, sample_bam_name))
-                    # Creating sample BAM file projection
-                    s_bam_projection = Projection(os.path.join(s_projection.path, s['name'] + '.bam'), sample_bam_uri)
-                    # Creating sample metadata projection
-                    s_meta_projection = Projection(os.path.join(s_projection.path, 'metadata.json'),
-                                                   self.host_url + s['resource_uri'])
-
-                    for vc_path, item in variant_calls.items():
-                        # Joining path to variant call directory for sample
-                        vc_dir_path = os.path.join(s_projection.path, os.path.basename(vc_path))
-                        # Creating variant call directory
-                        vc_dir_projection = Projection(vc_dir_path, item['resource_uri'])
-                        vc_dir_projection.type = stat.S_IFDIR
-                        projections.append(vc_dir_projection)
-                        # Joining variant call settings URI
-                        vc_settings_path = os.path.join(path_to_files, 'plugin_out',
-                                                        os.path.basename(vc_path),
-                                                        'local_parameters.json')
-                        # Creating variant call settings projection in variant call dir
-                        vc_settings_projection = Projection(os.path.join(vc_dir_path, 'variant_caller_settings.json'),
-                                                            urljoin(self.files_url, vc_settings_path))
-                        projections.append(vc_settings_projection)
-                        # If current sample barcode in variant calling run barcodes
-                        if sample_barcode in item['barcodes']:
-                            # Setting up base URI to variant calling directory
-                            base_vcf_file_projection_path = os.path.join(path_to_files, 'plugin_out',
-                                                                         os.path.basename(vc_path), sample_barcode)
-                            for variant_file_name in ['TSVC_variants.vcf', 'all.merged.vcf', 'indel_assembly.vcf',
-                                                      'indel_variants.vcf', 'small_variants.left.vcf',
-                                                      'small_variants.vcf', 'small_variants_filtered.vcf',
-                                                      'small_variants.sorted.vcf', 'SNP_variants.vcf']:
-                                vc_file_path = os.path.join(base_vcf_file_projection_path, variant_file_name)
-                                vc_file_projection = Projection(os.path.join(vc_dir_path, variant_file_name),
-                                                                urljoin(self.files_url, vc_file_path))
-                                projections.append(vc_file_projection)
-
-                    logging.debug('Created sample projection: %s', s_projection)
-                    projections.append(s_projection)
-                    projections.append(s_bam_projection)
-                    projections.append(s_meta_projection)
-
-        for p in projections:
-            self.projections[p.path] = p
+        self.create_projection_tree({'/': prototype_tree},
+                                    projection_tree=self.projection_tree,
+                                    parent_projection=self.root_projection)
+        self.projections = self.projection_tree.projections
 
     def is_managing_path(self, path):
         return path in self.projections
@@ -239,8 +164,7 @@ class IonTorrentProjection(ProjectionManager):
     def open_resource(self, path):
         uri = self.projections[path].uri
 
-        with urllib.request.urlopen(uri) as f:
-            content = f.readall()
+        content = self.driver.load_uri_contents_stream(uri)
         logger.info('Got path content: %s\n', path)
 
         self.projections[path].size = len(content)
@@ -256,7 +180,14 @@ def main(mountpoint, data_folder, foreground=True):
     # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
-    projection_filesystem.projection_manager = IonTorrentProjection('10.5.20.13', 'ionadmin', 'ionadmin')
+    mock_torrent_suite = TorrentSuiteMock('mockiontorrent.com', 'tests/mock_resource/torrent_suite_mock_data')
+
+    projection_configuration = PrototypeDeserializer('torrent_suite_config.yaml')
+    root_projection = Projection('/', projection_configuration.root_projection_uri)
+    projection_dirver = TorrentSuiteDriver(projection_configuration.resource_uri, 'ionadmin', '0ECu1lW')
+    projection_filesystem.projection_manager = TorrentSuiteProjector(projection_dirver,
+                                                                     root_projection,
+                                                                     projection_configuration.prototype_tree)
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
     return fuse
 
@@ -272,7 +203,6 @@ if __name__ == '__main__':
         exit(1)
 
     main(sys.argv[1], sys.argv[2])
-
 
 
 
