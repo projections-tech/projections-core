@@ -31,7 +31,7 @@ class TorrentSuiteDriver(ProjectionDriver):
         self.host_url = 'http://{}'.format(host_url)
         self.api_url = 'http://{}/rundb/api/v1/'.format(host_url)
         self.files_url = urljoin(self.host_url, '/auth/output/Home/')
-        self.authenticate(self.host_url, user, password)
+        self.authenticate(user, password)
 
     def __prepare_uri(self, uri):
         """
@@ -46,7 +46,7 @@ class TorrentSuiteDriver(ProjectionDriver):
         else:
             return self.api_url + uri
 
-    def authenticate(self, host_url, user, password):
+    def authenticate(self, user, password):
         """
         Creates authorization handler for driver.
         :param host_url: URL of host string
@@ -54,7 +54,7 @@ class TorrentSuiteDriver(ProjectionDriver):
         :param password: password string
         """
         password_manager = urllib.request.HTTPPasswordMgrWithDefaultRealm()
-        password_manager.add_password(None, host_url, user, password)
+        password_manager.add_password(None, self.host_url, user, password)
 
         handler = urllib.request.HTTPBasicAuthHandler(password_manager)
 
@@ -62,7 +62,7 @@ class TorrentSuiteDriver(ProjectionDriver):
         opener = urllib.request.build_opener(handler)
 
         # use the opener to fetch a URL
-        opener.open(host_url)
+        opener.open(self.host_url)
 
         # Install the opener.
         # Now all calls to urllib.request.urlopen use our opener.
@@ -76,7 +76,7 @@ class TorrentSuiteDriver(ProjectionDriver):
         """
 
         uri = self.__prepare_uri(uri)
-
+        # TODO move thsi functionality to caller
         with urllib.request.urlopen(uri) as f:
             if re.search('\.bam$', uri) or re.search('\.vcf$', uri) or re.search('\.bed$', uri):
                 return b''
