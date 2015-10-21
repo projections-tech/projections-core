@@ -150,7 +150,7 @@ class SRAProjector(Projector):
     def open_resource(self, path):
         uri = self.projections[path].uri
 
-        content = self.driver.load_uri_contents_stream(uri)
+        content = self.driver.load_uri_contents_as_stream(uri)
         logger.info('Got path content: %s\n', path)
 
         self.projections[path].size = len(content)
