@@ -13,7 +13,7 @@ logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('projections')
 
 
-class Tree(object):
+class Node(object):
     """
     Generic tree class which holds common methods for "tree" structure, must be subclassed to create Prototype and
     Projection classes
@@ -21,16 +21,17 @@ class Tree(object):
 
     def __init__(self, name=None, data=None):
         """
-        Initializes Tree node with optional arguments name and data
+        Initializes Node with optional arguments name and data
         :param name: Name of current node
         :param data: Field that holds data associated with current node
         """
         self.name = name
         self.data = data
+        self.root = None
         self.parent = None
         self.children = {}
 
-    def __split_path_in_parts(self, path):
+    def __split_path(self, path):
         """
         Split path string in parts preserving path root
         :param path: path string
@@ -56,13 +57,13 @@ class Tree(object):
 
     def tree_to_list(self):
         """
-        Converts list of lists tree to Tree of Trees
+        Converts tree structure to nested list structure
         """
         return [self.data] + [c.tree_to_list() for c in self.children.values()]
 
     def get_path(self):
         """
-        Returns nodes list from root to current node.
+        Returns nodes list from root to current node
         """
         result = []
         parent, child = self.parent, self
@@ -79,21 +80,26 @@ class Tree(object):
 
     def get_children_names(self):
         """
-        Returns list of children names
-        :return: list of children names strings
+        Returns iterator of children names
+        :return: iterator of children names strings
         """
-        return [c.name for c in self.get_children()]
+        return self.children.keys()
 
     def find_node_by_path(self, path_to_node):
         """
-        Finds node in a tree according to path, by iterating path parts on part at a time on level of tree structure,
-        per iteration, assuming that starting node is root of path_to_node.
+        Finds node in a tree according to path. Path to node is relative
         """
-        path = self.__split_path_in_parts(path_to_node)
+        path = self.__split_path(path_to_node)
         logger.debug('Splitted path: %s', path)
         temp_node = self
-        if temp_node.name == path[0]:
-            for item in path[1:]:
+        # If node have parent start check of node name from second element of path, first always being "/"
+        if temp_node.parent:
+            head, tail = path[1], path[2:]
+        else:
+            head, tail = path[0], path[1:]
+
+        if temp_node.name == head:
+            for item in tail:
                 if item in temp_node.children:
                     temp_node = temp_node.children[item]
                 else:
@@ -104,13 +110,12 @@ class Tree(object):
 
     def get_tree_nodes(self):
         """
-        Generator that traverses current tree, yields nodes in current tree, with no specific order.
+        Generator that traverses current tree, yields nodes in current tree, level by level
         """
         yield self
         for c in self.children.values():
             for v in c.get_tree_nodes():
                 yield v
-
 
 
 class Projection(object):
@@ -206,7 +211,7 @@ class ProjectionTree(object):
         self.lock.release()
 
 
-class ProjectionPrototype(Tree):
+class ProjectionPrototype(Node):
     """
     The class objects describe nodes in projection logical structure.
     Every Prototype object may have 0..many projections associated with it.
@@ -220,7 +225,7 @@ class ProjectionPrototype(Tree):
 
         :param type: describe the type of the generated projections. Current implementation uses 'directory' and 'file' types
         """
-        # Initialize Tree class, passing current object as Tree data field
+        # Initialize Node class, passing current object in Node data field
         super().__init__(name, self)
         self.parent = parent
 
@@ -252,7 +257,8 @@ class PrototypeDeserializer(object):
         """
         Initialize class, passing path to YAML configuration file
         """
-        self.prototype_tree, self.resource_uri, self.root_projection_uri = self.read_projections(data_path)
+        yaml_stream = self.read_yaml_file(data_path)
+        self.prototype_tree, self.resource_uri, self.root_projection_uri = self.read_projections(yaml_stream)
 
     def get_prototypes_tree(self, yaml_dict, parent=None):
         """
@@ -261,24 +267,32 @@ class PrototypeDeserializer(object):
         :param parent: parent prototype for tree node
         :return root ProjectionPrototype object
         """
-        t = ProjectionPrototype(type=yaml_dict['type'])
-        t.name = yaml_dict['name']
-        t.uri = yaml_dict['uri']
-        t.parent = parent
+        pp = ProjectionPrototype(type=yaml_dict['type'])
+        pp.name = yaml_dict['name']
+        pp.uri = yaml_dict['uri']
+        pp.parent = parent
         if isinstance(yaml_dict['children'], dict):
-            t.children = {x[0]: self.get_prototypes_tree(x[1], parent=t) for x in yaml_dict['children'].items()}
-            return t
+            pp.children = {x[0]: self.get_prototypes_tree(x[1], parent=pp) for x in yaml_dict['children'].items()}
+            return pp
         else:
-            return t
+            return pp
 
-    def read_projections(self, data_path):
+    def read_yaml_file(self, file_path):
+        """
+        Opens yaml file on path
+        :param file_path: path to yaml file string
+        :return: yaml file stream
+        """
+        return open(file_path)
+
+    def read_projections(self, yaml_stream):
         """
         Read YAML configuration file on data_path and construct Prototype tree from it
-        :param data_path
+        :param yaml_stream yaml file stream
         :return root ProjectionPrototype object
         """
-        with open(data_path) as y_f:
-            yaml_dict = yaml.safe_load(y_f)
+        with yaml_stream:
+            yaml_dict = yaml.safe_load(yaml_stream)
         return self.get_prototypes_tree(yaml_dict['root']), yaml_dict['resource_uri'], yaml_dict['root_projection_uri']
 
 
@@ -348,7 +362,7 @@ class Projector:
             # Get context of current node from contexts of parent nodes
             context = prototype.get_context()
             context = context[::-1]
-            logger.info('Prototype context: %s', len(context))
+
             logger.info('Creating projections for a prototype: %s', prototype)
 
             # TODO: eval is not safe, consider safer alternative, e.g. JsonPath
