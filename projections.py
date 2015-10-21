@@ -21,14 +21,14 @@ class Node(object):
 
     def __init__(self, name=None, data=None):
         """
-        Initializes Tree node with optional arguments name and data
+        Initializes Node with optional arguments name and data
         :param name: Name of current node
         :param data: Field that holds data associated with current node
         """
         self.name = name
         self.data = data
-        self.parent = None
         self.root = None
+        self.parent = None
         self.children = {}
 
     def __split_path(self, path):
@@ -205,7 +205,7 @@ class ProjectionTree(object):
         self.lock.release()
 
 
-class ProjectionPrototype(Tree):
+class ProjectionPrototype(Node):
     """
     The class objects describe nodes in projection logical structure.
     Every Prototype object may have 0..many projections associated with it.
@@ -219,7 +219,7 @@ class ProjectionPrototype(Tree):
 
         :param type: describe the type of the generated projections. Current implementation uses 'directory' and 'file' types
         """
-        # Initialize Tree class, passing current object as Tree data field
+        # Initialize Node class, passing current object in Node data field
         super().__init__(name, self)
         self.parent = parent
 
@@ -251,7 +251,8 @@ class PrototypeDeserializer(object):
         """
         Initialize class, passing path to YAML configuration file
         """
-        self.prototype_tree, self.resource_uri, self.root_projection_uri = self.read_projections(data_path)
+        yaml_stream = self.read_yaml_file(data_path)
+        self.prototype_tree, self.resource_uri, self.root_projection_uri = self.read_projections(yaml_stream)
 
     def get_prototypes_tree(self, yaml_dict, parent=None):
         """
@@ -270,14 +271,22 @@ class PrototypeDeserializer(object):
         else:
             return pp
 
-    def read_projections(self, data_path):
+    def read_yaml_file(self, file_path):
+        """
+        Opens yaml file on path
+        :param file_path: path to yaml file string
+        :return: yaml file stream
+        """
+        return open(file_path)
+
+    def read_projections(self, yaml_stream):
         """
         Read YAML configuration file on data_path and construct Prototype tree from it
-        :param data_path
+        :param yaml_stream yaml file stream
         :return root ProjectionPrototype object
         """
-        with open(data_path) as y_f:
-            yaml_dict = yaml.safe_load(y_f)
+        with yaml_stream:
+            yaml_dict = yaml.safe_load(yaml_stream)
         return self.get_prototypes_tree(yaml_dict['root']), yaml_dict['resource_uri'], yaml_dict['root_projection_uri']
 
 

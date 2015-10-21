@@ -9,7 +9,7 @@ import json
 
 from unittest import TestCase, skip
 
-from projections import Tree, ProjectionPrototype, Projector, Projection, ProjectionTree, ProjectionDriver, PrototypeDeserializer
+from projections import Node, ProjectionPrototype, Projector, Projection, ProjectionTree, ProjectionDriver, PrototypeDeserializer
 
 # Import logging configuration from the file provided
 logging.config.fileConfig('logging.cfg')
@@ -118,7 +118,7 @@ class TestProjector(TestCase):
 class TestTree(TestCase):
 
     def setUp(self):
-        self.tree = Tree(name=None)
+        self.tree = Node(name=None)
 
         self.first_level_names = []
         self.second_level_names = []
@@ -127,17 +127,17 @@ class TestTree(TestCase):
         for i in range(3):
             f_name = '{0}'.format(i)
             self.first_level_names.append(f_name)
-            first_level = Tree(name=f_name)
+            first_level = Node(name=f_name)
             self.tree.add_child(first_level)
             for j in range(3):
                 s_name = '{0}.{1}'.format(i, j)
                 self.second_level_names.append(s_name)
-                second_level = Tree(s_name)
+                second_level = Node(s_name)
                 first_level.add_child(second_level)
                 for k in range(3):
                     t_name = '{0}.{1}.{2}'.format(i, j, k)
                     self.third_level_names.append(t_name)
-                    third_level = Tree(name=t_name)
+                    third_level = Node(name=t_name)
                     second_level.add_child(third_level)
 
     def test_get_path(self):
@@ -182,13 +182,13 @@ class TestTree(TestCase):
         """
         Checks if node is on path using Tree find_node_by_path method
         """
-        tree = Tree(name='/')
-        node_1 = Tree(name='experiments')
-        node_1_1 = Tree(name='a')
-        node_1_2 = Tree(name='b')
-        node_2 = Tree(name='results')
-        node_2_1 = Tree(name='a')
-        node_2_2 = Tree(name='b')
+        tree = Node(name='/')
+        node_1 = Node(name='experiments')
+        node_1_1 = Node(name='a')
+        node_1_2 = Node(name='b')
+        node_2 = Node(name='results')
+        node_2_1 = Node(name='a')
+        node_2_2 = Node(name='b')
 
         tree.add_child(node_1)
         node_1.add_child(node_2)
