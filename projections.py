@@ -7,6 +7,7 @@ import stat
 import time
 import threading
 import yaml
+import pprint
 
 # Import logging configuration from the file provided
 logging.config.fileConfig('logging.cfg')
@@ -55,13 +56,7 @@ class Node(object):
         node.parent = self
         self.children[node.name] = node
 
-    def tree_to_list(self):
-        """
-        Converts tree structure to nested list structure
-        """
-        return [self.data] + [c.tree_to_list() for c in self.children.values()]
-
-    def get_path(self):
+    def get_parent_nodes(self):
         """
         Returns nodes list from root to current node
         """
@@ -71,6 +66,19 @@ class Node(object):
             result.append(parent)
             parent, child = parent.parent, parent
         return result[::-1]
+
+    def get_path(self):
+        """
+        Returns path to node from root string
+        :return: path to node from root string
+        """
+        parents = self.get_parent_nodes()
+
+        # Node that have no parents is root node, so it`s name is '/'
+        if parents:
+            return ''.join(['/'] + ['/'.join([n.name for n in parents[1:]] + [self.name])])
+        else:
+            return '/'
 
     def get_children(self):
         """
@@ -117,6 +125,8 @@ class Node(object):
             for v in c.get_tree_nodes():
                 yield v
 
+    def __str__(self):
+        return pprint.pformat([n.get_path() for n in self.get_tree_nodes()])
 
 class Projection(object):
     """
@@ -245,7 +255,7 @@ class ProjectionPrototype(Node):
         """
         Get context of current node defined by contexts of upper nodes
         """
-        return [node.context for node in self.get_path()]
+        return [node.context for node in self.get_parent_nodes()]
 
 
 class PrototypeDeserializer(object):

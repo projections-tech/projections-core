@@ -76,7 +76,7 @@ class TorrentSuiteDriver(ProjectionDriver):
         """
 
         uri = self.__prepare_uri(uri)
-        # TODO move thsi functionality to caller
+        # TODO move this functionality to caller function
         with urllib.request.urlopen(uri) as f:
             if re.search('\.bam$', uri) or re.search('\.vcf$', uri) or re.search('\.bed$', uri):
                 return b''

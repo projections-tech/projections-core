@@ -1,6 +1,5 @@
 __author__ = 'abragin'
 
-import json
 import logging
 import logging.config
 import re
@@ -140,27 +139,43 @@ class TestTree(TestCase):
                     third_level = Node(name=t_name)
                     second_level.add_child(third_level)
 
-    def test_get_path(self):
+    def test_get_parent_nodes(self):
         """
-        Tests Tree get_path
+        Tests Tree get_parent_nodes
         """
-        # Checking get_path for root node which is empty list
-        self.assertListEqual([], self.tree.get_path())
+        # Checking get_parent_nodes for root node which is empty list
+        self.assertListEqual([], self.tree.get_parent_nodes())
 
         for first_level_child in self.tree.get_children():
             self.assertListEqual([None],
-                                 [n.name for n in first_level_child.get_path()],
+                                 [n.name for n in first_level_child.get_parent_nodes()],
                                  msg='Checking path to first level nodes of a tree')
 
             for second_level_child in first_level_child.get_children():
                 self.assertListEqual([None, first_level_child.name],
-                                 [n.name for n in second_level_child.get_path()],
+                                 [n.name for n in second_level_child.get_parent_nodes()],
                                  msg='Checking path to second level nodes of a tree')
 
                 for third_level_child in second_level_child.get_children():
                     self.assertListEqual([None, first_level_child.name, second_level_child.name],
-                                     [n.name for n in third_level_child.get_path()],
+                                     [n.name for n in third_level_child.get_parent_nodes()],
                                      msg='Checking path to third level nodes of a tree')
+
+    def test_get_path(self):
+        """
+        Tests correctness of path returned by get path method
+        """
+        expected_node_paths = ['/', '/0', '/0/0.0', '/0/0.0/0.0.0', '/0/0.0/0.0.1', '/0/0.0/0.0.2',
+                               '/0/0.1', '/0/0.1/0.1.0', '/0/0.1/0.1.1', '/0/0.1/0.1.2', '/0/0.2',
+                               '/0/0.2/0.2.0', '/0/0.2/0.2.1', '/0/0.2/0.2.2', '/1', '/1/1.0', '/1/1.0/1.0.0',
+                               '/1/1.0/1.0.1', '/1/1.0/1.0.2', '/1/1.1', '/1/1.1/1.1.0', '/1/1.1/1.1.1',
+                               '/1/1.1/1.1.2', '/1/1.2', '/1/1.2/1.2.0', '/1/1.2/1.2.1', '/1/1.2/1.2.2',
+                               '/2', '/2/2.0', '/2/2.0/2.0.0', '/2/2.0/2.0.1', '/2/2.0/2.0.2', '/2/2.1',
+                               '/2/2.1/2.1.0', '/2/2.1/2.1.1', '/2/2.1/2.1.2', '/2/2.2', '/2/2.2/2.2.0',
+                               '/2/2.2/2.2.1', '/2/2.2/2.2.2']
+
+        for n in self.tree.get_tree_nodes():
+            self.assertIn(n.get_path(), expected_node_paths, msg='Checking node path: {0}'.format(n.get_path()))
 
     def test_get_children(self):
         """
