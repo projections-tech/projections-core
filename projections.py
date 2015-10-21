@@ -312,7 +312,7 @@ class ProjectionDriver(object):
     Object that has get_uri_content(uri) method returning array of Python dictionaries.
     """
 
-    def get_uri_contents_dict(self, uri):
+    def get_uri_contents_as_dict(self, uri):
         raise NotImplemented('Implement data retrieval from some projection backend.')
 
 
@@ -337,7 +337,7 @@ class Projector:
         :param uri: URI
         :return: uri contents
         """
-        return self.driver.get_uri_contents_dict(uri)
+        return self.driver.get_uri_contents_as_dict(uri)
 
     def create_projection_tree(self, prototypes, projection_tree, parent_projection=None):
         """
@@ -362,7 +362,7 @@ class Projector:
 
         # This is environment in which projections are created (parent_projection content)
         # TODO: in many cases it means double request to parent projection resource so it should be optimized
-        environment = self.driver.get_uri_contents_dict(parent_projection.uri)
+        environment = self.driver.get_uri_contents_as_dict(parent_projection.uri)
         logger.debug(environment)
         logger.info('Starting prototype creation in the context of resource with uri: %s', parent_projection.uri)
 
@@ -385,7 +385,7 @@ class Projector:
             # Every URI corresponds to projection object
             for uri in URIs:
                 # Get content for a projection
-                content = self.driver.get_uri_contents_dict(uri)
+                content = self.driver.get_uri_contents_as_dict(uri)
                 logger.debug('ENV: %s, CONTENT: %s', environment, content)
                 name = eval(prototype.name, locals())
 

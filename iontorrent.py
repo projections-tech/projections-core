@@ -68,7 +68,7 @@ class TorrentSuiteDriver(ProjectionDriver):
         # Now all calls to urllib.request.urlopen use our opener.
         urllib.request.install_opener(opener)
 
-    def get_uri_contents_dict(self, uri):
+    def get_uri_contents_as_dict(self, uri):
         """
         Opens URI and returns dict of its contents
         :param uri: URI string
