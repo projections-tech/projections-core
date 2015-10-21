@@ -174,7 +174,6 @@ class TestTree(TestCase):
                                '/2/2.2/2.2.1', '/2/2.2/2.2.2']
 
         for n in self.tree.get_tree_nodes():
-            print(n)
             self.assertIn(n.get_path(), expected_node_paths, msg='Checking node path: {0}'.format(n.get_path()))
 
     def test_get_children(self):
