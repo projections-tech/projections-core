@@ -13,7 +13,7 @@ logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('projections')
 
 
-class Tree(object):
+class Node(object):
     """
     Generic tree class which holds common methods for "tree" structure, must be subclassed to create Prototype and
     Projection classes
@@ -28,9 +28,10 @@ class Tree(object):
         self.name = name
         self.data = data
         self.parent = None
+        self.root = None
         self.children = {}
 
-    def __split_path_in_parts(self, path):
+    def __split_path(self, path):
         """
         Split path string in parts preserving path root
         :param path: path string
@@ -56,13 +57,13 @@ class Tree(object):
 
     def tree_to_list(self):
         """
-        Converts list of lists tree to Tree of Trees
+        Converts tree structure to nested list structure
         """
         return [self.data] + [c.tree_to_list() for c in self.children.values()]
 
     def get_path(self):
         """
-        Returns nodes list from root to current node.
+        Returns nodes list from root to current node
         """
         result = []
         parent, child = self.parent, self
@@ -79,17 +80,16 @@ class Tree(object):
 
     def get_children_names(self):
         """
-        Returns list of children names
-        :return: list of children names strings
+        Returns iterator of children names
+        :return: iterator of children names strings
         """
-        return [c.name for c in self.get_children()]
+        return self.children.keys()
 
     def find_node_by_path(self, path_to_node):
         """
-        Finds node in a tree according to path, by iterating path parts on part at a time on level of tree structure,
-        per iteration, assuming that starting node is root of path_to_node.
+        Finds node in a tree according to path. Path to node is relative
         """
-        path = self.__split_path_in_parts(path_to_node)
+        path = self.__split_path(path_to_node)
         logger.debug('Splitted path: %s', path)
         temp_node = self
         if temp_node.name == path[0]:
@@ -104,13 +104,12 @@ class Tree(object):
 
     def get_tree_nodes(self):
         """
-        Generator that traverses current tree, yields nodes in current tree, with no specific order.
+        Generator that traverses current tree, yields nodes in current tree, level by level
         """
         yield self
         for c in self.children.values():
             for v in c.get_tree_nodes():
                 yield v
-
 
 
 class Projection(object):
@@ -261,15 +260,15 @@ class PrototypeDeserializer(object):
         :param parent: parent prototype for tree node
         :return root ProjectionPrototype object
         """
-        t = ProjectionPrototype(type=yaml_dict['type'])
-        t.name = yaml_dict['name']
-        t.uri = yaml_dict['uri']
-        t.parent = parent
+        pp = ProjectionPrototype(type=yaml_dict['type'])
+        pp.name = yaml_dict['name']
+        pp.uri = yaml_dict['uri']
+        pp.parent = parent
         if isinstance(yaml_dict['children'], dict):
-            t.children = {x[0]: self.get_prototypes_tree(x[1], parent=t) for x in yaml_dict['children'].items()}
-            return t
+            pp.children = {x[0]: self.get_prototypes_tree(x[1], parent=pp) for x in yaml_dict['children'].items()}
+            return pp
         else:
-            return t
+            return pp
 
     def read_projections(self, data_path):
         """
