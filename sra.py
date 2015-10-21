@@ -36,6 +36,7 @@ class SRADriver(ProjectionDriver):
         query = query.split(':')
         logger.debug('Current query: %s', query)
         query_type = query[0]
+        # Info about Biopython`s eutils: http://biopython.org/DIST/docs/tutorial/Tutorial.html#chapter:entrez
         # Query looks as: 'query:Test_species'
         if query_type == 'query':
             # Returns esearch response dict.
@@ -53,7 +54,7 @@ class SRADriver(ProjectionDriver):
                 # Run set is most times dict, but sometimes list, treating dict as list to resolve inconsistency
                 if isinstance(search_query_contents['RUN_SET']['RUN'], list):
                     for run in search_query_contents['RUN_SET']['RUN']:
-                        self.query_cache[run['@accession']] = run['@accession'] + '.sam'
+                        self.query_cache[run['@accession']] = run['@accession']
                 else:
                     self.query_cache[search_query_contents['RUN_SET']['RUN']['@accession']] = search_query_contents['RUN_SET']['RUN']['@accession']+'.sam'
                 return search_query_contents
@@ -164,7 +165,7 @@ def main(mountpoint, data_folder, foreground=True):
     # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
-    #mock_resource = SRAMock('http://eutils.ncbi.nlm.nih.gov', 'tests/mock_resource')
+    mock_resource = SRAMock('http://eutils.ncbi.nlm.nih.gov', 'tests/mock_resource')
 
     projection_configuration = PrototypeDeserializer('sra_config.yaml')
 
@@ -189,4 +190,3 @@ if __name__ == '__main__':
         exit(1)
 
     main(sys.argv[1], sys.argv[2])
-
