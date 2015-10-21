@@ -1,6 +1,5 @@
 __author__ = 'abragin'
 
-import json
 import logging
 import logging.config
 import re
