@@ -7,7 +7,7 @@ root_projection_uri: 'query:Streptococcus:10'
 run_prototype: &run_prototype
   type: file
   children: None
-  name:  "content"
+  name:  "content + '.sam' "
   uri: "['load_run:'+ run for run in fetch_context('get_experiment_runs:'+environment['EXPERIMENT']['@accession'])]"
 
 experiment_meta_prototype: &experiment_meta_prototype

@@ -56,7 +56,7 @@ class SRADriver(ProjectionDriver):
                     for run in search_query_contents['RUN_SET']['RUN']:
                         self.query_cache[run['@accession']] = run['@accession']
                 else:
-                    self.query_cache[search_query_contents['RUN_SET']['RUN']['@accession']] = search_query_contents['RUN_SET']['RUN']['@accession']+'.sam'
+                    self.query_cache[search_query_contents['RUN_SET']['RUN']['@accession']] = search_query_contents['RUN_SET']['RUN']['@accession']
                 return search_query_contents
             else:
                 return self.query_cache[query[1]]
