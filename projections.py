@@ -92,8 +92,14 @@ class Node(object):
         path = self.__split_path(path_to_node)
         logger.debug('Splitted path: %s', path)
         temp_node = self
-        if temp_node.name == path[0]:
-            for item in path[1:]:
+        # If node have parent start check of node name from second element of path, first always being "/"
+        if temp_node.parent:
+            head, tail = path[1], path[2:]
+        else:
+            head, tail = path[0], path[1:]
+
+        if temp_node.name == head:
+            for item in tail:
                 if item in temp_node.children:
                     temp_node = temp_node.children[item]
                 else:

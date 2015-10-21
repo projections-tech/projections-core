@@ -207,9 +207,14 @@ class TestTree(TestCase):
                             msg='Checking if node is on path: {0}'.format(path))
 
         # Test find node by path starting not from root node
-        path = 'experiments/results'
+        path = '/experiments/results'
         node_by_path = node_1.find_node_by_path(path)
         self.assertTrue(node_by_path.name == 'results',
+                        msg='Checking if node: {0} is on path: {1}'.format(node_by_path.name, path))
+
+        path = '/results/a'
+        node_by_path = node_2.find_node_by_path(path)
+        self.assertTrue(node_by_path.name == 'a',
                         msg='Checking if node: {0} is on path: {1}'.format(node_by_path.name, path))
 
 
