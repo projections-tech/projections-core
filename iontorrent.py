@@ -68,9 +68,9 @@ class TorrentSuiteDriver(ProjectionDriver):
         # Now all calls to urllib.request.urlopen use our opener.
         urllib.request.install_opener(opener)
 
-    def get_content(self, uri):
+    def get_uri_contents_dict(self, uri):
         """
-        Opens URI and its contents
+        Opens URI and returns dict of its contents
         :param uri: URI string
         :return: dict of URI contents
         """
@@ -83,7 +83,7 @@ class TorrentSuiteDriver(ProjectionDriver):
             else:
                 return json.loads(f.readall().decode('utf-8'))
 
-    def load_content(self, uri):
+    def load_uri_contents_stream(self, uri):
         """
         Load uri contents
         :param uri: URI string
@@ -164,7 +164,7 @@ class TorrentSuiteProjector(Projector):
     def open_resource(self, path):
         uri = self.projections[path].uri
 
-        content = self.driver.load_content(uri)
+        content = self.driver.load_uri_contents_stream(uri)
         logger.info('Got path content: %s\n', path)
 
         self.projections[path].size = len(content)

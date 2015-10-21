@@ -20,7 +20,7 @@ class TestDriver(ProjectionDriver):
     This class does not perform actual testing. It's providing test data and may be replaces with mock object.
     """
 
-    def get_content(self, uri):
+    def get_uri_contents_dict(self, uri):
         logger.info('Requesting content for uri: %s', uri)
 
         if not uri:
