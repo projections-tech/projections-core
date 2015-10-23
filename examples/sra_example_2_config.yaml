@@ -2,7 +2,7 @@
 dialect: python
 resource_uri: http://eutils.ncbi.nlm.nih.gov'
 
-root_projection_uri: 'query:Volvox:100'
+root_projection_uri: 'query:Volvox:10'
 
 run_prototype: &run_prototype
   type: file

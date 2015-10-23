@@ -32,9 +32,9 @@ def main(cfg_path, mountpoint, data_folder, foreground=True):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Torrent Suite projection example.')
-    parser.add_argument('-m_p', '--mount_point', required=True, help='specifies mount point path on host')
-    parser.add_argument('-d_d', '--data_directory', required=True, help='specifies data directory path on host')
-    parser.add_argument('-cfg', '--config_path', required=True, help='specifies projection configuration YAML file path')
+    parser.add_argument('-m', '--mount-point', required=True, help='specifies mount point path on host')
+    parser.add_argument('-d', '--data-directory', required=True, help='specifies data directory path on host')
+    parser.add_argument('-c', '--config-path', required=True, help='specifies projection configuration YAML file path')
     args = parser.parse_args()
 
     main(args.config_path, args.mount_point, args.data_directory)

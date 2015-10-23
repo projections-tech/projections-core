@@ -1,77 +1,98 @@
 ---
+# Configuration file for Torrent Suite projection, whith python as microcode. This is example of full Torrent Suite resource
+# projection, starting from experiment down to all VCF files which were produced for it`s samples.
 dialect: python
+# Here we specify URI of resource wich will be projected
 resource_uri: 10.5.20.17
+# Access data
 user: ionadmin
 password: ionadmin
 
-root_projection_uri: 'experiment?status=run&limit=1&order_by=-id'
+# Address of root projection on resource, this will serve as context for all lower level projections
+# here we specify two experiments, which were runned
+root_projection_uri: 'experiment?status=run&limit=2&order_by=-id'
 
+# Prototypes came in reverse order, firstly user must specify lower level prototypes and their anchors,
+# then upper level prototypes, containing links to lower level prototypes in "children" field.
+
+# Prototype of variant calling results, also employs use of upper level projection contexts
 snp_variants_vcf_prototype: &snp_variants_vcf_prototype
   type: file
   children: None
   name:  " 'SNP_variants.vcf' "
   uri: "['/auth/output/Home/' + path.basename(context[1]['filesystempath']) + '/plugin_out/' + path.basename(environment['path']) + '/' + fetch_context(context[2]['plan'])['barcodedSamples'][context[0]['name']]['barcodes'][0] + '/SNP_variants.vcf']"
 
+# Prototype of variant calling results, also employs use of upper level projection contexts
 small_variants_sorted_vcf_prototype: &small_variants_sorted_vcf_prototype
   type: file
   children: None
   name:  " 'small_variants.sorted.vcf' "
   uri: "['/auth/output/Home/' + path.basename(context[1]['filesystempath']) + '/plugin_out/' + path.basename(environment['path']) + '/' + fetch_context(context[2]['plan'])['barcodedSamples'][context[0]['name']]['barcodes'][0] + '/small_variants.sorted.vcf']"
 
+# Prototype of variant calling results, also employs use of upper level projection contexts
 small_variants_filtered_vcf_prototype: &small_variants_filtered_vcf_prototype
   type: file
   children: None
   name:  " 'small_variants_filtered.vcf' "
   uri: "['/auth/output/Home/' + path.basename(context[1]['filesystempath']) + '/plugin_out/' + path.basename(environment['path']) + '/' + fetch_context(context[2]['plan'])['barcodedSamples'][context[0]['name']]['barcodes'][0] + '/small_variants_filtered.vcf']"
 
+# Prototype of variant calling results, also employs use of upper level projection contexts
 small_variants_vcf_prototype: &small_variants_vcf_prototype
   type: file
   children: None
   name:  " 'small_variants.vcf' "
   uri: "['/auth/output/Home/' + path.basename(context[1]['filesystempath']) + '/plugin_out/' + path.basename(environment['path']) + '/' + fetch_context(context[2]['plan'])['barcodedSamples'][context[0]['name']]['barcodes'][0] + '/small_variants.vcf']"
 
+# Prototype of variant calling results, also employs use of upper level projection contexts
 small_variants_left_vcf_prototype: &small_variants_left_vcf_prototype
   type: file
   children: None
   name:  " 'small_variants.left.vcf' "
   uri: "['/auth/output/Home/' + path.basename(context[1]['filesystempath']) + '/plugin_out/' + path.basename(environment['path']) + '/' + fetch_context(context[2]['plan'])['barcodedSamples'][context[0]['name']]['barcodes'][0] + '/small_variants.left.vcf']"
 
+# Prototype of variant calling results, also employs use of upper level projection contexts
 indel_assembly_vcf_prototype: &indel_assembly_vcf_prototype
   type: file
   children: None
   name:  " 'indel_assembly.vcf' "
   uri: "['/auth/output/Home/' + path.basename(context[1]['filesystempath']) + '/plugin_out/' + path.basename(environment['path']) + '/' + fetch_context(context[2]['plan'])['barcodedSamples'][context[0]['name']]['barcodes'][0] + '/indel_assembly.vcf']"
 
+# Prototype of variant calling results, also employs use of upper level projection contexts
 all_merged_vcf_prototype: &all_merged_vcf_prototype
   type: file
   children: None
   name:  " 'all.merged.vcf' "
   uri: "['/auth/output/Home/' + path.basename(context[1]['filesystempath']) + '/plugin_out/' + path.basename(environment['path']) + '/' + fetch_context(context[2]['plan'])['barcodedSamples'][context[0]['name']]['barcodes'][0] + '/all.merged.vcf']"
 
+# Prototype of variant calling results, also employs use of upper level projection contexts
 indel_variants_vcf_prototype: &indel_variants_vcf_prototype
   type: file
   children: None
   name:  " 'indel_variants.vcf' "
   uri: "['/auth/output/Home/' + path.basename(context[1]['filesystempath']) + '/plugin_out/' + path.basename(environment['path']) + '/' + fetch_context(context[2]['plan'])['barcodedSamples'][context[0]['name']]['barcodes'][0] + '/indel_variants.vcf']"
 
+# Prototype of variant calling results, also employs use of upper level projection contexts
 tsvc_vcf_prototype: &tsvc_vcf_prototype
   type: file
   children: None
   name:  " 'TSVC_variants.vcf' "
   uri: "['/auth/output/Home/' + path.basename(context[1]['filesystempath']) + '/plugin_out/' + path.basename(environment['path']) + '/' + fetch_context(context[2]['plan'])['barcodedSamples'][context[0]['name']]['barcodes'][0] + '/TSVC_variants.vcf']"
 
+# Prototype of plugin settings projection
 local_settings_prototype: &local_settings_prototype
   type: file
   children: None
   name:  " 'variant_caller_settings.json' "
   uri: "['/auth/output/Home/' + path.basename(context[1]['filesystempath']) + '/plugin_out/' + path.basename(environment['path']) + '/local_parameters.json' ]"
 
+# BED file used for variant caller run for current sample
 bed_prototype: &bed_prototype
   type: file
   children: None
   name:  "path.basename(environment['store']['targets_bed'])"
   uri: "['/auth/output/Home/' + path.basename(context[1]['filesystempath']) + '/plugin_out/'+ path.basename(environment['path']) + '/' + path.basename(environment['store']['targets_bed'])]"
 
+# Each sample have plugin run results associated to it, this prototype specifies it`s projection contents
 plugin_result_prototype: &plugin_result_prototype
   type: directory
   children:
@@ -89,18 +110,24 @@ plugin_result_prototype: &plugin_result_prototype
   name: "path.basename(content['path'])"
   uri: "[p_res for p_res in context[0]['pluginresults'] if 'variant' in fetch_context(p_res)['pluginName'] and 'VFNA' not in fetch_context(p_res)['pluginName']]"
 
+# BAM files are associated with each run and stored with barcodes which are specified in experiment plan
+# here we use our ability to resolve current prototype URI from upper level prototypes context, also we employ
+# fetch_context function in microcode, which makes requests to specified resource
 bam_prototype: &bam_prototype
   type: file
   children: None
   name:  "environment['name']+'.bam'"
-  uri: "['/auth/output/Home/'+path.split(context[0]['filesystempath'])[1] + '/'+fetch_context(context[1]['plan'])['barcodedSamples'][environment['name']]['barcodes'][0] + '_rawlib.bam']"
+  uri: "['/auth/output/Home/'+path.split(context[0]['filesystempath'])[1] + '/' + fetch_context(context[1]['plan'])['barcodedSamples'][environment['name']]['barcodes'][0] + '_rawlib.bam']"
 
+# Each sample also have metadata associated to it, this prototype specifies it
 sample_metadata_prototype: &sample_metadata_prototype
   type: file
   children: None
   name:  "'metadata.json'"
   uri: '[environment["resource_uri"]]'
 
+# Each result have samples associated to it, samples specified on experiment level, so this projection uses
+# context of upper level prototype to resolve it`s URI
 sample_prototype: &sample_prototype
   type: directory
   children:
@@ -110,12 +137,14 @@ sample_prototype: &sample_prototype
   name: "content['name']"
   uri: "[sample['resource_uri'] for sample in context[0]['samples']]"
 
+# This prototype specifies creation of result metadata projection
 result_metadata_prototype: &result_metadata_prototype
   type: file
   children: None
   name: " 'run_metadata.json' "
   uri: "[environment['resource_uri']]"
 
+# Each experiment have results of run analysis associated to it, we create dir to contain this results
 result_prototype: &result_prototype
   type: directory
   children:
@@ -124,18 +153,21 @@ result_prototype: &result_prototype
   name: "path.split(content['filesystempath'])[1]"
   uri: "[res for res in environment['results']]"
 
+# Each experiment have plan associated to it, so we create plan metadata prototype
 exp_plan_metadata_prototype: &exp_plan_metadata_prototype
   type: file
   children: None
   name:  "'plannedexperiment.json'"
   uri: '[environment["plan"]]'
 
+# Metadata for root projection
 exp_metadata_prototype: &exp_metadata_prototype
   type: file
   children: None
   name:  "'metadata.json'"
   uri: '[environment["resource_uri"]]'
 
+# This is root prototype, for which environment specified from root projection, it will serve as root dir for projection
 root:
   type: directory
   children:
