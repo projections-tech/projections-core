@@ -6,14 +6,15 @@ resource_uri: http://eutils.ncbi.nlm.nih.gov'
 
 # Root projection us query to Entrez eutils esearch, this enables user to enter desired search query to search SRA
 # database and project search results.
-# Here we project specific experiment by its accession number
-root_projection_uri: 'query:SRX1045233:1'
+# SRA driver supports use of Entrez search syntax, which allows to create elaborate filters, here we specify
+# creation of projection of experiments with Homo Sapiens as organism, which contain brain and tumor in fields.
+root_projection_uri: 'query:Human[Organism] AND Brain[All Fields] AND Tumor[All Fields]:3'
 
 # Prototype of run, projects to SAM file which corresponds to experiment
 run_prototype: &run_prototype
   type: file
   children: None
-  name:  "content + '.sam'"
+  name:  "content+'.sam'"
   uri: "['load_run:'+ run for run in fetch_context('get_experiment_runs:'+environment['EXPERIMENT']['@accession'])]"
 
 # Prototype of experiment metadata, projects to json file
