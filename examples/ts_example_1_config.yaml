@@ -1,14 +1,14 @@
 ---
-# Configuration file for Torrent Suite projection, whith python as microcode. This is example of full Torrent Suite resource
-# projection, starting from experiment down to all VCF files which were produced for it`s samples.
+# Configuration file for Torrent Suite projection, whith python as microcode.
+# This is example of full Torrent Suite resource projection, starting from experiment
+# down to all VCF files which were produced for it`s samples.
 dialect: python
-# Here we specify URI of resource wich will be projected
 resource_uri: 10.5.20.17
 # Access data
 user: ionadmin
-password: ionadmin
+password: 0ECu1lW
 
-# Address of root projection on resource, this will serve as context for all lower level projections
+# URI of root projection on resource, this will serve as context for all lower level projections
 # here we specify two experiments, which were runned
 root_projection_uri: 'experiment?status=run&limit=2&order_by=-id'
 
@@ -78,7 +78,7 @@ tsvc_vcf_prototype: &tsvc_vcf_prototype
   name:  " 'TSVC_variants.vcf' "
   uri: "['/auth/output/Home/' + path.basename(context[1]['filesystempath']) + '/plugin_out/' + path.basename(environment['path']) + '/' + fetch_context(context[2]['plan'])['barcodedSamples'][context[0]['name']]['barcodes'][0] + '/TSVC_variants.vcf']"
 
-# Prototype of plugin settings projection
+# Prototype of settings for plugins used in current run
 local_settings_prototype: &local_settings_prototype
   type: file
   children: None
@@ -126,7 +126,7 @@ sample_metadata_prototype: &sample_metadata_prototype
   name:  "'metadata.json'"
   uri: '[environment["resource_uri"]]'
 
-# Each result have samples associated to it, samples specified on experiment level, so this projection uses
+# Each result have samples associated to it, samples are specified on experiment level, so this projection uses
 # context of upper level prototype to resolve it`s URI
 sample_prototype: &sample_prototype
   type: directory
@@ -167,7 +167,7 @@ exp_metadata_prototype: &exp_metadata_prototype
   name:  "'metadata.json'"
   uri: '[environment["resource_uri"]]'
 
-# This is root prototype, for which environment specified from root projection, it will serve as root dir for projection
+# This is root prototype, for which environment is specified from root projection, it will serve as root dir for projection
 root:
   type: directory
   children:
