@@ -14,7 +14,7 @@ def main(cfg_path, mountpoint, data_folder, foreground=True):
 
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
 
-    # PrototypeDeserializer class builds prototype tree using which projections will be created,
+    # PrototypeDeserializer class builds prototype tree, using which projections will be created,
     # specifies root projection uri and resource uri which will be projected
     projection_configuration = PrototypeDeserializer(cfg_path)
     # Root projection from which projection tree is build
