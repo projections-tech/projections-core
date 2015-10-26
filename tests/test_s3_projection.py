@@ -16,3 +16,10 @@ class TestS3Driver(TestCase):
         exp_contents = ['projects/', 'projects/ensembl.txt']
         for obj in exp_contents:
             self.assertIn(obj, self.driver.bucket_contents.keys())
+
+    def test_load_uri_contents_stream(self):
+        with open('tests/test_ensembl.txt', 'rb') as t_f:
+            test_ensembl = t_f.read()
+
+        for key, exp_content in {'projects/':b'', 'projects/ensembl.txt':test_ensembl}.items():
+            self.assertEqual(exp_content, self.driver.load_uri_contents_stream(key))

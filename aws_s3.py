@@ -28,7 +28,7 @@ class S3Driver(ProjectionDriver):
                                         region_name='us-east-1')
         self.s3_resource = session.resource('s3')
         self.bucket = self.s3_resource.Bucket(bucket_name)
-        logger.debug('Bucket initialized!')
+        logger.debug('Bucket initialized: %s', self.bucket)
         self.bucket_contents = {o.key: o for o in self.bucket.objects.all()}
         logger.debug('Bucket contents: %s', self.bucket_contents)
 
@@ -40,11 +40,7 @@ class S3Driver(ProjectionDriver):
         :return: dict of URI contents
         """
 
-        with urllib.request.urlopen(uri) as f:
-            if re.search('\.bam$', uri) or re.search('\.vcf$', uri) or re.search('\.bed$', uri):
-                return b''
-            else:
-                return json.loads(f.readall().decode('utf-8'))
+        pass
 
     def load_uri_contents_stream(self, uri):
         """
@@ -52,9 +48,8 @@ class S3Driver(ProjectionDriver):
         :param uri: URI string
         :return: content bytes
         """
-        uri = self.__prepare_uri(uri)
-        with urllib.request.urlopen(uri) as f:
-            return f.readall()
+        return self.bucket.Object(key=uri).get()['Body'].read()
+
 
 if __name__ == '__main__':
     test_driver = S3Driver('parseq')
