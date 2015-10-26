@@ -20,6 +20,10 @@ class TestS3Driver(TestCase):
     def test_load_uri_contents_stream(self):
         with open('tests/test_ensembl.txt', 'rb') as t_f:
             test_ensembl = t_f.read()
-
         for key, exp_content in {'projects/':b'', 'projects/ensembl.txt':test_ensembl}.items():
-            self.assertEqual(exp_content, self.driver.load_uri_contents_stream(key))
+            self.assertEqual(exp_content, self.driver.get_uri_contents_stream(key))
+
+    def test_get_uri_contents_as_dict(self):
+        exp_contents = ['projects/', 'projects/ensembl.txt']
+        for key in exp_contents:
+            logger.debug(self.driver.get_uri_contents_as_dict(key))
