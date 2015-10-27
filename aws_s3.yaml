@@ -1,6 +1,6 @@
 ---
 dialect: python
-resource_uri: mockiontorrent.com
+resource_uri: "parseq"
 
 # Name of the bucket
 root_projection_uri: "parseq"
@@ -16,4 +16,4 @@ root:
   children:
     metadata_prototype: *metadata_prototype
   name: " content "
-  uri: " projects/"
+  uri: " environment "

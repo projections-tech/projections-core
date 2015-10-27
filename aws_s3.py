@@ -31,6 +31,7 @@ class S3Driver(ProjectionDriver):
                                         aws_secret_access_key=aws_secret_access_key,
                                         region_name=region_name)
         self.s3_resource = session.resource('s3')
+        self.bucket_name = bucket_name
         self.bucket = self.s3_resource.Bucket(bucket_name)
         logger.debug('Bucket initialized: %s', self.bucket)
 
@@ -40,14 +41,19 @@ class S3Driver(ProjectionDriver):
         :param uri: URI string
         :return: dict of URI contents
         """
-        current_object = self.bucket.Object(key=uri)
+        logger.debug('Current URI: %s', uri)
+
         metadata = dict()
 
-        metadata['metadata'] = current_object.metadata
-        metadata['size'] = current_object.content_length
-        metadata['content_encoding'] = current_object.content_encoding
-        metadata['content_type'] = current_object.content_type
-        return metadata
+        if not uri == self.bucket_name:
+            current_object = self.bucket.Object(key=uri)
+            metadata['metadata'] = current_object.metadata
+            metadata['size'] = current_object.content_length
+            metadata['content_encoding'] = current_object.content_encoding
+            metadata['content_type'] = current_object.content_type
+            return metadata
+        else:
+            return [o.key for o in self.bucket.objects.all()]
 
     def get_uri_contents_as_stream(self, uri):
         """
