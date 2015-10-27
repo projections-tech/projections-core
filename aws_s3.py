@@ -47,6 +47,7 @@ class S3Driver(ProjectionDriver):
 
         if not uri == self.bucket_name:
             current_object = self.bucket.Object(key=uri)
+            metadata['name'] = current_object.key
             metadata['metadata'] = current_object.metadata
             metadata['size'] = current_object.content_length
             metadata['content_encoding'] = current_object.content_encoding

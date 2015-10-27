@@ -8,12 +8,12 @@ root_projection_uri: "parseq"
 metadata_prototype: &metadata_prototype
   type: file
   children: None
-  name:  " 'metadata.json' "
-  uri: " projects/ "
+  name:  " content['name'].replace('/','_') "
+  uri: "[ environment['name'] ]"
 
 root:
   type: directory
   children:
     metadata_prototype: *metadata_prototype
-  name: " content "
-  uri: " environment "
+  name: " 'parseq' "
+  uri: "[obj for obj in environment if fetch_context(obj)['size'] > 1 ]"
