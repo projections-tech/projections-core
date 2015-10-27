@@ -3,9 +3,7 @@
 import logging
 import logging.config
 import io
-import json
 import os
-import sys
 import time
 import boto3
 import argparse
@@ -28,6 +26,7 @@ class S3Driver(ProjectionDriver):
         Initialize driver which will be used to interact with host.
         :param bucket_name: name of projected S3 bucket
         """
+
         session = boto3.session.Session(aws_access_key_id=aws_access_key_id,
                                         aws_secret_access_key=aws_secret_access_key,
                                         region_name=region_name)
@@ -163,14 +162,12 @@ def main(mountpoint, data_folder, foreground=True):
     return fuse
 
 if __name__ == '__main__':
-
     script_dir = os.path.dirname(os.path.realpath(__file__))
     logging.config.fileConfig(os.path.join(script_dir, 'logging.cfg'))
 
-    # TODO: replace with argparse
-    # Get mount point from args
-    if len(sys.argv) != 3:
-        print('usage: %s <mountpoint> <data folder>' % sys.argv[0])
-        exit(1)
-    main(sys.argv[1], sys.argv[2])
+    parser = argparse.ArgumentParser(description='AWS S3 projection.')
+    parser.add_argument('-m', '--mount-point', required=True, help='specifies mount point path on host')
+    parser.add_argument('-d', '--data-directory', required=True, help='specifies data directory path on host')
+    args = parser.parse_args()
 
+    main(args.mount_point, args.data_directory)

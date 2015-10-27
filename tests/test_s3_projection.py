@@ -3,6 +3,7 @@ import logging.config
 from unittest import TestCase, skip
 from projections import PrototypeDeserializer, Projection
 from aws_s3 import S3Driver, S3Projector
+import httpretty
 
 # Import logging configuration from the file provided
 logging.config.fileConfig('logging.cfg')
@@ -16,6 +17,7 @@ REGION_NAME = 'us-west-2'
 class TestS3Driver(TestCase):
 
     def setUp(self):
+        httpretty.disable()
         self.driver = S3Driver(KEY_ID, ACCESS_KEY, REGION_NAME, 'parseq')
 
     def test_bucket_contents(self):

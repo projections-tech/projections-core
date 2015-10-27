@@ -5,10 +5,10 @@ import logging.config
 import io
 import json
 import os
-import sys
 import time
 import xmltodict
 import subprocess
+import argparse
 from Bio import Entrez
 from tests.sra_mock import SRAMock
 
@@ -70,7 +70,7 @@ class SRADriver(ProjectionDriver):
         else:
             return self.query_cache[query[1]]
 
-    def load_uri_contents_as_stream(self, query):
+    def get_uri_contents_as_stream(self, query):
         logger.debug('Loading query: %s', query)
         query = query.split(':')
         query_type = query[0]
@@ -149,7 +149,7 @@ class SRAProjector(Projector):
     def open_resource(self, path):
         uri = self.projections[path].uri
 
-        content = self.driver.load_uri_contents_as_stream(uri)
+        content = self.driver.get_uri_contents_as_stream(uri)
         logger.info('Got path content: %s\n', path)
 
         self.projections[path].size = len(content)
@@ -183,10 +183,9 @@ if __name__ == '__main__':
     script_dir = os.path.dirname(os.path.realpath(__file__))
     logging.config.fileConfig(os.path.join(script_dir, 'logging.cfg'))
 
-    # TODO: replace with argparse
-    # Get mount point from args
-    if len(sys.argv) != 3:
-        print('usage: %s <mountpoint> <data folder>' % sys.argv[0])
-        exit(1)
+    parser = argparse.ArgumentParser(description='SRA projection.')
+    parser.add_argument('-m', '--mount-point', required=True, help='specifies mount point path on host')
+    parser.add_argument('-d', '--data-directory', required=True, help='specifies data directory path on host')
+    args = parser.parse_args()
 
-    main(sys.argv[1], sys.argv[2])
+    main(args.mount_point, args.data_directory)

@@ -7,7 +7,7 @@ import io
 import re
 import json
 import os
-import sys
+import argparse
 import time
 import urllib.request
 from urllib.parse import urljoin
@@ -83,7 +83,7 @@ class TorrentSuiteDriver(ProjectionDriver):
             else:
                 return json.loads(f.readall().decode('utf-8'))
 
-    def load_uri_contents_stream(self, uri):
+    def get_uri_contents_as_stream(self, uri):
         """
         Load uri contents
         :param uri: URI string
@@ -164,7 +164,7 @@ class TorrentSuiteProjector(Projector):
     def open_resource(self, path):
         uri = self.projections[path].uri
 
-        content = self.driver.load_uri_contents_stream(uri)
+        content = self.driver.get_uri_contents_as_stream(uri)
         logger.info('Got path content: %s\n', path)
 
         self.projections[path].size = len(content)
@@ -196,13 +196,12 @@ if __name__ == '__main__':
     script_dir = os.path.dirname(os.path.realpath(__file__))
     logging.config.fileConfig(os.path.join(script_dir, 'logging.cfg'))
 
-    # TODO: replace with argparse
-    # Get mount point from args
-    if len(sys.argv) != 3:
-        print('usage: %s <mountpoint> <data folder>' % sys.argv[0])
-        exit(1)
+    parser = argparse.ArgumentParser(description='Torrent Suite projection.')
+    parser.add_argument('-m', '--mount-point', required=True, help='specifies mount point path on host')
+    parser.add_argument('-d', '--data-directory', required=True, help='specifies data directory path on host')
+    args = parser.parse_args()
 
-    main(sys.argv[1], sys.argv[2])
+    main(args.mount_point, args.data_directory)
 
 
 
