@@ -25,5 +25,6 @@ class TestS3Driver(TestCase):
 
     def test_get_uri_contents_as_dict(self):
         exp_contents = ['projects/', 'projects/ensembl.txt']
+
         for key in exp_contents:
             logger.debug(self.driver.get_uri_contents_as_dict(key))

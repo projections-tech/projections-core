@@ -40,12 +40,13 @@ class S3Driver(ProjectionDriver):
         :return: dict of URI contents
         """
         current_object = self.bucket.Object(key=uri)
-        if current_object.content_length:
-            logger.debug('Content length: %s', current_object.content_length)
-            return current_object.metadata
-        else:
-            logger.debug('Content length: %s', current_object.content_length)
-            return current_object.metadata
+        metadata = dict()
+
+        metadata['metadata'] = current_object.metadata
+        metadata['size'] = current_object.content_length
+        metadata['content_encoding'] = current_object.content_encoding
+        metadata['content_type'] = current_object.content_type
+        return metadata
 
     def get_uri_contents_stream(self, uri):
         """
