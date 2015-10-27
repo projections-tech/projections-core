@@ -1,0 +1,19 @@
+---
+dialect: python
+resource_uri: "parseq"
+
+# Name of the bucket
+root_projection_uri: "parseq"
+
+metadata_prototype: &metadata_prototype
+  type: file
+  children: None
+  name:  " content['name'].replace('/','_') "
+  uri: "[ environment['name'] ]"
+
+root:
+  type: directory
+  children:
+    metadata_prototype: *metadata_prototype
+  name: " 'parseq' "
+  uri: "[obj for obj in environment if fetch_context(obj)['size'] > 1 ]"

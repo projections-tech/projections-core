@@ -3,13 +3,12 @@
 import logging
 import logging.config
 import io
-import re
 import json
 import os
 import sys
 import time
 import boto3
-import urllib.request
+import argparse
 
 from projections import Projection, ProjectionDriver, ProjectionTree, Projector, PrototypeDeserializer
 from filesystem import ProjectionFilesystem
@@ -173,5 +172,7 @@ if __name__ == '__main__':
     if len(sys.argv) != 3:
         print('usage: %s <mountpoint> <data folder>' % sys.argv[0])
         exit(1)
+
+
 
     main(sys.argv[1], sys.argv[2])
