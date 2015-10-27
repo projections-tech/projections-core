@@ -128,7 +128,6 @@ class Node(object):
     def __str__(self):
         return pprint.pformat([n.get_path() for n in self.get_tree_nodes()])
 
-
 class Projection(object):
     """
     Class for holding projection data.

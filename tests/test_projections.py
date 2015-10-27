@@ -118,6 +118,7 @@ class TestTree(TestCase):
 
     def setUp(self):
         self.tree = Node(name=None)
+
         self.first_level_names = []
         self.second_level_names = []
         self.third_level_names = []

@@ -11,6 +11,7 @@ import xmltodict
 import subprocess
 from Bio import Entrez
 from tests.sra_mock import SRAMock
+import pprint
 
 
 from projections import Projection,  ProjectionDriver, ProjectionTree, Projector, PrototypeDeserializer
@@ -74,9 +75,8 @@ class SRADriver(ProjectionDriver):
         logger.debug('Loading query: %s', query)
         query = query.split(':')
         query_type = query[0]
-
-        if query_type == 'get_experiment_runs':
-            return subprocess.check_output(['./sratoolkit.2.5.2-ubuntu64/bin/sam-dump', query[1]])
+        if query_type == 'load_run':
+            return subprocess.check_output(['./sratoolkit.2.5.4-1-ubuntu64/bin/sam-dump', query[1]])
         else:
             return json.dumps(self.query_cache[query[1]]).encode()
 
