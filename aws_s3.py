@@ -29,9 +29,6 @@ class S3Driver(ProjectionDriver):
         self.s3_resource = session.resource('s3')
         self.bucket = self.s3_resource.Bucket(bucket_name)
         logger.debug('Bucket initialized: %s', self.bucket)
-        self.bucket_contents = {o.key: o for o in self.bucket.objects.all()}
-        logger.debug('Bucket contents: %s', self.bucket_contents)
-
 
     def get_uri_contents_as_dict(self, uri):
         """
@@ -57,6 +54,4 @@ class S3Driver(ProjectionDriver):
         return self.bucket.Object(key=uri).get()['Body'].read()
 
 
-if __name__ == '__main__':
-    test_driver = S3Driver('parseq')
 
