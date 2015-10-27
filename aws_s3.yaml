@@ -5,15 +5,15 @@ resource_uri: mockiontorrent.com
 # Name of the bucket
 root_projection_uri: "parseq"
 
-metadata_prototype: &exp_metadata_prototype
+metadata_prototype: &metadata_prototype
   type: file
   children: None
   name:  " 'metadata.json' "
-  uri: " [] "
+  uri: " projects/ "
 
 root:
   type: directory
   children:
-    result_prototype: *result_prototype
+    metadata_prototype: *metadata_prototype
   name: " content "
-  uri: " [] "
+  uri: " projects/"
