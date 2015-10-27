@@ -16,4 +16,4 @@ root:
   children:
     metadata_prototype: *metadata_prototype
   name: " 'parseq' "
-  uri: "[obj for obj in environment if fetch_context(obj)['size'] > 1 ]"
+  uri: "[obj for obj in environment if 'quality' in fetch_context(obj)['metadata'] and fetch_context(obj)['metadata']['quality'] == 'good']"

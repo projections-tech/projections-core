@@ -8,11 +8,13 @@ from aws_s3 import S3Driver, S3Projector
 logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('s3_test')
 
-KEY_ID='AKIAIONUXTO6TR3UU3TQ'
-ACCESS_KEY='UgYV9YRRoFX64nmxoL+4ry3QLBD0rPdoQRVTCB5w'
-REGION_NAME='us-east-1'
+KEY_ID = 'AKIAIONUXTO6TR3UU3TQ'
+ACCESS_KEY = 'UgYV9YRRoFX64nmxoL+4ry3QLBD0rPdoQRVTCB5w'
+REGION_NAME = 'us-west-2'
+
 
 class TestS3Driver(TestCase):
+
     def setUp(self):
         self.driver = S3Driver(KEY_ID, ACCESS_KEY, REGION_NAME, 'parseq')
 
@@ -38,14 +40,13 @@ class TestS3Driver(TestCase):
         """
         Tests driver get_uri_contents_as_dict method
         """
-        exp_contents = ['projects/', 'projects/ensembl.txt']
         contents_meta = [{'content_encoding': None, 'size': 0, 'name': 'projects/',
                           'content_type': 'binary/octet-stream', 'metadata': {}},
                          {'content_encoding': None, 'size': 1387, 'name': 'projects/ensembl.txt',
-                          'content_type': 'text/plain', 'metadata': {'madefor': 'testing'}}]
-        for key, meta in zip(exp_contents, contents_meta):
-            self.assertDictEqual(meta, self.driver.get_uri_contents_as_dict(key),
-                                 msg='Checking meta of object with URI: {0}'.format(key))
+                          'content_type': 'text/plain', 'metadata': {'madefor': 'testing', 'quality': 'good'}}]
+        for meta in contents_meta:
+            self.assertDictEqual(meta, self.driver.get_uri_contents_as_dict(meta['name']),
+                                 msg='Checking meta of object with URI: {0}'.format(meta['name']))
 
 
 class TestS3Projector(TestCase):
@@ -64,15 +65,23 @@ class TestS3Projector(TestCase):
         created_projections = self.s3_projector.projections
 
         # Test if number of created projections equals to expected number of projections
-        self.assertEqual(3, len(created_projections),
-                         msg='Checking if S3 projector created 3 projections, current number: {}'.format(len(created_projections)))
+        self.assertEqual(6, len(created_projections),
+                         msg='Checking if S3 projector created 6 projections, current number: {}'.format(len(created_projections)))
 
         # Check bucket projection creation
         self.assertIn('/parseq',
                       created_projections,
-                      msg='Checking creation of query projection')
+                      msg='Checking creation of bucket projection')
 
         # Check data file projection creation
-        self.assertIn('/parseq/projects_ensembl.txt',
-                      created_projections,
-                      msg='Checking creation of experiment projection.')
+        for d_f in ['/parseq/projects_ensembl.txt', '/parseq/projects_ensembl_1.txt',
+                    '/parseq/ensembl_3.txt', '/parseq/ensembl_4.txt']:
+            self.assertIn(d_f,
+                          created_projections,
+                          msg='Checking creation of {0} projection.'.format(d_f))
+
+        # Check if files filtered by tag properly
+        for d_f in ['/parseq/projects_ensembl_2.txt', '/parseq/projects_ensembl_3.txt',
+                    '/parseq/projects_ensembl_4.txt', '/parseq/ensembl_1.txt', '/parseq/ensembl_2.txt']:
+            self.assertNotIn(d_f, created_projections,
+                             msg='Checking if projection {0} filtered.'.format(d_f))

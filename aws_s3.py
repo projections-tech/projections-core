@@ -16,11 +16,13 @@ from fuse import FUSE
 
 logger = logging.getLogger('s3_projection')
 
-aws_access_key_id='AKIAIONUXTO6TR3UU3TQ'
-aws_secret_access_key='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'
-region_name='us-east-1'
+aws_access_key_id = 'AKIAIONUXTO6TR3UU3TQ'
+aws_secret_access_key = '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'
+region_name = 'us-west-2'
+
 
 class S3Driver(ProjectionDriver):
+
     def __init__(self, aws_access_key_id, aws_secret_access_key, region_name, bucket_name):
         """
         Initialize driver which will be used to interact with host.
@@ -32,7 +34,7 @@ class S3Driver(ProjectionDriver):
         self.s3_resource = session.resource('s3')
         self.bucket_name = bucket_name
         self.bucket = self.s3_resource.Bucket(bucket_name)
-        logger.debug('Bucket initialized: %s', self.bucket)
+        logger.debug('Current bucket: %s', self.bucket)
 
     def get_uri_contents_as_dict(self, uri):
         """
@@ -40,8 +42,6 @@ class S3Driver(ProjectionDriver):
         :param uri: URI string
         :return: dict of URI contents
         """
-        logger.debug('Current URI: %s', uri)
-
         metadata = dict()
 
         if not uri == self.bucket_name:
@@ -158,7 +158,7 @@ def main(mountpoint, data_folder, foreground=True):
     sra_driver = S3Driver(aws_access_key_id, aws_secret_access_key,
                           region_name, projection_configuration.root_projection_uri)
     projection_filesystem.projection_manager = S3Projector(sra_driver, root_projection,
-                                                            projection_configuration.prototype_tree)
+                                                           projection_configuration.prototype_tree)
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
     return fuse
 
@@ -172,7 +172,5 @@ if __name__ == '__main__':
     if len(sys.argv) != 3:
         print('usage: %s <mountpoint> <data folder>' % sys.argv[0])
         exit(1)
-
-
-
     main(sys.argv[1], sys.argv[2])
+
