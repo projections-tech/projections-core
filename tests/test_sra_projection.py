@@ -2,7 +2,7 @@ import logging
 import logging.config
 from unittest import TestCase, skip
 from tests.sra_mock import SRAMock
-from projections import PrototypeDeserializer, Projection
+from projections import PrototypeDeserializer, Projector
 import sra
 
 MOUNT_POINT = 'tests/mnt'
@@ -21,14 +21,14 @@ class SRAProjectionManager(TestCase):
     def setUp(self):
         driver = sra.SRADriver('test')
         projection_configuration = PrototypeDeserializer('tests/test_sra_config.yaml')
-        root_projection = Projection('/', projection_configuration.root_projection_uri)
-        self.sra_projector = sra.SRAProjector(driver, root_projection, projection_configuration.prototype_tree)
+        self.sra_projector = Projector(driver, projection_configuration.root_projection_uri,
+                                       projection_configuration.prototype_tree)
 
     def test_create_projections(self):
         """
         Tests if SRA projection manager creates projections
         """
-        created_projections = self.sra_projector.projections
+        created_projections = [n.get_path() for n in self.sra_projector.projection_tree.root.get_tree_nodes()]
 
         # Test if number of created projections equals to expected number of projections
         self.assertEqual(5, len(created_projections),

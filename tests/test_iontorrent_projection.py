@@ -5,7 +5,7 @@ import logging
 import logging.config
 from unittest import TestCase, skip
 from tests.torrent_suite_mock import TorrentSuiteMock
-from projections import PrototypeDeserializer, Projection
+from projections import PrototypeDeserializer, Projector
 
 import iontorrent
 
@@ -32,8 +32,8 @@ class TestTorrentSuiteProjector(TestCase):
         """
         projection_configuration = PrototypeDeserializer('tests/test_full_torrent_suite_config.yaml')
         driver = iontorrent.TorrentSuiteDriver(projection_configuration.resource_uri, USER, PASSWORD)
-        iontorrent_projector = iontorrent.TorrentSuiteProjector(driver, projection_configuration.root_projection_uri,
-                                                                projection_configuration.prototype_tree)
+        iontorrent_projector = Projector(driver, projection_configuration.root_projection_uri,
+                                         projection_configuration.prototype_tree)
 
         projection_paths_list =[n.get_path() for n in iontorrent_projector.projection_tree.root.get_tree_nodes()]
         logger.debug('Full proj path list: %s', projection_paths_list)
@@ -110,10 +110,10 @@ class TestTorrentSuiteProjector(TestCase):
         # Loading configuration where '/rundb/api/v1/results/1/' is root projection
         projection_configuration = PrototypeDeserializer('tests/test_custom_root_torrent_suite_config.yaml')
         driver = iontorrent.TorrentSuiteDriver(projection_configuration.resource_uri, USER, PASSWORD)
-        iontorrent_projector = iontorrent.TorrentSuiteProjector(driver, projection_configuration.root_projection_uri,
-                                                                projection_configuration.prototype_tree)
+        iontorrent_projector = Projector(driver, projection_configuration.root_projection_uri,
+                                         projection_configuration.prototype_tree)
 
-        projection_paths_list =[n.get_path() for n in iontorrent_projector.projection_tree.root.get_tree_nodes()]
+        projection_paths_list = [n.get_path() for n in iontorrent_projector.projection_tree.root.get_tree_nodes()]
 
         # Checking number of created projections,
         self.assertEqual(len(projection_paths_list), 32,
@@ -167,8 +167,8 @@ class TestTorrentSuiteProjector(TestCase):
         # run name, and only TSVC VCF file for variant calling
         projection_configuration = PrototypeDeserializer('tests/test_torrent_suite_projection_filtering_config.yaml')
         driver = iontorrent.TorrentSuiteDriver(projection_configuration.resource_uri, USER, PASSWORD)
-        iontorrent_projector = iontorrent.TorrentSuiteProjector(driver, projection_configuration.root_projection_uri,
-                                                                projection_configuration.prototype_tree)
+        iontorrent_projector = Projector(driver, projection_configuration.root_projection_uri,
+                                         projection_configuration.prototype_tree)
 
         projection_paths_list =[n.get_path() for n in iontorrent_projector.projection_tree.root.get_tree_nodes()]
 

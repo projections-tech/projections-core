@@ -3,16 +3,14 @@ __author__ = 'abragin'
 
 import logging
 import logging.config
-import io
 import re
 import json
 import os
 import sys
-import time
 import urllib.request
 from urllib.parse import urljoin
 
-from projections import Projection, ProjectionDriver, ProjectionTree, Projector, PrototypeDeserializer
+from projections import ProjectionDriver, ProjectionTree, Projector, PrototypeDeserializer
 from filesystem import ProjectionFilesystem
 from fuse import FUSE
 from tests.torrent_suite_mock import TorrentSuiteMock
@@ -39,7 +37,6 @@ class TorrentSuiteDriver(ProjectionDriver):
         :param uri: URI string
         :return: URI string
         """
-        logger.debug('Driver URI: %s', type(uri))
         if re.match('/rundb/api/v1/', uri):
             return uri.replace('/rundb/api/v1/', self.api_url)
         elif re.match('/auth/output/Home/', uri):
@@ -71,7 +68,7 @@ class TorrentSuiteDriver(ProjectionDriver):
 
     def get_uri_contents_as_dict(self, uri):
         """
-        Opens URI and returns dict of its contents
+        Open URI and return dict of its contents
         :param uri: URI string
         :return: dict of URI contents
         """
@@ -84,86 +81,15 @@ class TorrentSuiteDriver(ProjectionDriver):
             else:
                 return json.loads(f.readall().decode('utf-8'))
 
-    def load_uri_contents_stream(self, uri):
+    def get_uri_contents_as_stream(self, uri):
         """
-        Load uri contents
+        Get uri contents as stream
         :param uri: URI string
         :return: content bytes
         """
         uri = self.__prepare_uri(uri)
         with urllib.request.urlopen(uri) as f:
             return f.readall()
-
-
-class TorrentSuiteProjector(Projector):
-    def __init__(self, driver, root_projection_uri, prototype_tree):
-        """
-        Initializes Torrent Suite Projector with driver, assigns root projection, builds prototype and projection tree.
-        :param driver: instance of TorrentSuiteDriver
-        :param prototype_tree: tree of ProjectionPrototype objects to build projection upon
-        """
-        assert isinstance(driver, ProjectionDriver), 'Check that driver object is subclass of ProjectionDriver'
-        self.driver = driver
-
-        # Initializing projection tree with root projection.
-        self.projection_tree = ProjectionTree(p_name='/', p_uri=root_projection_uri)
-
-        self.create_projection_tree({'/': prototype_tree},
-                                    projection_tree=self.projection_tree)
-
-    def is_managing_path(self, path):
-        if self.projection_tree.get_projection(path):
-            return True
-        else:
-            return False
-
-    def get_projections(self, path):
-        logger.info('Requesting projections for path: %s', path)
-        projections = [c.projection.path for c in self.projection_tree.get_children(path)]
-        logger.info('Returning projections: %s', projections)
-        return projections
-
-    def get_attributes(self, path):
-        assert self.projection_tree.get_projection(path) is not None
-
-        projection = self.projection_tree.get_projection(path).projection
-
-        now = time.time()
-        attributes = dict()
-
-        # Set projection attributes
-
-        # This is implementation specific and should be binded to projector data
-        attributes['st_atime'] = now
-        # This may be implemented as last projection cashing time is casing is enabled
-        attributes['st_mtime'] = now
-        # On Unix this is time for metedata modification we can use the same conception
-        attributes['st_ctime'] = now
-        # If this is projection the size is zero
-        attributes['st_size'] = projection.size
-        # Set type to link anf grant full access to everyone
-        attributes['st_mode'] = (projection.type | 0o0777)
-        # Set number of hard links to 0
-        attributes['st_nlink'] = 0
-        # Set id as inode number.
-        attributes['st_ino'] = 1
-
-        return attributes
-
-    def open_resource(self, path):
-        projection_on_path = self.projection_tree.get_projection(path).projection
-        uri = projection_on_path.uri
-
-        content = self.driver.load_uri_contents_stream(uri)
-        logger.info('Got path content: %s\n', path)
-
-        projection_on_path.size = len(content)
-
-        file_header = 3
-        resource_io = io.BytesIO(content)
-
-        return file_header, resource_io
-
 
 # For smoke testing
 def main(mountpoint, data_folder, foreground=True):
@@ -173,10 +99,10 @@ def main(mountpoint, data_folder, foreground=True):
     mock_torrent_suite = TorrentSuiteMock('mockiontorrent.com', 'tests/mock_resource/torrent_suite_mock_data')
 
     projection_configuration = PrototypeDeserializer('torrent_suite_config.yaml')
-    projection_dirver = TorrentSuiteDriver(projection_configuration.resource_uri, 'ionadmin', '0ECu1lW')
-    projection_filesystem.projection_manager = TorrentSuiteProjector(projection_dirver,
-                                                                     projection_configuration.root_projection_uri,
-                                                                     projection_configuration.prototype_tree)
+    projection_driver = TorrentSuiteDriver(projection_configuration.resource_uri, 'ionadmin', '0ECu1lW')
+    projection_filesystem.projection_manager = Projector(projection_driver,
+                                                         projection_configuration.root_projection_uri,
+                                                         projection_configuration.prototype_tree)
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
     return fuse
 

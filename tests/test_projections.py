@@ -65,11 +65,6 @@ class TestProjector(TestCase):
         Testing projection tree creation with projection prototypes.
 
         """
-
-        # Root projection has ho associated prototypes.
-        # This behavior may be changed to provide more uniform approach.
-        root = Projection('/', 'experiments')
-
         experiment_prototype = ProjectionPrototype('directory')
         experiment_prototype.name = "content['displayName'].replace(' ', '_')"
         experiment_prototype.uri = '[object["uri"] for object in environment]'
@@ -87,31 +82,32 @@ class TestProjector(TestCase):
         bam_prototype.parent = result_prototype
         result_prototype.children[bam_prototype.name] = bam_prototype
 
-        # Create projection tree with the prototypes provided
-        projector = Projector(TestDriver())
-        projection_tree = ProjectionTree()
-        projection_tree.add_projection(root, None)
-
-        projector.create_projection_tree({'/': experiment_prototype}, projection_tree=projection_tree, parent_projection=root)
+        projector = Projector(TestDriver(), 'experiments', experiment_prototype)
 
         dir_paths = ['/', '/experiment_0', '/experiment_1', '/experiment_2',
                  '/experiment_1/result_1', '/experiment_1/result_2',
                  '/experiment_2/result_3', '/experiment_2/result_4', '/experiment_2/result_5']
 
+        created_projections = [n.get_path() for n in projector.projection_tree.root.get_tree_nodes()]
+        logger.info('Created projections: %s', created_projections)
         for dir_path in dir_paths:
             logger.info('Checking projection on path: %s', dir_path)
-            self.assertTrue(dir_path in projection_tree.projections, 'Check that projection exists')
-            projection = projection_tree.projections[dir_path]
-            self.assertTrue(projection.type == stat.S_IFDIR, 'Check that this is a directory projection')
+
+            self.assertTrue(dir_path in created_projections, 'Check that projection exists')
+
+            projection = projector.projection_tree.get_projection(dir_path)
+
+            logger.info(projection)
+            self.assertTrue(projection.projection.type == stat.S_IFDIR, 'Check that this is a directory projection')
 
         file_paths = ['/experiment_1/result_1/1.bam', '/experiment_1/result_2/2.bam',
                       '/experiment_2/result_3/3.bam', '/experiment_2/result_4/4.bam', '/experiment_2/result_5/5.bam']
 
         for file_path in file_paths:
             logger.info('Checking file projection on path: %s', file_path)
-            self.assertTrue(file_path in projection_tree.projections, 'Check that projection exists')
-            projection = projection_tree.projections[file_path]
-            self.assertTrue(projection.type == stat.S_IFREG, 'Check that this is a file projection')
+            self.assertTrue(file_path in created_projections, 'Check that projection exists')
+            projection = projector.projection_tree.get_projection(file_path)
+            self.assertTrue(projection.projection.type == stat.S_IFREG, 'Check that this is a file projection')
 
 
 class TestTree(TestCase):

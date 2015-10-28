@@ -128,6 +128,7 @@ class Node(object):
     def __str__(self):
         return pprint.pformat([n.get_path() for n in self.get_tree_nodes()])
 
+
 class Projection(object):
     """
     Class for holding projection data.
@@ -174,8 +175,6 @@ class ProjectionTree(object):
         self.root = Node(name=p_name)
         self.root.data = self
         self.projection = Projection(path=p_name, uri=p_uri, type=p_type, size=p_size)
-        logger.debug('ProjectionTree with URI: %s', self.projection.uri)
-
         # Be aware of atomicity of operations
         self.lock = threading.Lock()
 
@@ -202,7 +201,7 @@ class ProjectionTree(object):
         else:
             return None
 
-    def add_branch(self, proj_tree):
+    def add_child(self, proj_tree):
         """
         Adds projection to the current tree.
 
@@ -311,7 +310,10 @@ class ProjectionDriver(object):
     """
 
     def get_uri_contents_as_dict(self, uri):
-        raise NotImplemented('Implement data retrieval from some projection backend.')
+        raise NotImplemented('Implement metadata retrieval from some projection backend.')
+
+    def get_uri_contents_as_stream(self, uri):
+        raise NotImplemented('Implement data stream retrieval from some projection backend.')
 
 
 class Projector:
@@ -319,15 +321,71 @@ class Projector:
     Class that creates Projection object and assembles them in ProjectionTree object using Prototypes object.
     """
 
-    def __init__(self, driver):
+    def __init__(self, driver, root_projection_uri, prototype_tree):
         """
-        Create projector object.
-
-        :param driver: driver object that has get_uri_content(uri) method returning array of Python dictionaries
-            that are used for ProjectionTree composition.
+        :param driver: instance of ProjectionDriver
+        :param prototype_tree: tree of ProjectionPrototype objects to build projection upon
         """
         assert isinstance(driver, ProjectionDriver), 'Check that driver object is subclass of ProjectionDriver'
         self.driver = driver
+
+        # Initializing projection tree with root projection.
+        self.projection_tree = ProjectionTree(p_name='/', p_uri=root_projection_uri)
+
+        self.create_projection_tree({'/': prototype_tree}, projection_tree=self.projection_tree)
+
+    def is_managing_path(self, path):
+        if self.projection_tree.get_projection(path):
+            return True
+        else:
+            return False
+
+    def get_projections(self, path):
+        logger.info('Requesting projections for path: %s', path)
+        projections = [c.projection.path for c in self.projection_tree.get_children(path)]
+        logger.info('Returning projections: %s', projections)
+        return projections
+
+    def get_attributes(self, path):
+        assert self.projection_tree.get_projection(path) is not None
+
+        projection = self.projection_tree.get_projection(path).projection
+
+        now = time.time()
+        attributes = dict()
+
+        # Set projection attributes
+
+        # This is implementation specific and should be binded to projector data
+        attributes['st_atime'] = now
+        # This may be implemented as last projection cashing time is casing is enabled
+        attributes['st_mtime'] = now
+        # On Unix this is time for metadata modification we can use the same conception
+        attributes['st_ctime'] = now
+        # If this is projection the size is zero
+        attributes['st_size'] = projection.size
+        # Set type to link anf grant full access to everyone
+        attributes['st_mode'] = (projection.type | 0o0777)
+        # Set number of hard links to 0
+        attributes['st_nlink'] = 0
+        # Set id as inode number.
+        attributes['st_ino'] = 1
+
+        return attributes
+
+    def open_resource(self, path):
+        projection_on_path = self.projection_tree.get_projection(path).projection
+        uri = projection_on_path.uri
+
+        content = self.driver.get_uri_contents_as_stream(uri)
+        logger.info('Got path content: %s\n', path)
+
+        projection_on_path.size = len(content)
+
+        file_header = 3
+        resource_io = io.BytesIO(content)
+
+        return file_header, resource_io
 
     def fetch_context(self, uri):
         """
@@ -347,7 +405,8 @@ class Projector:
         :param projection_tree: projection tree to extend. Should not be None
         :return: void. The provided projection tree object expected to be used.
         """
-        logger.info('Creating projection tree with a prototypes: %s starting from: %s', prototypes, projection_tree.projection)
+        logger.info('Creating projection tree with a prototypes: %s starting from: %s',
+                    prototypes, projection_tree.projection)
 
         # Dictionaries that act as a evaluation context for projections. environment is available for both directory and
         #   file prototypes, while content for directory prototypes only
@@ -386,7 +445,7 @@ class Projector:
 
                 child_projection = ProjectionTree(p_name=name, p_uri=uri)
                 # Add newly created projection to projection tree
-                projection_tree.add_branch(child_projection)
+                projection_tree.add_child(child_projection)
                 logger.info('Projection created: %s', child_projection)
 
                 if prototype.type == 'directory':
@@ -404,153 +463,3 @@ class Projector:
                     child_projection.projection.size = 1
 
 
-class ProjectionManager(object):
-    """
-    Should be subclassed to provide real-life implementations.
-
-    TODO: ProjectionManager should include Projector functionality and present it to subclasses where applicable.
-    """
-
-    def __init__(self):
-        logger.info('Creating projection manager')
-        self.projections = dict()
-        self.resources = dict()
-
-        projections = self.create_projections()
-
-        for p in projections:
-            self.projections[p.path] = p
-            self.resources[p.uri] = p
-
-        logger.debug('Projections: %s, resources: %s', self.projections, self.resources)
-
-    def create_projections(self):
-        """
-        This method should be overriden in implementation specific manner
-
-        :return: list of Projection objects
-        """
-        # This list is filled up by projection specific manner
-        projections = []
-
-        # TODO: replace stub with real code here
-        projection = Projection('/projection', 'uri:parseq.pro')
-        projection.type = stat.S_IFREG
-        projection.size = 1
-        projections.append(projection)
-
-        return projections
-
-    def is_managing_path(self, path):
-        return path in self.projections or path in self.resources
-
-    def get_resource(self, uri):
-        """
-        This method should be overriden in implementation specific manner.
-
-        :param uri: resource identifier to get resource from.
-        :return: resource content
-        """
-        # TODO: implement resource downloading
-
-        content = b'Hello World!\n'
-
-        logger.info('Requesting resource for uri: %s', uri)
-        return content
-
-    def open_resource(self, path):
-        # TODO: implement file header operations
-        # TODO: implement resource downloading if not already opened (use header to check)!
-
-        content = b'Hello World!\n'
-        resource_io = io.BytesIO(content)
-
-        if path in self.projections:
-            self.projections[path].size = len(content)
-
-        logger.info('Resource content size for uri: %s set to: %s', path, self.projections[path].size)
-
-        file_handler = 3
-
-        return file_handler, resource_io
-
-    def remove_resource(self, path):
-        if path in self.projections:
-            self.projections[path].size = 1
-
-    def get_projections(self, path):
-        logger.info('Requesting for projections')
-        # TODO: this is hardcoded behavior with only one level of projections. Review it!
-        if path == '/':
-            return self.projections.keys()
-        else:
-            return []
-
-    def get_link(self, path):
-        if path in self.projections:
-            return self.projections[path].uri
-        else:
-            return None
-
-    def get_attributes(self, path):
-        logger.info('Request attributes on path: %s. Projections: %s, resources: %s', path, self.projections, self.resources)
-        if path in self.projections:
-            return self.get_projection_attributes(self.projections[path])
-        elif path[1:] in self.resources:
-            return self.get_resource_attributes(self.resources[path[1:]])
-        else:
-            logging.info('No object for attributes found')
-            return None
-
-    def get_xattr(self, path, name):
-        logger.info('Requestin projections \'%s\' from path: %s', name, path)
-        return self.projections[path].xattrs[name]
-
-    def get_projection_attributes(self, projection):
-        logger.info('Get projection attributes')
-        now = time.time()
-        attributes = dict()
-
-        # Set projection attributes
-
-        # This is implementation specific and should be binded to projector data
-        attributes['st_atime'] = now
-        # This may be implemented as last projection cashing time is casing is enabled
-        attributes['st_mtime'] = now
-        # On Unix this is time for metedata modification we can use the same conception
-        attributes['st_ctime'] = now
-        # If this is projection the size is zero
-        attributes['st_size'] = projection.size
-        # Set type to link anf grant full access to everyone
-        attributes['st_mode'] = (projection.type | 0o0777)
-        # Set number of hard links to 0
-        attributes['st_nlink'] = 0
-        # Set id as inode number.
-        attributes['st_ino'] = 1
-
-        return attributes
-
-    def get_resource_attributes(self, projection):
-        logger.info('Get resource attributes')
-        now = time.time()
-        attributes = dict()
-
-        # Set projection attributes
-
-        # This is implementation specific and should be binded to projector data
-        attributes['st_atime'] = now
-        # This may be implemented as last projection cashing time is casing is enabled
-        attributes['st_mtime'] = now
-        # On Unix this is time for metedata modification we can use the same conception
-        attributes['st_ctime'] = now
-        # If this is projection the size is zero
-        attributes['st_size'] = 10
-        # TODO: this is implementation specific option! Resource may be directory as well
-        # Set type to regular file anf grant full access to everyone
-        attributes['st_mode'] = (stat.S_IFREG | 0o0777)
-        # Set number of hard links to 0
-        attributes['st_nlink'] = 0
-        # Set id as inode number.
-        attributes['st_ino'] = 1
-
-        return attributes
