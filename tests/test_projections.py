@@ -110,10 +110,10 @@ class TestProjector(TestCase):
             self.assertTrue(projection.projection.type == stat.S_IFREG, 'Check that this is a file projection')
 
 
-class TestTree(TestCase):
+class TestNode(TestCase):
 
     def setUp(self):
-        self.tree = Node(name=None)
+        self.tree = Node(name='/')
 
         self.first_level_names = []
         self.second_level_names = []
@@ -143,17 +143,17 @@ class TestTree(TestCase):
         self.assertListEqual([], self.tree.get_parent_nodes())
 
         for first_level_child in self.tree.get_children():
-            self.assertListEqual([None],
+            self.assertListEqual(['/'],
                                  [n.name for n in first_level_child.get_parent_nodes()],
                                  msg='Checking path to first level nodes of a tree')
 
             for second_level_child in first_level_child.get_children():
-                self.assertListEqual([None, first_level_child.name],
+                self.assertListEqual(['/', first_level_child.name],
                                  [n.name for n in second_level_child.get_parent_nodes()],
                                  msg='Checking path to second level nodes of a tree')
 
                 for third_level_child in second_level_child.get_children():
-                    self.assertListEqual([None, first_level_child.name, second_level_child.name],
+                    self.assertListEqual(['/', first_level_child.name, second_level_child.name],
                                      [n.name for n in third_level_child.get_parent_nodes()],
                                      msg='Checking path to third level nodes of a tree')
 
@@ -228,6 +228,16 @@ class TestTree(TestCase):
         self.assertTrue(node_by_path.name == 'a',
                         msg='Checking if node: {0} is on path: {1}'.format(node_by_path.name, path))
 
+    def test_node_removal_by_name(self):
+        logger.debug('Nodes before removal by name: %s', [n.name for n in self.tree.get_tree_nodes()])
+        self.tree.remove_node_by_name('0')
+        self.tree.remove_node_by_name('1')
+        logger.debug('Nodes after removal by name: %s', [n.name for n in self.tree.get_tree_nodes()])
+
+    def test_node_removal_by_path(self):
+        logger.debug('Nodes before removal by path: %s', [n.get_path() for n in self.tree.get_tree_nodes()])
+        self.tree.remove_node_by_path('/0')
+        logger.debug('Nodes after removal by path: %s', [n.get_path() for n in self.tree.get_tree_nodes()])
 
 class TestPrototypeDeserializer(TestCase):
 

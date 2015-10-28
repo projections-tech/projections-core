@@ -125,6 +125,22 @@ class Node(object):
             for v in c.get_tree_nodes():
                 yield v
 
+    def remove_node_by_name(self, node_name):
+        """
+        Removes node with node_name from current node`s children dict
+        """
+        if node_name in self.children:
+            self.children.pop(node_name)
+
+    def remove_node_by_path(self, path):
+        """
+        Removes node on path from current tree
+        """
+        node_to_remove = self.find_node_by_path(path)
+        if node_to_remove:
+            logger.debug('Removing node: %s', node_to_remove.name)
+            node_to_remove.parent.remove_node_by_name(node_to_remove.name)
+
     def __str__(self):
         return pprint.pformat([n.get_path() for n in self.get_tree_nodes()])
 
