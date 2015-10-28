@@ -16,17 +16,11 @@ experiment_meta_prototype: &experiment_meta_prototype
   name:  "'metadata.json'"
   uri: "['experiment_id:'+environment['EXPERIMENT']['@accession']]"
 
-experiment_prototype: &experiment_prototype
+# This is a root prototype for projections, its context will be used as environment for children prototypes
+root:
   type: directory
   children:
     experiment_meta_prototype: *experiment_meta_prototype
     run_prototype: *run_prototype
-  name: "environment['EXPERIMENT']['@accession']"
-  uri: "['experiment_id:'+environment['EXPERIMENT']['@accession']]"
-
-root:
-  type: directory
-  children:
-    experiment_prototype: *experiment_prototype
-  name: "environment['QueryTranslation']"
+  name: "content['EXPERIMENT']['@accession']"
   uri: "['search_id:'+id for id in environment['IdList']]"

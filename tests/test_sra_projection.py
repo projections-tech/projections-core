@@ -31,25 +31,20 @@ class SRAProjectionManager(TestCase):
         created_projections = [n.get_path() for n in self.sra_projector.projection_tree.root.get_tree_nodes()]
 
         # Test if number of created projections equals to expected number of projections
-        self.assertEqual(5, len(created_projections),
-                         msg='Checking if SRA projector created 5 projections, current number: {}'.format(len(created_projections)))
-
-        # Check query projection creation
-        self.assertIn('/"Streptococcus"[Organism] OR Streptococcus[All Fields]',
-                      created_projections,
-                      msg='Checking creation of query projection')
+        self.assertEqual(4, len(created_projections),
+                         msg='Checking if SRA projector created 4 projections, current number: {}'.format(len(created_projections)))
 
         # Check experiment projection creation
-        self.assertIn('/"Streptococcus"[Organism] OR Streptococcus[All Fields]/SRX1058124',
+        self.assertIn('/SRX1058124',
                       created_projections,
                       msg='Checking creation of experiment projection.')
 
         # Check metadata projection creation
-        self.assertIn('/"Streptococcus"[Organism] OR Streptococcus[All Fields]/SRX1058124/metadata.json',
+        self.assertIn('/SRX1058124/metadata.json',
                       created_projections,
                       msg='Checking creation of metadata projection.')
 
         # Check sam file projection creation
-        self.assertIn('/"Streptococcus"[Organism] OR Streptococcus[All Fields]/SRX1058124/SRR2062160.sam',
+        self.assertIn('/SRX1058124/SRR2062160.sam',
                       created_projections,
                       msg='Checking creation of sam file projection.')

@@ -8,6 +8,7 @@ import time
 import threading
 import yaml
 import pprint
+import random
 
 # Import logging configuration from the file provided
 logging.config.fileConfig('logging.cfg')
@@ -98,7 +99,6 @@ class Node(object):
         Finds node in a tree according to path. Path to node is relative
         """
         path = self.__split_path(path_to_node)
-        logger.debug('Splitted path: %s', path)
         temp_node = self
         # If node have parent start check of node name from second element of path, first always being "/"
         if temp_node.parent:
@@ -199,14 +199,13 @@ class ProjectionTree(object):
         if node_on_path:
             return [c.data for c in node_on_path.get_children()]
         else:
-            return None
+            return []
 
     def add_child(self, proj_tree):
         """
         Adds projection to the current tree.
 
-        :param projection: projection object to add.
-        :param parent: parent projection the object should be attached to.
+        :param proj_tree: projection object to add.
         """
         # This should be done atomically regardless of implementation details.
         self.lock.acquire()
@@ -331,8 +330,7 @@ class Projector:
 
         # Initializing projection tree with root projection.
         self.projection_tree = ProjectionTree(p_name='/', p_uri=root_projection_uri)
-
-        self.create_projection_tree({'/': prototype_tree}, projection_tree=self.projection_tree)
+        self.create_projection_tree({'/': prototype_tree}, self.projection_tree)
 
     def is_managing_path(self, path):
         if self.projection_tree.get_projection(path):
@@ -407,7 +405,6 @@ class Projector:
         """
         logger.info('Creating projection tree with a prototypes: %s starting from: %s',
                     prototypes, projection_tree.projection)
-
         # Dictionaries that act as a evaluation context for projections. environment is available for both directory and
         #   file prototypes, while content for directory prototypes only
         environment = None
@@ -430,7 +427,7 @@ class Projector:
             context = context[::-1]
 
             logger.info('Creating projections for a prototype: %s', prototype)
-
+            logger.debug('Prototype uri: %s,  proj uri: %s', prototype.uri, projection_tree.projection.uri)
             # TODO: eval is not safe, consider safer alternative, e.g. JsonPath
             URIs = eval(prototype.uri, locals())
 
@@ -444,15 +441,16 @@ class Projector:
                 name = eval(prototype.name, locals())
 
                 child_projection = ProjectionTree(p_name=name, p_uri=uri)
+
                 # Add newly created projection to projection tree
                 projection_tree.add_child(child_projection)
                 logger.info('Projection created: %s', child_projection)
 
                 if prototype.type == 'directory':
                     # If prototype has children, continue tree building
-                    logger.info('Starting attached prototype projection creation for  prototype: %s with children: %s',
-                                prototype, prototype.children)
                     if prototype.children:
+                        logger.info('Starting attached prototype projection creation for  prototype: %s with children: %s',
+                                prototype, prototype.children)
                         self.create_projection_tree(prototype.children, child_projection)
 
                 elif prototype.type == 'file':

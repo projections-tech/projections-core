@@ -18,7 +18,8 @@ def main(cfg_path, mountpoint, data_folder, foreground=True):
     # This driver is used to connect with projection resource, in case of NCBI we send our email.
     projection_driver = SRADriver('vsvekolkin@parseq.pro')
 
-    projection_filesystem.projection_manager = Projector(projection_driver, projection_configuration.root_projection_uri,
+    projection_filesystem.projection_manager = Projector(projection_driver,
+                                                         projection_configuration.root_projection_uri,
                                                          projection_configuration.prototype_tree)
 
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
