@@ -168,19 +168,13 @@ class Projection(object):
 class ProjectionTree(object):
     """
     Class for holding tree-like projection structure.
-
-    This is class STUB.
-
-    TODO: Implementation that allows path traversal and children retrieval should be created.
-    Class functionality is highly similar to ProjectionManager behavior, the latter can achieve this by composition.
-
     """
 
-    def __init__(self):
-        # TODO: consider elements removal. It seems that 'true' tree-like structure is needed here
-        # Maps paths to projections in projection tree
-        self.projections = {}
-        self.root = None
+    def __init__(self, p_name, p_uri, p_type=stat.S_IFDIR, p_size=4096):
+        self.root = Node(name=p_name)
+        self.root.data = self
+        self.projection = Projection(path=p_name, uri=p_uri, type=p_type, size=p_size)
+        logger.debug('ProjectionTree with URI: %s', self.projection.uri)
 
         # Be aware of atomicity of operations
         self.lock = threading.Lock()
@@ -188,14 +182,11 @@ class ProjectionTree(object):
     def get_projection(self, path):
         """
         Get projection for a path provided.
-
         :param path: path the projection resides on
         :return: projection or None
         """
-        if path in self.projections:
-            return self.projections[path]
-        else:
-            return None
+        node_on_path = self.root.find_node_by_path(path)
+        return node_on_path.data if node_on_path else None
 
     def get_children(self, path):
         """
@@ -205,9 +196,13 @@ class ProjectionTree(object):
         :param path: path to retrieve child projections for
         :return: list of child projections that can be empty
         """
-        raise NotImplemented('This method is not currently implemented')
+        node_on_path = self.root.find_node_by_path(path)
+        if node_on_path:
+            return [c.data for c in node_on_path.get_children()]
+        else:
+            return None
 
-    def add_projection(self, projection, parent):
+    def add_branch(self, proj_tree):
         """
         Adds projection to the current tree.
 
@@ -216,9 +211,13 @@ class ProjectionTree(object):
         """
         # This should be done atomically regardless of implementation details.
         self.lock.acquire()
-        self.projections[projection.path] = projection
+
+        self.root.add_child(proj_tree.root)
 
         self.lock.release()
+
+    def __str__(self):
+        return 'Projection from {} to {}'.format(self.projection.uri, self.projection.path)
 
 
 class ProjectionPrototype(Node):
@@ -338,7 +337,7 @@ class Projector:
         """
         return self.driver.get_uri_contents_as_dict(uri)
 
-    def create_projection_tree(self, prototypes, projection_tree, parent_projection=None):
+    def create_projection_tree(self, prototypes, projection_tree):
         """
         Creates projection tree for a given collection of prototypes.
 
@@ -346,11 +345,9 @@ class Projector:
 
         :param prototypes: collection of prototypes that are attached to parent projection's prototype
         :param projection_tree: projection tree to extend. Should not be None
-        :param parent_projection: parent projection that is root to tree under creation.
-            Should exists in projection tree provided.
         :return: void. The provided projection tree object expected to be used.
         """
-        logger.info('Creating projection tree with a prototypes: %s starting from: %s', prototypes, parent_projection)
+        logger.info('Creating projection tree with a prototypes: %s starting from: %s', prototypes, projection_tree.projection)
 
         # Dictionaries that act as a evaluation context for projections. environment is available for both directory and
         #   file prototypes, while content for directory prototypes only
@@ -361,9 +358,9 @@ class Projector:
 
         # This is environment in which projections are created (parent_projection content)
         # TODO: in many cases it means double request to parent projection resource so it should be optimized
-        environment = self.driver.get_uri_contents_as_dict(parent_projection.uri)
-        logger.debug(environment)
-        logger.info('Starting prototype creation in the context of resource with uri: %s', parent_projection.uri)
+
+        environment = self.driver.get_uri_contents_as_dict(projection_tree.projection.uri)
+        logger.info('Starting prototype creation in the context of resource with uri: %s', projection_tree.projection.uri)
 
         # For every prototype in collection try to create corresponding projections
         for key, prototype in prototypes.items():
@@ -385,36 +382,26 @@ class Projector:
             for uri in URIs:
                 # Get content for a projection
                 content = self.driver.get_uri_contents_as_dict(uri)
-                logger.debug('ENV: %s, CONTENT: %s', environment, content)
                 name = eval(prototype.name, locals())
 
-                # This may be reconsidered with ProjectionTree implementation
-                projection_path = os.path.join(parent_projection.path, name)
-
-                projection = Projection(projection_path, uri)
-                projection.name = name
-
+                child_projection = ProjectionTree(p_name=name, p_uri=uri)
                 # Add newly created projection to projection tree
-                projection_tree.add_projection(projection, parent_projection)
-                logger.info('Projection created: %s', projection)
+                projection_tree.add_branch(child_projection)
+                logger.info('Projection created: %s', child_projection)
 
                 if prototype.type == 'directory':
-
-                    projection.type = stat.S_IFDIR
-                    projection.size = 4096
-
                     # If prototype has children, continue tree building
                     logger.info('Starting attached prototype projection creation for  prototype: %s with children: %s',
                                 prototype, prototype.children)
                     if prototype.children:
-                        self.create_projection_tree(prototype.children, projection_tree, projection)
+                        self.create_projection_tree(prototype.children, child_projection)
 
                 elif prototype.type == 'file':
                     # NOTE: content variable is not accessible during file projection creation!
                     # This is the point where metadata can be extracted from the file
                     #   but file content should be accessed in this case
-                    projection.type = stat.S_IFREG
-                    projection.size = 1
+                    child_projection.projection.type = stat.S_IFREG
+                    child_projection.projection.size = 1
 
 
 class ProjectionManager(object):
