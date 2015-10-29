@@ -8,6 +8,7 @@ from projections import Projector, PrototypeDeserializer
 from sra import SRADriver
 from filesystem import ProjectionFilesystem
 
+
 def main(cfg_path, mountpoint, data_folder, foreground=True):
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
 

@@ -183,7 +183,7 @@ class TestNode(TestCase):
 
             for j, second_level_child in enumerate(first_level_child.get_children()):
                 self.assertIn(second_level_child.name, self.second_level_names,
-                                 msg='Checking name to second level nodes of a tree')
+                              msg='Checking name to second level nodes of a tree')
 
                 for k, third_level_child in enumerate(second_level_child.get_children()):
                     self.assertIn(third_level_child.name, self.third_level_names,
@@ -254,8 +254,6 @@ class TestNode(TestCase):
             tree.remove_node_by_path(node_path)
             self.assertNotIn(node_path, [n.get_path() for n in tree.get_tree_nodes()],
                              msg='Checking if node {0} is no in tree nodes list.')
-
-
 
 
 class TestPrototypeDeserializer(TestCase):

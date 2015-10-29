@@ -16,6 +16,7 @@ logger = logging.getLogger('test_filesystem')
 MOUNT_POINT = 'tests/mnt'
 DATA_FOLDER = 'tests/data'
 
+
 class TestFilesystem(TestCase):
 
     def setUp(self):

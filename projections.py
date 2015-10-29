@@ -247,7 +247,7 @@ class ProjectionPrototype(Node):
 
         self.type = type
         # TODO: consider logical synchronization of name and uri
-        # Dialect specific description that is used as a generator for projection usi's
+        # Dialect specific description that is used as a generator for projection uri's
         self.uri = None
         self.context = None
 
@@ -568,7 +568,7 @@ class ProjectionManager(object):
             return None
 
     def get_xattr(self, path, name):
-        logger.info('Requestin projections \'%s\' from path: %s', name, path)
+        logger.info('Requesting projections \'%s\' from path: %s', name, path)
         return self.projections[path].xattrs[name]
 
     def get_projection_attributes(self, projection):
@@ -582,7 +582,7 @@ class ProjectionManager(object):
         attributes['st_atime'] = now
         # This may be implemented as last projection cashing time is casing is enabled
         attributes['st_mtime'] = now
-        # On Unix this is time for metedata modification we can use the same conception
+        # On Unix this is time for metadata modification we can use the same conception
         attributes['st_ctime'] = now
         # If this is projection the size is zero
         attributes['st_size'] = projection.size
@@ -606,7 +606,7 @@ class ProjectionManager(object):
         attributes['st_atime'] = now
         # This may be implemented as last projection cashing time is casing is enabled
         attributes['st_mtime'] = now
-        # On Unix this is time for metedata modification we can use the same conception
+        # On Unix this is time for metadata modification we can use the same conception
         attributes['st_ctime'] = now
         # If this is projection the size is zero
         attributes['st_size'] = 10

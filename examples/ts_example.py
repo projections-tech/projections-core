@@ -8,10 +8,10 @@ from projections import Projector, PrototypeDeserializer
 from iontorrent import TorrentSuiteDriver
 from filesystem import ProjectionFilesystem
 
-def main(cfg_path, mountpoint, data_folder, foreground=True):
-    LOGIN = 'ionadmin'
-    PASSWORD = '0ECu1lW'
+LOGIN = 'ionadmin'
+PASSWORD = '0ECu1lW'
 
+def main(cfg_path, mountpoint, data_folder, foreground=True):
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
 
     # PrototypeDeserializer class builds prototype tree, using which projections will be created,

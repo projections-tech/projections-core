@@ -10,7 +10,7 @@ import sys
 import urllib.request
 from urllib.parse import urljoin
 
-from projections import ProjectionDriver, ProjectionTree, Projector, PrototypeDeserializer
+from projections import ProjectionDriver, Projector, PrototypeDeserializer
 from filesystem import ProjectionFilesystem
 from fuse import FUSE
 from tests.torrent_suite_mock import TorrentSuiteMock
@@ -47,7 +47,6 @@ class TorrentSuiteDriver(ProjectionDriver):
     def authenticate(self, user, password):
         """
         Creates authorization handler for driver.
-        :param host_url: URL of host string
         :param user: user name string
         :param password: password string
         """
@@ -90,6 +89,7 @@ class TorrentSuiteDriver(ProjectionDriver):
         uri = self.__prepare_uri(uri)
         with urllib.request.urlopen(uri) as f:
             return f.readall()
+
 
 # For smoke testing
 def main(mountpoint, data_folder, foreground=True):

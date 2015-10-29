@@ -35,7 +35,7 @@ class TestTorrentSuiteProjector(TestCase):
         iontorrent_projector = Projector(driver, projection_configuration.root_projection_uri,
                                          projection_configuration.prototype_tree)
 
-        projection_paths_list =[n.get_path() for n in iontorrent_projector.projection_tree.root.get_tree_nodes()]
+        projection_paths_list = [n.get_path() for n in iontorrent_projector.projection_tree.root.get_tree_nodes()]
         logger.debug('Full proj path list: %s', projection_paths_list)
         # Checking number of created projections,
         self.assertEqual(len(projection_paths_list), 131,
@@ -170,8 +170,7 @@ class TestTorrentSuiteProjector(TestCase):
         iontorrent_projector = Projector(driver, projection_configuration.root_projection_uri,
                                          projection_configuration.prototype_tree)
 
-        projection_paths_list =[n.get_path() for n in iontorrent_projector.projection_tree.root.get_tree_nodes()]
-
+        projection_paths_list = [n.get_path() for n in iontorrent_projector.projection_tree.root.get_tree_nodes()]
 
         # Checking number of created projections,
         self.assertEqual(len(projection_paths_list), 19,

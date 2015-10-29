@@ -9,10 +9,9 @@ import xmltodict
 import subprocess
 from Bio import Entrez
 from tests.sra_mock import SRAMock
-import pprint
 
 
-from projections import Projection,  ProjectionDriver, ProjectionTree, Projector, PrototypeDeserializer
+from projections import ProjectionDriver, Projector, PrototypeDeserializer
 from filesystem import ProjectionFilesystem
 from fuse import FUSE
 
