@@ -6,17 +6,17 @@ from tests.mock import MockResource
 
 class GenbankMock(MockResource):
     """
-    Mock SRA resource for test purposes
+    Mock Genbank resource for test purposes
     """
     def prepare_responses(self):
         """
         Prepares mock Genbank replies to requests
         """
         uris = {
-            '/entrez/eutils/esearch.fcgi.*':
+            '/entrez/eutils/esearch.fcgi?.*':
                 'genbank_mock_data/esearch_response.xml',
-            '/entrez/eutils/efetch.fcgi?db=protein':
-                'genbank_mock_data/efetch_fasta.fasta'
+            '/entrez/eutils/efetch.fcgi?.*':
+                'genbank_mock_data/mock_contents.txt'
         }
         content_types = {
             '.json': 'application/json',

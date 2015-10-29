@@ -3,12 +3,9 @@
 import logging
 import logging.config
 import io
-import json
 import os
 import sys
 import time
-import xmltodict
-import subprocess
 from Bio import Entrez
 
 
@@ -55,8 +52,6 @@ class GenbankDriver(ProjectionDriver):
             return gb.read().encode()
         elif query_type == 'get_fasta':
             fasta = Entrez.efetch(db='nuccore', id=query[1], rettype='fasta', retmode='text')
-            with open('efetch_gb.xml', 'w') as f:
-                f.write(fasta.read())
             return fasta.read().encode()
 
 

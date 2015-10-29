@@ -5,6 +5,9 @@ from unittest import TestCase, skip
 from tests.genbank_mock import GenbankMock
 from projections import PrototypeDeserializer, Projection
 import genbank
+import subprocess
+import httpretty
+import time
 
 MOUNT_POINT = 'tests/mnt'
 DATA_FOLDER = 'tests/data'
@@ -17,6 +20,7 @@ logger = logging.getLogger('genbank_test')
 class TestGenbankProjector(TestCase):
     @classmethod
     def setUpClass(cls):
+        httpretty.disable()
         cls.mock_resource = GenbankMock('http://eutils.ncbi.nlm.nih.gov', 'tests/mock_resource')
 
     def setUp(self):
@@ -54,8 +58,15 @@ class TestGenbankProjector(TestCase):
         """
         Tests if file projections contents
         """
-        with open('tests/mock_resource/genbank_mock_data/efetch_fasta.fasta') as f_f:
+        gbk_proj = subprocess.Popen(['./genbank.py', 'tests/mnt', 'tests/data'], stdout=subprocess.DEVNULL)
+        time.sleep(1)
+        with open('tests/mock_resource/genbank_mock_data/mock_contents.txt') as f_f:
             test_fasta = f_f.readlines()
-
         with open('tests/mnt/GI:939732440/sequence.fasta') as p_f:
             projected_fasta = p_f.readlines()
+        self.assertEqual(projected_fasta, test_fasta, msg='Check if fasta file contents loaded properly.')
+        with open('tests/mnt/GI:939732440/sequence.gb') as p_f:
+            projected_gb = p_f.readlines()
+        self.assertEqual(projected_gb, test_fasta, msg='Check if gb file contents loaded properly.')
+        gbk_proj.terminate()
+        subprocess.Popen(['fusermount', '-u', 'tests/mnt'])
