@@ -12,7 +12,6 @@ from Bio import Entrez
 from projections import Projection,  ProjectionDriver, ProjectionTree, Projector, PrototypeDeserializer
 from filesystem import ProjectionFilesystem
 from fuse import FUSE
-from tests.genbank_mock import GenbankMock
 
 logger = logging.getLogger('genbank_projection')
 
@@ -141,8 +140,6 @@ def main(config_path, mountpoint, data_folder, foreground=True):
     # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
-
-    mock_resource = GenbankMock('http://eutils.ncbi.nlm.nih.gov', 'tests/mock_resource')
 
     projection_configuration = PrototypeDeserializer(config_path)
 
