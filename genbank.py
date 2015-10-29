@@ -4,7 +4,6 @@ import logging
 import logging.config
 import io
 import os
-import sys
 import time
 import argparse
 from Bio import Entrez
@@ -49,9 +48,11 @@ class GenbankDriver(ProjectionDriver):
         if query_type == 'query':
             return Entrez.esearch(db='nuccore', term=query[1], retmax=query[2])
         elif query_type == 'get_gb':
+            # Returns query gb file bytes
             gb = Entrez.efetch(db='nuccore', id=query[1], rettype='gb', retmode='text')
             return gb.read().encode()
         elif query_type == 'get_fasta':
+            # Returns query fasta file bytes
             fasta = Entrez.efetch(db='nuccore', id=query[1], rettype='fasta', retmode='text')
             return fasta.read().encode()
 
@@ -159,7 +160,7 @@ if __name__ == '__main__':
     script_dir = os.path.dirname(os.path.realpath(__file__))
     logging.config.fileConfig(os.path.join(script_dir, 'logging.cfg'))
 
-    parser = argparse.ArgumentParser(description='Genbank projection example.')
+    parser = argparse.ArgumentParser(description='Genbank projection.')
     parser.add_argument('-m', '--mount-point', required=True, help='specifies mount point path on host')
     parser.add_argument('-d', '--data-directory', required=True, help='specifies data directory path on host')
     parser.add_argument('-c', '--config-path', required=True, help='specifies projection configuration YAML file path')

@@ -58,19 +58,25 @@ class TestGenbankProjector(TestCase):
         """
         Tests if file projections contents
         """
+        # Starting Genbank projector process
         gbk_proj = subprocess.Popen(['./genbank.py',
                                      '-m', 'tests/mnt',
                                      '-d', 'tests/data',
                                      '-c', 'tests/test_genbank_config.yaml'],
                                     stdout=subprocess.DEVNULL)
+        # Time to initialize Projector
         time.sleep(0.5)
+        # Loading test contents
         with open('tests/mock_resource/genbank_mock_data/mock_contents.txt') as f_f:
-            test_fasta = f_f.readlines()
+            test_contents = f_f.readlines()
+        # Checking fasta file projection contents
         with open('tests/mnt/GI:939732440/sequence.fasta') as p_f:
             projected_fasta = p_f.readlines()
-        self.assertEqual(projected_fasta, test_fasta, msg='Check if fasta file contents loaded properly.')
+        self.assertEqual(projected_fasta, test_contents, msg='Check if fasta file contents loaded properly.')
+        # Checking gb file projection contents
         with open('tests/mnt/GI:939732440/sequence.gb') as p_f:
             projected_gb = p_f.readlines()
-        self.assertEqual(projected_gb, test_fasta, msg='Check if gb file contents loaded properly.')
+        self.assertEqual(projected_gb, test_contents, msg='Check if gb file contents loaded properly.')
+        # Stopping projector
         gbk_proj.terminate()
         subprocess.Popen(['fusermount', '-u', 'tests/mnt'])
