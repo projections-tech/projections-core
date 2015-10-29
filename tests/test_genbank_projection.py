@@ -58,8 +58,12 @@ class TestGenbankProjector(TestCase):
         """
         Tests if file projections contents
         """
-        gbk_proj = subprocess.Popen(['./genbank.py', 'tests/mnt', 'tests/data'], stdout=subprocess.DEVNULL)
-        time.sleep(1)
+        gbk_proj = subprocess.Popen(['./genbank.py',
+                                     '-m', 'tests/mnt',
+                                     '-d', 'tests/data',
+                                     '-c', 'tests/test_genbank_config.yaml'],
+                                    stdout=subprocess.DEVNULL)
+        time.sleep(0.5)
         with open('tests/mock_resource/genbank_mock_data/mock_contents.txt') as f_f:
             test_fasta = f_f.readlines()
         with open('tests/mnt/GI:939732440/sequence.fasta') as p_f:

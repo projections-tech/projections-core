@@ -6,6 +6,7 @@ import io
 import os
 import sys
 import time
+import argparse
 from Bio import Entrez
 
 
@@ -135,14 +136,14 @@ class GenbankProjector(Projector):
 
 
 # For smoke testing
-def main(mountpoint, data_folder, foreground=True):
+def main(config_path, mountpoint, data_folder, foreground=True):
     # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
 
     mock_resource = GenbankMock('http://eutils.ncbi.nlm.nih.gov', 'tests/mock_resource')
 
-    projection_configuration = PrototypeDeserializer('genbank_config.yaml')
+    projection_configuration = PrototypeDeserializer(config_path)
 
     genbank_driver = GenbankDriver('vsvekolkin@parseq.pro')
 
@@ -158,10 +159,10 @@ if __name__ == '__main__':
     script_dir = os.path.dirname(os.path.realpath(__file__))
     logging.config.fileConfig(os.path.join(script_dir, 'logging.cfg'))
 
-    # TODO: replace with argparse
-    # Get mount point from args
-    if len(sys.argv) != 3:
-        print('usage: %s <mountpoint> <data folder>' % sys.argv[0])
-        exit(1)
+    parser = argparse.ArgumentParser(description='Genbank projection example.')
+    parser.add_argument('-m', '--mount-point', required=True, help='specifies mount point path on host')
+    parser.add_argument('-d', '--data-directory', required=True, help='specifies data directory path on host')
+    parser.add_argument('-c', '--config-path', required=True, help='specifies projection configuration YAML file path')
+    args = parser.parse_args()
 
-    main(sys.argv[1], sys.argv[2])
+    main(args.config_path, args.mount_point, args.data_directory)
