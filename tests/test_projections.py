@@ -228,16 +228,35 @@ class TestNode(TestCase):
         self.assertTrue(node_by_path.name == 'a',
                         msg='Checking if node: {0} is on path: {1}'.format(node_by_path.name, path))
 
-    def test_node_removal_by_name(self):
-        logger.debug('Nodes before removal by name: %s', [n.name for n in self.tree.get_tree_nodes()])
-        self.tree.remove_node_by_name('0')
-        self.tree.remove_node_by_name('1')
-        logger.debug('Nodes after removal by name: %s', [n.name for n in self.tree.get_tree_nodes()])
-
     def test_node_removal_by_path(self):
-        logger.debug('Nodes before removal by path: %s', [n.get_path() for n in self.tree.get_tree_nodes()])
-        self.tree.remove_node_by_path('/0')
-        logger.debug('Nodes after removal by path: %s', [n.get_path() for n in self.tree.get_tree_nodes()])
+        """
+        Checks node removal from tree by node path
+        """
+        tree = Node(name='/')
+        node_1 = Node(name='experiments')
+        node_1_1 = Node(name='a')
+        node_1_2 = Node(name='b')
+        node_2 = Node(name='results')
+        node_2_1 = Node(name='a')
+        node_2_2 = Node(name='b')
+
+        tree.add_child(node_1)
+        node_1.add_child(node_2)
+        node_1.add_child(node_1_1)
+        node_1.add_child(node_1_2)
+        node_2.add_child(node_2_1)
+        node_2.add_child(node_2_2)
+
+        all_paths = ['/experiments', '/experiments/a', '/experiments/b',
+                     '/experiments/results', '/experiments/results/a', '/experiments/results/b']
+
+        for node_path in all_paths:
+            tree.remove_node_by_path(node_path)
+            self.assertNotIn(node_path, [n.get_path() for n in tree.get_tree_nodes()],
+                             msg='Checking if node {0} is no in tree nodes list.')
+
+
+
 
 class TestPrototypeDeserializer(TestCase):
 

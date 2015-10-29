@@ -8,7 +8,6 @@ import time
 import threading
 import yaml
 import pprint
-import random
 
 # Import logging configuration from the file provided
 logging.config.fileConfig('logging.cfg')
@@ -54,6 +53,10 @@ class Node(object):
             path = head
 
     def add_child(self, node):
+        """
+        Adds node to current node child nodes dict
+        :param node: Node object instance
+        """
         node.parent = self
         self.children[node.name] = node
 
@@ -125,21 +128,18 @@ class Node(object):
             for v in c.get_tree_nodes():
                 yield v
 
-    def remove_node_by_name(self, node_name):
-        """
-        Removes node with node_name from current node`s children dict
-        """
-        if node_name in self.children:
-            self.children.pop(node_name)
-
     def remove_node_by_path(self, path):
         """
         Removes node on path from current tree
         """
-        node_to_remove = self.find_node_by_path(path)
-        if node_to_remove:
-            logger.debug('Removing node: %s', node_to_remove.name)
-            node_to_remove.parent.remove_node_by_name(node_to_remove.name)
+        try:
+            node_to_remove = self.find_node_by_path(path)
+            if node_to_remove:
+                logger.debug('Removing node: %s', node_to_remove.name)
+                # Dict pop method is considered atomic
+                node_to_remove.parent.children.pop(node_to_remove.name)
+        except:
+            raise RuntimeError('Attempting to remove root node of a tree!')
 
     def __str__(self):
         return pprint.pformat([n.get_path() for n in self.get_tree_nodes()])
@@ -154,32 +154,25 @@ class Projection(object):
 
     The purpose of class objects is to store data related to filesystem object representation (name, type and size)
         and mapping of path to resource uri.
-
-    TODO: current implementation is based on path semantics. It should be reconsidered to use name semantics when
-    Projection objects holds data on its name only and ProjectionTree object holds path/context data in the form
-    of parent/child relationship.
-
     """
 
-    def __init__(self, path, uri, type=stat.S_IFDIR, size=4096):
+    def __init__(self, name, uri, type=stat.S_IFDIR, size=4096):
         """
         Create projection object.
 
-        :param path: specify path relative to mount point. Path is always prefixed with root '/' sign
+        :param name: name of projection
         :param uri: resource identifier projection is pointing to
         :param type: type of filesystem object. Current implementation supports S_IFDIR and S_IFREG only.
         :param size: size of filesystem object in bytes.
-        :return:
         """
-        # TODO: replace 'path' semantics with 'name' semantic
-        self.path = path
+        self.name = name
         self.uri = uri
         self.type = type
         # Should be nonzero to trigger projection object reading
         self.size = size
 
     def __str__(self):
-        return 'Projection from {} to {}'.format(self.uri, self.path)
+        return 'Projection from {} to {}'.format(self.uri, self.name)
 
 
 class ProjectionTree(object):
@@ -190,7 +183,7 @@ class ProjectionTree(object):
     def __init__(self, p_name, p_uri, p_type=stat.S_IFDIR, p_size=4096):
         self.root = Node(name=p_name)
         self.root.data = self
-        self.projection = Projection(path=p_name, uri=p_uri, type=p_type, size=p_size)
+        self.projection = Projection(name=p_name, uri=p_uri, type=p_type, size=p_size)
         # Be aware of atomicity of operations
         self.lock = threading.Lock()
 
@@ -219,7 +212,7 @@ class ProjectionTree(object):
 
     def add_child(self, proj_tree):
         """
-        Adds projection to the current tree.
+        Adds projection tree to the current tree.
 
         :param proj_tree: projection object to add.
         """
@@ -231,7 +224,7 @@ class ProjectionTree(object):
         self.lock.release()
 
     def __str__(self):
-        return 'Projection from {} to {}'.format(self.projection.uri, self.projection.path)
+        return 'Projection from {} to {}'.format(self.projection.uri, self.projection.name)
 
 
 class ProjectionPrototype(Node):
@@ -333,7 +326,7 @@ class ProjectionDriver(object):
 
 class Projector:
     """
-    Class that creates Projection object and assembles them in ProjectionTree object using Prototypes object.
+    Class that creates Projection objects and assembles them in ProjectionTree object using Prototypes object.
     """
 
     def __init__(self, driver, root_projection_uri, prototype_tree):
@@ -356,7 +349,7 @@ class Projector:
 
     def get_projections(self, path):
         logger.info('Requesting projections for path: %s', path)
-        projections = [c.projection.path for c in self.projection_tree.get_children(path)]
+        projections = [c.projection.name for c in self.projection_tree.get_children(path)]
         logger.info('Returning projections: %s', projections)
         return projections
 
@@ -404,7 +397,7 @@ class Projector:
     def fetch_context(self, uri):
         """
         Used to fetch contents of uri in microcode
-        :param uri: URI
+        :param uri: URI string
         :return: uri contents
         """
         return self.driver.get_uri_contents_as_dict(uri)
@@ -422,7 +415,7 @@ class Projector:
         logger.info('Creating projection tree with a prototypes: %s starting from: %s',
                     prototypes, projection_tree.projection)
         # Dictionaries that act as a evaluation context for projections. environment is available for both directory and
-        #   file prototypes, while content for directory prototypes only
+        # file prototypes, while content for directory prototypes only
         environment = None
         content = None
         fetch_context = self.fetch_context
@@ -443,7 +436,6 @@ class Projector:
             context = context[::-1]
 
             logger.info('Creating projections for a prototype: %s', prototype)
-            logger.debug('Prototype uri: %s,  proj uri: %s', prototype.uri, projection_tree.projection.uri)
             # TODO: eval is not safe, consider safer alternative, e.g. JsonPath
             URIs = eval(prototype.uri, locals())
 
@@ -492,7 +484,7 @@ class ProjectionManager(object):
         projections = self.create_projections()
 
         for p in projections:
-            self.projections[p.path] = p
+            self.projections[p.name] = p
             self.resources[p.uri] = p
 
         logger.debug('Projections: %s, resources: %s', self.projections, self.resources)
