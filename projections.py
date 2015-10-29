@@ -313,7 +313,10 @@ class ProjectionDriver(object):
     """
 
     def get_uri_contents_as_dict(self, uri):
-        raise NotImplemented('Implement data retrieval from some projection backend.')
+        raise NotImplemented('Implement data retrieval as dict from some projection backend.')
+
+    def get_uri_contents_as_stream(self, uri):
+        raise NotImplemented('Implement data retrieval as stream from some projection backend.')
 
 
 class Projector:
