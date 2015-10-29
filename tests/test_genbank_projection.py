@@ -6,7 +6,6 @@ from tests.genbank_mock import GenbankMock
 from projections import PrototypeDeserializer, Projection
 import genbank
 import subprocess
-import httpretty
 import time
 
 MOUNT_POINT = 'tests/mnt'
@@ -20,8 +19,11 @@ logger = logging.getLogger('genbank_test')
 class TestGenbankProjector(TestCase):
     @classmethod
     def setUpClass(cls):
-        httpretty.disable()
         cls.mock_resource = GenbankMock('http://eutils.ncbi.nlm.nih.gov', 'tests/mock_resource')
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.mock_resource.deactivate()
 
     def setUp(self):
         driver = genbank.GenbankDriver('test')

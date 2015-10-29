@@ -70,7 +70,7 @@ class SRADriver(ProjectionDriver):
         else:
             return self.query_cache[query[1]]
 
-    def load_uri_contents_as_stream(self, query):
+    def get_uri_contents_as_stream(self, query):
         logger.debug('Loading query: %s', query)
         query = query.split(':')
         query_type = query[0]
@@ -149,7 +149,7 @@ class SRAProjector(Projector):
     def open_resource(self, path):
         uri = self.projections[path].uri
 
-        content = self.driver.load_uri_contents_as_stream(uri)
+        content = self.driver.get_uri_contents_as_stream(uri)
         logger.info('Got path content: %s\n', path)
 
         self.projections[path].size = len(content)

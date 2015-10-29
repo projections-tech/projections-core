@@ -50,6 +50,6 @@ class MockResource(object):
         """
         return NotImplementedError('Responses are not implemented in base class, this method must be implemented in subclass in application-specific manner.')
 
-    def __del__(self):
+    def deactivate(self):
         httpretty.disable()
         httpretty.reset()

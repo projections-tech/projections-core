@@ -18,14 +18,15 @@ class TestSRAProjector(TestCase):
     def setUpClass(cls):
         cls.mock_resource = SRAMock('http://eutils.ncbi.nlm.nih.gov', 'tests/mock_resource')
 
+    @classmethod
+    def tearDownClass(cls):
+        cls.mock_resource.deactivate()
+
     def setUp(self):
         driver = sra.SRADriver('test')
         projection_configuration = PrototypeDeserializer('tests/test_sra_config.yaml')
         root_projection = Projection('/', projection_configuration.root_projection_uri)
-        try:
-            self.sra_projector = sra.SRAProjector(driver, root_projection, projection_configuration.prototype_tree)
-        except:
-            logger.debug('Encountered request to unmocked resource: %s', self.mock_resource.get_last_request_to_mock())
+        self.sra_projector = sra.SRAProjector(driver, root_projection, projection_configuration.prototype_tree)
 
     def test_create_projections(self):
         """
