@@ -15,7 +15,7 @@ root_projection_uri: '/rundb/api/v1/results/144/'
 tsvc_vcf_prototype: &tsvc_vcf_prototype
   type: file
   children: None
-  name:  " 'TSVC_variants.vcf' "
+  name:  " context[0]['name'] + '_TSVC_variants.vcf' "
   uri: "['/auth/output/Home/' + path.basename(context[1]['filesystempath']) + '/plugin_out/' + path.basename(environment['path']) + '/' + fetch_context(fetch_context(context[2]['experiment'])['plan'])['barcodedSamples'][context[0]['name']]['barcodes'][0] + '/TSVC_variants.vcf']"
 
 # Prototype of settings for plugins used in current run
@@ -34,22 +34,13 @@ bed_prototype: &bed_prototype
 
 # Each sample have plugin run results associated to it, this prototype specifies it`s projection contents
 plugin_result_prototype: &plugin_result_prototype
-  type: directory
+  type: transparent
   children:
     local_settings_prototype: *local_settings_prototype
     bed_prototype: *bed_prototype
     tsvc_vcf_prototype: *tsvc_vcf_prototype
   name: "path.basename(content['path'])"
   uri: "[p_res for p_res in context[0]['pluginresults'] if 'variant' in fetch_context(p_res)['pluginName'] and 'VFNA' not in fetch_context(p_res)['pluginName']]"
-
-# BAM files are associated with each run and stored with barcodes which are specified in experiment plan
-# here we use our ability to resolve current prototype URI from upper level prototypes context, also we employ
-# fetch_context function in microcode, which makes requests to specified resource
-bam_prototype: &bam_prototype
-  type: file
-  children: None
-  name:  "environment['name']+'.bam'"
-  uri: "['/auth/output/Home/'+path.split(context[0]['filesystempath'])[1] + '/'+fetch_context(fetch_context(context[1]['experiment'])['plan'])['barcodedSamples'][environment['name']]['barcodes'][0] + '_rawlib.bam']"
 
 # Each sample also have metadata associated to it, this prototype specifies it
 sample_metadata_prototype: &sample_metadata_prototype
@@ -61,10 +52,9 @@ sample_metadata_prototype: &sample_metadata_prototype
 # Each result have samples associated to it, samples are specified on experiment level, so this projection uses
 # fetch_context function to get experiment data to resolve it`s URI.
 sample_prototype: &sample_prototype
-  type: directory
+  type: transparent
   children:
     sample_metadata_prototype: *sample_metadata_prototype
-    bam_prototype: *bam_prototype
     plugin_result_prototype: *plugin_result_prototype
   name: "content['name']"
   uri: "[sample['resource_uri'] for sample in fetch_context(context[0]['experiment'])['samples']]"

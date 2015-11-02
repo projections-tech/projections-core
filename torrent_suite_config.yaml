@@ -129,7 +129,7 @@ exp_metadata_prototype: &exp_metadata_prototype
   uri: '[environment["resource_uri"]]'
 
 root:
-  type: transparent
+  type: directory
   children:
     result_prototype: *result_prototype
     exp_metadata_prototype: *exp_metadata_prototype
