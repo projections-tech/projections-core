@@ -338,7 +338,7 @@ class Projector:
         """
         return self.driver.get_uri_contents_as_dict(uri)
 
-    def create_projection_tree(self, prototypes, projection_tree, parent_projection=None):
+    def create_projection_tree(self, prototypes, projection_tree, parent_projection=None, parent_uri=None):
         """
         Creates projection tree for a given collection of prototypes.
 
@@ -361,8 +361,9 @@ class Projector:
 
         # This is environment in which projections are created (parent_projection content)
         # TODO: in many cases it means double request to parent projection resource so it should be optimized
-        environment = self.driver.get_uri_contents_as_dict(parent_projection.uri)
-        logger.debug(environment)
+        logger.info(parent_uri)
+        environment = self.driver.get_uri_contents_as_dict(parent_uri)
+
         logger.info('Starting prototype creation in the context of resource with uri: %s', parent_projection.uri)
 
         # For every prototype in collection try to create corresponding projections
@@ -387,16 +388,16 @@ class Projector:
                 content = self.driver.get_uri_contents_as_dict(uri)
                 logger.debug('ENV: %s, CONTENT: %s', environment, content)
                 name = eval(prototype.name, locals())
+                if not prototype.type == 'transparent':
+                    # This may be reconsidered with ProjectionTree implementation
+                    projection_path = os.path.join(parent_projection.path, name)
 
-                # This may be reconsidered with ProjectionTree implementation
-                projection_path = os.path.join(parent_projection.path, name)
+                    projection = Projection(projection_path, uri)
+                    projection.name = name
 
-                projection = Projection(projection_path, uri)
-                projection.name = name
-
-                # Add newly created projection to projection tree
-                projection_tree.add_projection(projection, parent_projection)
-                logger.info('Projection created: %s', projection)
+                    # Add newly created projection to projection tree
+                    projection_tree.add_projection(projection, parent_projection)
+                    logger.info('Projection created: %s', projection)
 
                 if prototype.type == 'directory':
 
@@ -407,7 +408,11 @@ class Projector:
                     logger.info('Starting attached prototype projection creation for  prototype: %s with children: %s',
                                 prototype, prototype.children)
                     if prototype.children:
-                        self.create_projection_tree(prototype.children, projection_tree, projection)
+                        self.create_projection_tree(prototype.children, projection_tree, projection, projection.uri)
+
+                elif prototype.type == 'transparent':
+                    if prototype.children:
+                        self.create_projection_tree(prototype.children, projection_tree, parent_projection, uri)
 
                 elif prototype.type == 'file':
                     # NOTE: content variable is not accessible during file projection creation!
