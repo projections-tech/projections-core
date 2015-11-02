@@ -82,7 +82,7 @@ class SRADriver(ProjectionDriver):
 
 
 class SRAProjector(Projector):
-    def __init__(self, driver, root_projection, root_uri, root_prototype):
+    def __init__(self, driver, root_projection, root_prototype):
         """
         Initializes SRA Projector with driver, assigns root projection, builds prototype and projection tree.
         :param driver: instance of SRADriver
@@ -98,7 +98,7 @@ class SRAProjector(Projector):
 
         self.create_projection_tree({'/': root_prototype}, projection_tree=self.projection_tree,
                                     parent_projection=self.root_projection,
-                                    parent_uri=root_uri)
+                                    parent_uri=self.root_projection.uri)
         self.projections = self.projection_tree.projections
 
     def is_managing_path(self, path):
@@ -167,7 +167,7 @@ def main(mountpoint, data_folder, foreground=True):
     # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
-    #mock_resource = SRAMock('http://eutils.ncbi.nlm.nih.gov', 'tests/mock_resource')
+    mock_resource = SRAMock('http://eutils.ncbi.nlm.nih.gov', 'tests/mock_resource')
 
     projection_configuration = PrototypeDeserializer('sra_config.yaml')
 
@@ -176,7 +176,6 @@ def main(mountpoint, data_folder, foreground=True):
     root_projection = Projection('/', projection_configuration.root_projection_uri)
 
     projection_filesystem.projection_manager = SRAProjector(sra_driver, root_projection,
-                                                            projection_configuration.root_projection_uri,
                                                             projection_configuration.prototype_tree)
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
     return fuse

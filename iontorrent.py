@@ -111,7 +111,8 @@ class TorrentSuiteProjector(Projector):
 
         self.create_projection_tree({'/': prototype_tree},
                                     projection_tree=self.projection_tree,
-                                    parent_projection=self.root_projection)
+                                    parent_projection=self.root_projection,
+                                    parent_uri=self.root_projection.uri)
         self.projections = self.projection_tree.projections
 
     def is_managing_path(self, path):
