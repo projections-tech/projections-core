@@ -7,7 +7,7 @@ import os
 import time
 import argparse
 from Bio import Entrez
-
+from tests.genbank_mock import GenbankMock
 
 from projections import Projection,  ProjectionDriver, ProjectionTree, Projector, PrototypeDeserializer
 from filesystem import ProjectionFilesystem
@@ -38,7 +38,7 @@ class GenbankDriver(ProjectionDriver):
             esearch_handle = Entrez.esearch(db='nucleotide', term=query[1], retmax=query[2])
             return Entrez.read(esearch_handle)
         else:
-            return query[0]
+            return {'id': query[0]}
 
     def get_uri_contents_as_stream(self, query):
         logger.debug('Loading query: %s', query)
@@ -140,7 +140,6 @@ def main(config_path, mountpoint, data_folder, foreground=True):
     # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
-
     projection_configuration = PrototypeDeserializer(config_path)
 
     genbank_driver = GenbankDriver('vsvekolkin@parseq.pro')
@@ -156,7 +155,7 @@ if __name__ == '__main__':
 
     script_dir = os.path.dirname(os.path.realpath(__file__))
     logging.config.fileConfig(os.path.join(script_dir, 'logging.cfg'))
-
+    mock_resource = GenbankMock('http://eutils.ncbi.nlm.nih.gov', 'tests/mock_resource')
     parser = argparse.ArgumentParser(description='Genbank projection.')
     parser.add_argument('-m', '--mount-point', required=True, help='specifies mount point path on host')
     parser.add_argument('-d', '--data-directory', required=True, help='specifies data directory path on host')
@@ -164,3 +163,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     main(args.config_path, args.mount_point, args.data_directory)
+    mock_resource.deactivate()

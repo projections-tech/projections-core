@@ -1,6 +1,6 @@
 ---
 dialect: python
-resource_uri: http://eutils.ncbi.nlm.nih.gov'
+resource_uri: http://eutils.ncbi.nlm.nih.gov
 
 root_projection_uri: 'query:escherichia[orgn] AND complete genome[title]:1'
 
@@ -8,13 +8,13 @@ fasta_file_prototype: &fasta_file_prototype
   type: file
   children: None
   name:  "'sequence.fasta'"
-  uri: "['get_fasta:'+environment]"
+  uri: "['get_fasta:'+environment['id']]"
 
 gb_file_prototype: &gb_file_prototype
   type: file
   children: None
   name:  "'sequence.gb'"
-  uri: "['get_gb:'+environment]"
+  uri: "['get_gb:'+environment['id']]"
 
 root:
   type: directory

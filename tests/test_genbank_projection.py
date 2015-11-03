@@ -61,6 +61,7 @@ class TestGenbankProjector(TestCase):
         Tests if file projections contents
         """
         # Starting Genbank projector process
+
         gbk_proj = subprocess.Popen(['./genbank.py',
                                      '-m', 'tests/mnt',
                                      '-d', 'tests/data',
