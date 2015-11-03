@@ -14,6 +14,15 @@ logger = logging.getLogger('transparent_projections_test')
 
 
 class TestTransparentProjection(TestCase):
+    def setUp(self):
+        # Clean data folder before tests
+        for path in os.listdir(DATA_FOLDER):
+            if path not in ['folder', 'file']:
+                path = os.path.join(DATA_FOLDER, path)
+                if os.path.isfile(path):
+                    os.remove(path)
+                else:
+                    os.rmdir(path)
 
     def test_flat_iontorrent_projection(self):
         """
