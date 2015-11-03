@@ -24,7 +24,7 @@ class GenbankDriver(ProjectionDriver):
 
     def get_uri_contents_as_dict(self, query):
         """
-        Loads content from SRA using Biopython in driver cache, with queries in format: "query_type:query"
+        Loads content from SRA using Biopython, with queries in format: "query_type:query"
         :param query: str containing query to SRA
         :return: dict of query contents
         """
