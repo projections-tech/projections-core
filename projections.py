@@ -14,6 +14,7 @@ logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('projections')
 
 
+
 class Node(object):
     """
     Generic tree class which holds common methods for "tree" structure, must be subclassed to create Prototype and
@@ -365,7 +366,7 @@ class Projector:
         # This is environment in which projections are created (parent_projection content)
         # TODO: in many cases it means double request to parent projection resource so it should be optimized
         environment = self.driver.get_uri_contents_as_dict(parent_projection.uri)
-        logger.debug(environment)
+
         logger.info('Starting prototype creation in the context of resource with uri: %s', parent_projection.uri)
 
         # For every prototype in collection try to create corresponding projections

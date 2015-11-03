@@ -5,8 +5,8 @@ import logging.config
 import io
 import json
 import os
-import sys
 import time
+import argparse
 
 from projections import Projection, ProjectionDriver, ProjectionTree, Projector, PrototypeDeserializer
 from filesystem import ProjectionFilesystem
@@ -16,11 +16,6 @@ logger = logging.getLogger('filesystem_projection')
 
 
 class FSDriver(ProjectionDriver):
-    def __init__(self, host_uri):
-        """
-        Initialize driver which will be used to interact with host.
-        """
-        self.host_uri = host_uri
 
     def get_uri_contents_as_dict(self, uri):
         """
@@ -28,6 +23,7 @@ class FSDriver(ProjectionDriver):
         :param uri: URI string
         :return: dict of URI contents
         """
+        # Directory projection returns list of it`s children as metadata
         if os.path.isdir(uri):
             return {'name': os.path.basename(uri), 'size': os.path.getsize(uri), 'type': 'dir',
                     'children': [os.path.join(os.path.abspath(uri), p) for p in os.listdir(uri)], 'extension': None}
@@ -37,11 +33,10 @@ class FSDriver(ProjectionDriver):
 
     def get_uri_contents_as_stream(self, uri):
         """
-        Load uri contents
+        Load uri contents as stream
         :param uri: URI string
         :return: content bytes
         """
-        logger.debug(uri)
         if os.path.isfile(uri):
             with open(uri, 'rb') as f:
                 return f.read()
@@ -129,19 +124,19 @@ class FSProjector(Projector):
 
 
 # For smoke testing
-def main(mountpoint, data_folder, foreground=True):
+def main(cfg_path, mountpoint, data_folder, foreground=True):
     # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
 
-    projection_configuration = PrototypeDeserializer('fs_config.yaml')
+    projection_configuration = PrototypeDeserializer(cfg_path)
 
-    fs_driver = FSDriver('tests')
+    fs_driver = FSDriver()
 
     root_projection = Projection('/', projection_configuration.root_projection_uri)
 
     projection_filesystem.projection_manager = FSProjector(fs_driver, root_projection,
-                                                            projection_configuration.prototype_tree)
+                                                           projection_configuration.prototype_tree)
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
     return fuse
 
@@ -150,10 +145,10 @@ if __name__ == '__main__':
     script_dir = os.path.dirname(os.path.realpath(__file__))
     logging.config.fileConfig(os.path.join(script_dir, 'logging.cfg'))
 
-    # TODO: replace with argparse
-    # Get mount point from args
-    if len(sys.argv) != 3:
-        print('usage: %s <mountpoint> <data folder>' % sys.argv[0])
-        exit(1)
+    parser = argparse.ArgumentParser(description='Local filesystem projection.')
+    parser.add_argument('-m', '--mount-point', required=True, help='specifies mount point path on host')
+    parser.add_argument('-d', '--data-directory', required=True, help='specifies data directory path on host')
+    parser.add_argument('-c', '--config-path', required=True, help='specifies projection configuration YAML file path')
+    args = parser.parse_args()
 
-    main(sys.argv[1], sys.argv[2])
+    main(args.config_path, args.mount_point, args.data_directory)
