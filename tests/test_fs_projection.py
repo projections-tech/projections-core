@@ -40,6 +40,12 @@ class TestFSProjection(TestCase):
                       created_projections,
                       msg='Checking creation of root projection')
 
+        # Checking if FASTA files not present in config are not projected
+        for i in range(1,5):
+            fasta_proj_path = '/test_dir/fasta_file_{0}.fasta'.format(i)
+            self.assertNotIn(fasta_proj_path, created_projections,
+                          msg='Checking if {0} not in projections'.format(fasta_proj_path))
+
         # Check BAM files projections creation
         for i in range(1,6):
             bam_proj_path = '/test_dir/bam_file_{0}.bam'.format(i)
