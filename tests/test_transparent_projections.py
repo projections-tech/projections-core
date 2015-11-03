@@ -1,4 +1,5 @@
 import os
+import shutil
 import time
 import subprocess
 import logging
@@ -22,7 +23,7 @@ class TestTransparentProjection(TestCase):
                 if os.path.isfile(path):
                     os.remove(path)
                 else:
-                    os.rmdir(path)
+                    shutil.rmtree(path)
 
     def test_flat_iontorrent_projection(self):
         """
