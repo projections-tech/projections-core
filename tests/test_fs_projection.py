@@ -13,7 +13,7 @@ CONFIG_PATH = 'tests/test_fs_proj_config.yaml'
 
 # Import logging configuration from the file provided
 logging.config.fileConfig('logging.cfg')
-logger = logging.getLogger('sra_test')
+logger = logging.getLogger('fs_proj_test')
 
 
 class TestFSProjection(TestCase):
