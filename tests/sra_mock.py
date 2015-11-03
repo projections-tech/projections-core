@@ -16,7 +16,7 @@ class SRAMock(MockResource):
             '/entrez/eutils/esearch.fcgi.*':
                 'sra_mock_data/esearch_query.xml',
             '/entrez/eutils/efetch.fcgi.*':
-                'sra_mock_data/efetch_query.xml'
+                'sra_mock_data/efetch_query.xml',
         }
         content_types = {
             '.json': 'application/json',
@@ -37,4 +37,12 @@ class SRAMock(MockResource):
                                        body=f.read(),
                                        status=200,
                                        content_type=content_type,
+                                       match_querystring=True)
+
+        sam_dump_uri = '.*srafiles.*.ncbi.nlm.nih.gov.*'
+        httpretty.register_uri(httpretty.GET,
+                                       re.compile(sam_dump_uri),
+                                       body=b'Mock SAM here!',
+                                       status=200,
+                                       content_type={'.sam': 'text/csv'},
                                        match_querystring=True)

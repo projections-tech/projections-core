@@ -411,13 +411,16 @@ class Projector:
                         self.create_projection_tree(prototype.children, projection_tree, projection, projection.uri)
 
                 elif prototype.type == 'transparent':
+                    # If projection is transparent, continue prototype tree building passing parent projection
+                    # and evaluated uri of prototype. This behaviour alows to build flat projections there
+                    # all prototypes are on one level due to passed common parent projection
                     if prototype.children:
                         self.create_projection_tree(prototype.children, projection_tree, parent_projection, uri)
 
                 elif prototype.type == 'file':
                     # NOTE: content variable is not accessible during file projection creation!
                     # This is the point where metadata can be extracted from the file
-                    #   but file content should be accessed in this case
+                    #  but file content should be accessed in this case
                     projection.type = stat.S_IFREG
                     projection.size = 1
 

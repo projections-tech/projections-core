@@ -7,10 +7,10 @@ import io
 import re
 import json
 import os
-import sys
 import time
 import urllib.request
 from urllib.parse import urljoin
+import argparse
 
 from projections import Projection, ProjectionDriver, ProjectionTree, Projector, PrototypeDeserializer
 from filesystem import ProjectionFilesystem
@@ -177,13 +177,13 @@ class TorrentSuiteProjector(Projector):
 
 
 # For smoke testing
-def main(mountpoint, data_folder, foreground=True):
+def main(cfg_path, mountpoint, data_folder, foreground=True):
     # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
-    #mock_torrent_suite = TorrentSuiteMock('mockiontorrent.com', 'tests/mock_resource/torrent_suite_mock_data')
+    mock_torrent_suite = TorrentSuiteMock('mockiontorrent.com', 'tests/mock_resource/torrent_suite_mock_data')
 
-    projection_configuration = PrototypeDeserializer('torrent_suite_config.yaml')
+    projection_configuration = PrototypeDeserializer(cfg_path)
     root_projection = Projection('/', projection_configuration.root_projection_uri)
     projection_dirver = TorrentSuiteDriver(projection_configuration.resource_uri, 'ionadmin', '0ECu1lW')
     projection_filesystem.projection_manager = TorrentSuiteProjector(projection_dirver,
@@ -197,13 +197,13 @@ if __name__ == '__main__':
     script_dir = os.path.dirname(os.path.realpath(__file__))
     logging.config.fileConfig(os.path.join(script_dir, 'logging.cfg'))
 
-    # TODO: replace with argparse
-    # Get mount point from args
-    if len(sys.argv) != 3:
-        print('usage: %s <mountpoint> <data folder>' % sys.argv[0])
-        exit(1)
+    parser = argparse.ArgumentParser(description='Torrent Suite projection.')
+    parser.add_argument('-m', '--mount-point', required=True, help='specifies mount point path on host')
+    parser.add_argument('-d', '--data-directory', required=True, help='specifies data directory path on host')
+    parser.add_argument('-c', '--config-path', required=True, help='specifies projection configuration YAML file path')
+    args = parser.parse_args()
 
-    main(sys.argv[1], sys.argv[2])
+    main(args.config_path, args.mount_point, args.data_directory)
 
 
 

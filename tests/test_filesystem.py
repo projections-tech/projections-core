@@ -19,6 +19,7 @@ DATA_FOLDER = 'tests/data'
 class TestFilesystem(TestCase):
 
     def setUp(self):
+        Popen(['fusermount', '-u', MOUNT_POINT])
         logger.info('Mounting Projections filesystem for testing')
         Popen(['./filesystem.py', MOUNT_POINT, DATA_FOLDER])
         # Let filesystem time to mount
