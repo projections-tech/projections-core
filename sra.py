@@ -10,7 +10,7 @@ import time
 import xmltodict
 import subprocess
 from Bio import Entrez
-from tests.sra_mock import SRAMock
+from tests.mock import MockResource
 import pprint
 
 
@@ -165,7 +165,7 @@ def main(mountpoint, data_folder, foreground=True):
     # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
-    mock_resource = SRAMock('http://eutils.ncbi.nlm.nih.gov', 'tests/mock_resource')
+    mock_resource = MockResource('tests/sra_mock.json')
 
     projection_configuration = PrototypeDeserializer('sra_config.yaml')
 

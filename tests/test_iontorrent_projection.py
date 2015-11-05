@@ -4,7 +4,7 @@ import os
 import logging
 import logging.config
 from unittest import TestCase, skip
-from tests.torrent_suite_mock import TorrentSuiteMock
+from tests.mock import MockResource
 from projections import PrototypeDeserializer, Projection
 
 import iontorrent
@@ -24,7 +24,7 @@ PASSWORD = 'password'
 class TestTorrentSuiteProjector(TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.mock_resource = TorrentSuiteMock('mockiontorrent.com', 'tests/mock_resource/torrent_suite_mock_data')
+        cls.mock_resource = MockResource('tests/torrent_suite_mock.json')
 
     def test_full_projection(self):
         """
@@ -57,8 +57,7 @@ class TestTorrentSuiteProjector(TestCase):
                 }
         }
 
-        for exp_dir in self.mock_resource.get_experiments():
-            exp_dir = '/' + exp_dir
+        for exp_dir in ['/test_experiment_1', '/test_experiment_2']:
             # Checking metadata projection creation for experiments
             for meta_name in ['metadata.json', 'plannedexperiment.json']:
                 meta_data_path = os.path.join(exp_dir, meta_name)

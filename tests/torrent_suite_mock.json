@@ -1,0 +1,24 @@
+{
+  "mock_resource_uri":"mockiontorrent.com",
+  "mock_data_path":"tests/mock_resource/torrent_suite_mock_data",
+  "mock_responses": {
+  "/rundb/api/v1/experiment\\?status=run\\&limit=(\\d+)\\&order_by=-id": "experiments.json",
+  "/rundb/api/v1/experiment/1/": "experiments_1.json",
+  "/rundb/api/v1/experiment/2/": "experiments_2.json",
+  "/rundb/api/v1/plannedexperiment/1/": "plannedexperiment_1.json",
+  "/rundb/api/v1/plannedexperiment/2/": "plannedexperiment_2.json",
+  "/rundb/api/v1/results/1/": "results_1.json",
+  "/rundb/api/v1/results/2/": "results_2.json",
+  "/rundb/api/v1/results/3/": "results_3.json",
+  "/rundb/api/v1/results/4/": "results_4.json",
+  "/rundb/api/v1/pluginresult/(\\d+)/": "plugin_result.json",
+  "/rundb/api/v1/sample/1/": "sample_1.json",
+  "/rundb/api/v1/sample/2/": "sample_2.json",
+  "/rundb/api/v1/sample/3/": "sample_3.json",
+  "/rundb/api/v1/sample/4/": "sample_4.json",
+  "/auth/output/Home/.*/plugin_out/variantCaller_out[\\.\\d+]*/local_parameters.json": "mock_vc_parameters.json",
+  "/auth/output/Home/.*/IonXpress_00\\d+_rawlib.bam": "mock_bam.bam",
+  "/auth/output/Home/.*/plugin_out/variantCaller_out[\\.\\d+]*/.*bed": "mock_bed.bed",
+  "/auth/output/Home/test_run_(\\d+)/plugin_out/variantCaller_out[\\.\\d+]*/IonXpress_00(\\d+)/.*vcf": "mock_vcf.vcf"
+}
+}
