@@ -24,10 +24,12 @@ class MockResource(object):
         httpretty.enable()
         # Disable network connection for mock server, this option enables more transparent error messages
         httpretty.HTTPretty.allow_net_connect = False
+        # Loading configuration of mock from JSON file
         with open(configuration_path) as m_c:
             self.mock_configuration = json.load(m_c)
-
+        # Directory with mock contents files
         self.content_dir = self.mock_configuration['mock_data_path']
+        # Url which will be mocked
         self.mock_url = self.mock_configuration['mock_resource_uri']
         logger.debug('Mock resource URL: %s', self.mock_url)
         logger.debug('HTTPpretty status: %s', httpretty.is_enabled())
@@ -35,6 +37,7 @@ class MockResource(object):
 
         # Setting up mock authorization response
         self.mock_auth_response()
+        # Registering URI`s which will be mocked
         self.prepare_responses(self.mock_configuration['mock_responses'])
 
     def get_last_request_to_mock(self):
