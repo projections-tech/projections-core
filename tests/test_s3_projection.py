@@ -10,8 +10,8 @@ import boto3
 logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('s3_test')
 
-KEY_ID = 'AKIAIONUXTO6TR3UU3TQ'
-ACCESS_KEY = 'UgYV9YRRoFX64nmxoL+4ry3QLBD0rPdoQRVTCB5w'
+KEY_ID = 'test'
+ACCESS_KEY = 'test'
 REGION_NAME = 'us-west-2'
 
 
