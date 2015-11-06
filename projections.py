@@ -8,6 +8,7 @@ import time
 import threading
 import yaml
 import pprint
+import jmespath
 
 # Import logging configuration from the file provided
 logging.config.fileConfig('logging.cfg')
@@ -375,8 +376,10 @@ class Projector:
 
             logger.info('Creating projections for a prototype: %s', prototype)
 
-            # TODO: eval is not safe, consider safer alternative, e.g. JsonPath
-            URIs = eval(prototype.uri, locals())
+            URIs = jmespath.search(prototype.uri, environment)
+            # Treating URIs as list for consistency
+            if not isinstance(URIs, list):
+                URIs = [URIs]
 
             logger.info('Prototype %s has projections on URIs: %s', prototype, URIs)
 
@@ -386,6 +389,7 @@ class Projector:
                 # Get content for a projection
                 content = self.driver.get_uri_contents_as_dict(uri)
                 logger.debug('ENV: %s, CONTENT: %s', environment, content)
+
                 name = eval(prototype.name, locals())
 
                 # This may be reconsidered with ProjectionTree implementation
