@@ -4,7 +4,8 @@ from unittest import TestCase, skip
 from projections import PrototypeDeserializer, Projection
 from aws_s3 import S3Driver, S3Projector
 import httpretty
-
+from moto import mock_s3
+import boto3
 # Import logging configuration from the file provided
 logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('s3_test')
@@ -20,39 +21,63 @@ class TestS3Driver(TestCase):
         httpretty.disable()
         self.driver = S3Driver(KEY_ID, ACCESS_KEY, REGION_NAME, 'parseq')
 
+    @mock_s3
     def test_bucket_contents(self):
         """
         Tests if driver gets proper bucket on init
         """
+        s3 = boto3.resource('s3')
+        s3.create_bucket(Bucket='parseq', CreateBucketConfiguration={'LocationConstraint': 'us-west-2'})
+        s3.Object('parseq', 'projects/').put(Body=b'')
+        s3.Object('parseq', 'projects/ensembl.txt').put(Body=b'Test ensembl here!')
+
         exp_contents = ['projects/', 'projects/ensembl.txt']
         for obj in exp_contents:
             self.assertIn(obj, [o.key for o in self.driver.bucket.objects.all()], msg='Checking objects existence.')
 
+    @mock_s3
     def test_get_uri_contents_as_stream(self):
         """
         Tests driver get_uri_contents_stream method
         """
-        with open('tests/test_ensembl.txt', 'rb') as t_f:
-            test_ensembl = t_f.read()
+        s3 = boto3.resource('s3')
+        s3.create_bucket(Bucket='parseq', CreateBucketConfiguration={'LocationConstraint': 'us-west-2'})
+        s3.Object('parseq', 'projects/').put(Body=b'')
+        s3.Object('parseq', 'projects/ensembl.txt').put(Body=b'Test ensembl here!')
+
+        test_ensembl = b'Test ensembl here!'
         for key, exp_content in {'projects/': b'', 'projects/ensembl.txt': test_ensembl}.items():
             self.assertEqual(exp_content, self.driver.get_uri_contents_as_stream(key),
                              msg='Checking content of object with URI: {0}'.format(key))
-
+    @mock_s3
     def test_get_uri_contents_as_dict(self):
         """
         Tests driver get_uri_contents_as_dict method
         """
+        s3 = boto3.resource('s3')
+        s3.create_bucket(Bucket='parseq', CreateBucketConfiguration={'LocationConstraint': 'us-west-2'})
+        s3.Object('parseq', 'projects/').put(Body=b'')
+        s3.Object('parseq', 'projects/ensembl.txt').put(Body=b'Test ensembl here!',
+                                                        Metadata={'madefor': 'testing', 'quality': 'good'})
+
         contents_meta = [{'content_encoding': None, 'size': 0, 'name': 'projects/',
-                          'content_type': 'binary/octet-stream', 'metadata': {}},
-                         {'content_encoding': None, 'size': 1387, 'name': 'projects/ensembl.txt',
-                          'content_type': 'text/plain', 'metadata': {'madefor': 'testing', 'quality': 'good'}}]
+                          'content_type': 'text/plain; charset=utf-8', 'metadata': {}},
+                         {'content_encoding': None, 'size': 18, 'name': 'projects/ensembl.txt',
+                          'content_type': 'text/plain; charset=utf-8', 'metadata': {'madefor': 'testing', 'quality': 'good'}}]
         for meta in contents_meta:
             self.assertDictEqual(meta, self.driver.get_uri_contents_as_dict(meta['name']),
                                  msg='Checking meta of object with URI: {0}'.format(meta['name']))
 
 
 class TestS3Projector(TestCase):
+    @mock_s3
     def setUp(self):
+        s3 = boto3.resource('s3')
+        s3.create_bucket(Bucket='parseq', CreateBucketConfiguration={'LocationConstraint': 'us-west-2'})
+        s3.Object('parseq', 'projects/').put(Body=b'')
+        s3.Object('parseq', 'projects/ensembl.txt').put(Body=b'Test ensembl here!',
+                                                        Metadata={'madefor': 'testing', 'quality': 'good'})
+
         projection_configuration = PrototypeDeserializer('tests/test_s3.yaml')
 
         root_projection = Projection('/', projection_configuration.root_projection_uri)
