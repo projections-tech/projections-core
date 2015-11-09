@@ -3,63 +3,60 @@ import logging.config
 from unittest import TestCase, skip
 from projections import PrototypeDeserializer, Projection
 from aws_s3 import S3Driver, S3Projector
-import httpretty
 from moto import mock_s3
 import boto3
 # Import logging configuration from the file provided
 logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('s3_test')
 
-KEY_ID = 'test'
-ACCESS_KEY = 'test'
-REGION_NAME = 'us-west-2'
-
 
 class TestS3Driver(TestCase):
 
-    def setUp(self):
-        httpretty.disable()
-        self.driver = S3Driver(KEY_ID, ACCESS_KEY, REGION_NAME, 'parseq')
+    @classmethod
+    def setUpClass(cls):
+        """
+        Set`s up mock S3 resource
+        """
+        # Init S3 mock
+        cls.mock = mock_s3()
+        cls.mock.start()
 
-    @mock_s3
-    def test_bucket_contents(self):
-        """
-        Tests if driver gets proper bucket on init
-        """
-        s3 = boto3.resource('s3')
-        s3.create_bucket(Bucket='parseq', CreateBucketConfiguration={'LocationConstraint': 'us-west-2'})
-        s3.Object('parseq', 'projects/').put(Body=b'')
-        s3.Object('parseq', 'projects/ensembl.txt').put(Body=b'Test ensembl here!')
+        # Instantiate S3Driver which will be tested
+        cls.driver = S3Driver('test_id', 'test_key', 'us-west-2', 'parseq')
 
-        exp_contents = ['projects/', 'projects/ensembl.txt']
-        for obj in exp_contents:
-            self.assertIn(obj, [o.key for o in self.driver.bucket.objects.all()], msg='Checking objects existence.')
-
-    @mock_s3
-    def test_get_uri_contents_as_stream(self):
-        """
-        Tests driver get_uri_contents_stream method
-        """
-        s3 = boto3.resource('s3')
-        s3.create_bucket(Bucket='parseq', CreateBucketConfiguration={'LocationConstraint': 'us-west-2'})
-        s3.Object('parseq', 'projects/').put(Body=b'')
-        s3.Object('parseq', 'projects/ensembl.txt').put(Body=b'Test ensembl here!')
-
-        test_ensembl = b'Test ensembl here!'
-        for key, exp_content in {'projects/': b'', 'projects/ensembl.txt': test_ensembl}.items():
-            self.assertEqual(exp_content, self.driver.get_uri_contents_as_stream(key),
-                             msg='Checking content of object with URI: {0}'.format(key))
-    @mock_s3
-    def test_get_uri_contents_as_dict(self):
-        """
-        Tests driver get_uri_contents_as_dict method
-        """
+        # Add contents to mock S3 resource using boto3
         s3 = boto3.resource('s3')
         s3.create_bucket(Bucket='parseq', CreateBucketConfiguration={'LocationConstraint': 'us-west-2'})
         s3.Object('parseq', 'projects/').put(Body=b'')
         s3.Object('parseq', 'projects/ensembl.txt').put(Body=b'Test ensembl here!',
                                                         Metadata={'madefor': 'testing', 'quality': 'good'})
 
+    @classmethod
+    def tearDownClass(cls):
+        # Stopping mock resource
+        cls.mock.stop()
+
+    def test_bucket_contents(self):
+        """
+        Tests if driver gets proper bucket on init
+        """
+        exp_contents = ['projects/', 'projects/ensembl.txt']
+        for obj in exp_contents:
+            self.assertIn(obj, [o.key for o in self.driver.bucket.objects.all()], msg='Checking objects existence.')
+
+    def test_get_uri_contents_as_stream(self):
+        """
+        Tests driver get_uri_contents_stream method
+        """
+        test_ensembl = b'Test ensembl here!'
+        for key, exp_content in {'projects/': b'', 'projects/ensembl.txt': test_ensembl}.items():
+            self.assertEqual(exp_content, self.driver.get_uri_contents_as_stream(key),
+                             msg='Checking content of object with URI: {0}'.format(key))
+
+    def test_get_uri_contents_as_dict(self):
+        """
+        Tests driver get_uri_contents_as_dict method
+        """
         contents_meta = [{'content_encoding': None, 'size': 0, 'name': 'projects/',
                           'content_type': 'text/plain; charset=utf-8', 'metadata': {}},
                          {'content_encoding': None, 'size': 18, 'name': 'projects/ensembl.txt',
@@ -70,20 +67,50 @@ class TestS3Driver(TestCase):
 
 
 class TestS3Projector(TestCase):
-    @mock_s3
-    def setUp(self):
+
+    @classmethod
+    def setUpClass(cls):
+        """
+        Set`s up mock S3 resource
+        """
+        # Init S3 mock
+        cls.mock = mock_s3()
+        cls.mock.start()
+        # Add contents to S3 resource using boto3
         s3 = boto3.resource('s3')
         s3.create_bucket(Bucket='parseq', CreateBucketConfiguration={'LocationConstraint': 'us-west-2'})
         s3.Object('parseq', 'projects/').put(Body=b'')
+
+        # Setting 'quality' metadata field of files projections and adding files to mock resource
+        for i in range(1, 5):
+            if i <= 2:
+                quality = 'bad'
+            else:
+                quality = 'good'
+            s3.Object('parseq', 'ensembl_{0}.txt'.format(i)).put(Body=b'Test ensembl here!',
+                                                                Metadata={'madefor': 'testing', 'quality': quality})
+
         s3.Object('parseq', 'projects/ensembl.txt').put(Body=b'Test ensembl here!',
-                                                        Metadata={'madefor': 'testing', 'quality': 'good'})
+                                                    Metadata={'madefor': 'testing', 'quality': 'good'})
+        # Setting 'quality' metadata field of files in subdir projections and adding files to mock resource
+        for i in range(1,5):
+            if i == 1:
+                quality = 'good'
+            else:
+                quality = 'bad'
+            s3.Object('parseq', 'projects/ensembl_{0}.txt'.format(i)).put(Body=b'Test ensembl here!',
+                                                                Metadata={'madefor': 'testing', 'quality': quality})
 
         projection_configuration = PrototypeDeserializer('tests/test_s3.yaml')
 
         root_projection = Projection('/', projection_configuration.root_projection_uri)
 
-        s3_driver = S3Driver(KEY_ID, ACCESS_KEY, REGION_NAME, projection_configuration.root_projection_uri)
-        self.s3_projector = S3Projector(s3_driver, root_projection, projection_configuration.prototype_tree)
+        s3_driver = S3Driver('test_id', 'test_key', 'us-west-2', projection_configuration.root_projection_uri)
+        cls.s3_projector = S3Projector(s3_driver, root_projection, projection_configuration.prototype_tree)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.mock.stop()
 
     def test_create_projections(self):
         """
