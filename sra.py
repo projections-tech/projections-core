@@ -95,7 +95,7 @@ def main(mountpoint, data_folder, foreground=True):
     sra_driver = SRADriver('vsvekolkin@parseq.pro')
 
     projection_filesystem.projection_manager = Projector(sra_driver, projection_configuration.root_projection_uri,
-                                                         projection_configuration.prototype_tree)
+                                                         projection_configuration.prototype_tree).projection_tree
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
     return fuse
 

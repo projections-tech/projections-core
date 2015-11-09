@@ -31,6 +31,8 @@ class Node(object):
         self.root = None
         self.parent = None
         self.children = {}
+        # Be aware of atomicity of operations
+        self.lock = threading.Lock()
 
     def __split_path(self, path):
         """
@@ -57,8 +59,10 @@ class Node(object):
         Adds node to current node child nodes dict
         :param node: Node object instance
         """
+        self.lock.acquire()
         node.parent = self
         self.children[node.name] = node
+        self.lock.release()
 
     def get_parent_nodes(self):
         """
@@ -139,7 +143,7 @@ class Node(object):
                 # Dict pop method is considered atomic
                 node_to_remove.parent.children.pop(node_to_remove.name)
         except:
-            raise RuntimeError('Attempting to remove root node of a tree!')
+            raise KeyError('Attempting to remove node that is not in a tree!')
 
     def __str__(self):
         return pprint.pformat([n.get_path() for n in self.get_tree_nodes()])
@@ -181,13 +185,9 @@ class ProjectionTree(Node):
     """
 
     def __init__(self, p_name, p_uri, p_parent=None, p_type=stat.S_IFDIR, p_size=4096, driver=None):
-        super().__init__()
-        self.name = p_name
-        self.data = Projection(name=p_name, uri=p_uri, type=p_type, size=p_size)
+        super().__init__(name=p_name, data=Projection(name=p_name, uri=p_uri, type=p_type, size=p_size))
         self.parent = p_parent
         self.driver = driver
-        # Be aware of atomicity of operations
-        self.lock = threading.Lock()
 
     def get_projection(self, path):
         """
@@ -198,9 +198,6 @@ class ProjectionTree(Node):
         node_on_path = self.find_node_by_path(path)
         return node_on_path.data if node_on_path else None
 
-    def get_children_on_path(self, path):
-        self.get_projection(path)
-
     def is_managing_path(self, path):
         if self.get_projection(path):
             return True
@@ -208,6 +205,11 @@ class ProjectionTree(Node):
             return False
 
     def get_projections_on_path(self, path):
+        """
+        Get list of projections on path
+        :param path: path string
+        :return: list of Projection objects
+        """
         logger.info('Requesting projections for path: %s', path)
         node = self.find_node_by_path(path)
         projections = [n.data.name for n in node.get_children()]
@@ -215,6 +217,10 @@ class ProjectionTree(Node):
         return projections
 
     def get_attributes(self, path):
+        """
+        Get attributes of projection on given path
+        """
+
         assert self.get_projection(path) is not None
 
         projection = self.get_projection(path)
@@ -242,6 +248,12 @@ class ProjectionTree(Node):
         return attributes
 
     def open_resource(self, path):
+        """
+        Opens resource on path and returns it`s header and contents stream
+        :param path path string
+        :return file_header
+        :return resource_io
+        """
         projection_on_path = self.get_projection(path)
         uri = projection_on_path.uri
 
@@ -254,6 +266,7 @@ class ProjectionTree(Node):
         resource_io = io.BytesIO(content)
 
         return file_header, resource_io
+
 
 class ProjectionPrototype(Node):
     """
@@ -423,22 +436,22 @@ class Projector:
                 content = self.driver.get_uri_contents_as_dict(uri)
                 name = eval(prototype.name, locals())
 
-                child_projection = ProjectionTree(p_name=name, p_uri=uri)
+                child_tree = ProjectionTree(p_name=name, p_uri=uri)
 
                 # Add newly created projection to projection tree
-                projection_tree.add_child(child_projection)
-                logger.info('Projection created: %s', child_projection)
+                projection_tree.add_child(child_tree)
+                logger.info('Projection created: %s', child_tree)
 
                 if prototype.type == 'directory':
                     # If prototype has children, continue tree building
                     if prototype.children:
                         logger.info('Starting attached prototype projection creation for  prototype: %s with children: %s',
-                                prototype, prototype.children)
-                        self.create_projection_tree(prototype.children, child_projection)
+                                    prototype, prototype.children)
+                        self.create_projection_tree(prototype.children, child_tree)
 
                 elif prototype.type == 'file':
                     # NOTE: content variable is not accessible during file projection creation!
                     # This is the point where metadata can be extracted from the file
                     #   but file content should be accessed in this case
-                    child_projection.data.type = stat.S_IFREG
-                    child_projection.data.size = 1
+                    child_tree.data.type = stat.S_IFREG
+                    child_tree.data.size = 1
