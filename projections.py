@@ -204,9 +204,9 @@ class ProjectionTree(object):
         :param path: path to retrieve child projections for
         :return: list of child projections that can be empty
         """
-        node_on_path = self.root.find_node_by_path(path)
-        if node_on_path:
-            return [c.data for c in node_on_path.get_children()]
+        node = self.root.find_node_by_path(path)
+        if node:
+            return [c.data for c in node.get_children()]
         else:
             return []
 
@@ -214,7 +214,7 @@ class ProjectionTree(object):
         """
         Adds projection tree to the current tree.
 
-        :param proj_tree: projection object to add.
+        :param proj_tree: ProjectionTree object to add.
         """
         # This should be done atomically regardless of implementation details.
         self.lock.acquire()
