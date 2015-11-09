@@ -28,7 +28,7 @@ class SRAProjectionManager(TestCase):
         """
         Tests if SRA projection manager creates projections
         """
-        created_projections = [n.get_path() for n in self.sra_projector.projection_tree.root.get_tree_nodes()]
+        created_projections = [n.get_path() for n in self.sra_projector.projection_tree.get_tree_nodes()]
 
         # Test if number of created projections equals to expected number of projections
         self.assertEqual(4, len(created_projections),
