@@ -120,7 +120,7 @@ class TestS3Projector(TestCase):
 
         # Test if number of created projections equals to expected number of projections
         self.assertEqual(6, len(created_projections),
-                         msg='Checking if S3 projector created 6 projections, current number: {}'.format(len(created_projections)))
+                         msg='Checking if S3 projector created {} projections.'.format(len(created_projections)))
 
         # Check bucket projection creation
         self.assertIn('/parseq',

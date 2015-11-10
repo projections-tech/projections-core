@@ -11,12 +11,9 @@ import argparse
 from projections import Projection, ProjectionDriver, ProjectionTree, Projector, PrototypeDeserializer
 from filesystem import ProjectionFilesystem
 from fuse import FUSE
+from moto import mock_s3
 
 logger = logging.getLogger('s3_projection')
-
-aws_access_key_id = 'AKIAIONUXTO6TR3UU3TQ'
-aws_secret_access_key = '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'
-region_name = 'us-west-2'
 
 
 class S3Driver(ProjectionDriver):
@@ -148,14 +145,41 @@ class S3Projector(Projector):
 def main(mountpoint, data_folder, foreground=True):
     # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
+    mock = mock_s3()
+    mock.start()
+    # Add contents to S3 resource using boto3
+    s3 = boto3.resource('s3')
+    s3.create_bucket(Bucket='parseq', CreateBucketConfiguration={'LocationConstraint': 'us-west-2'})
+    s3.Object('parseq', 'projects/').put(Body=b'')
+
+    # Setting 'quality' metadata field of files projections and adding files to mock resource
+    for i in range(1, 5):
+        if i <= 2:
+            quality = 'bad'
+        else:
+            quality = 'good'
+        s3.Object('parseq', 'ensembl_{0}.txt'.format(i)).put(Body=b'Test ensembl here!',
+                                                            Metadata={'madefor': 'testing', 'quality': quality})
+
+    s3.Object('parseq', 'projects/ensembl.txt').put(Body=b'Test ensembl here!',
+                                                Metadata={'madefor': 'testing', 'quality': 'good'})
+    # Setting 'quality' metadata field of files in subdir projections and adding files to mock resource
+    for i in range(1,5):
+        if i == 1:
+            quality = 'good'
+        else:
+            quality = 'bad'
+        s3.Object('parseq', 'projects/ensembl_{0}.txt'.format(i)).put(Body=b'Test ensembl here!',
+                                                            Metadata={'madefor': 'testing', 'quality': quality})
+
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
 
     projection_configuration = PrototypeDeserializer('aws_s3.yaml')
 
     root_projection = Projection('/', projection_configuration.root_projection_uri)
 
-    sra_driver = S3Driver(aws_access_key_id, aws_secret_access_key,
-                          region_name, projection_configuration.root_projection_uri)
+    sra_driver = S3Driver('test_id', 'test_key',
+                          'us-west-2', projection_configuration.root_projection_uri)
     projection_filesystem.projection_manager = S3Projector(sra_driver, root_projection,
                                                            projection_configuration.prototype_tree)
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
