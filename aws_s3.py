@@ -1,72 +1,36 @@
 #!/usr/bin/env python3
-__author__ = 'abragin'
 
 import logging
 import logging.config
 import io
-import re
-import json
 import os
-import argparse
 import time
-import urllib.request
-from urllib.parse import urljoin
+import boto3
+import argparse
 
 from projections import Projection, ProjectionDriver, ProjectionTree, Projector, PrototypeDeserializer
 from filesystem import ProjectionFilesystem
 from fuse import FUSE
-from tests.torrent_suite_mock import TorrentSuiteMock
+from moto import mock_s3
 
-logger = logging.getLogger('iontorrent_projection')
+logger = logging.getLogger('s3_projection')
 
 
-class TorrentSuiteDriver(ProjectionDriver):
-    def __init__(self, host_url, user, password):
+class S3Driver(ProjectionDriver):
+
+    def __init__(self, aws_access_key_id, aws_secret_access_key, region_name, bucket_name):
         """
         Initialize driver which will be used to interact with host.
-        :param host_url: URL of host string
-        :param user: user name string
-        :param password: password string
+        :param bucket_name: name of projected S3 bucket
         """
-        self.host_url = 'http://{}'.format(host_url)
-        self.api_url = 'http://{}/rundb/api/v1/'.format(host_url)
-        self.files_url = urljoin(self.host_url, '/auth/output/Home/')
-        self.authenticate(user, password)
 
-    def __prepare_uri(self, uri):
-        """
-        Adds appropriate prefix to uri according to uri context
-        :param uri: URI string
-        :return: URI string
-        """
-        if re.match('/rundb/api/v1/', uri):
-            return uri.replace('/rundb/api/v1/', self.api_url)
-        elif re.match('/auth/output/Home/', uri):
-            return uri.replace('/auth/output/Home/', self.files_url)
-        else:
-            return self.api_url + uri
-
-    def authenticate(self, user, password):
-        """
-        Creates authorization handler for driver.
-        :param host_url: URL of host string
-        :param user: user name string
-        :param password: password string
-        """
-        password_manager = urllib.request.HTTPPasswordMgrWithDefaultRealm()
-        password_manager.add_password(None, self.host_url, user, password)
-
-        handler = urllib.request.HTTPBasicAuthHandler(password_manager)
-
-        # create "opener" (OpenerDirector instance)
-        opener = urllib.request.build_opener(handler)
-
-        # use the opener to fetch a URL
-        opener.open(self.host_url)
-
-        # Install the opener.
-        # Now all calls to urllib.request.urlopen use our opener.
-        urllib.request.install_opener(opener)
+        session = boto3.session.Session(aws_access_key_id=aws_access_key_id,
+                                        aws_secret_access_key=aws_secret_access_key,
+                                        region_name=region_name)
+        self.s3_resource = session.resource('s3')
+        self.bucket_name = bucket_name
+        self.bucket = self.s3_resource.Bucket(bucket_name)
+        logger.debug('Current bucket: %s', self.bucket)
 
     def get_uri_contents_as_dict(self, uri):
         """
@@ -74,14 +38,18 @@ class TorrentSuiteDriver(ProjectionDriver):
         :param uri: URI string
         :return: dict of URI contents
         """
+        metadata = dict()
 
-        uri = self.__prepare_uri(uri)
-        # TODO move this functionality to caller function
-        with urllib.request.urlopen(uri) as f:
-            if re.search('\.bam$', uri) or re.search('\.vcf$', uri) or re.search('\.bed$', uri):
-                return b''
-            else:
-                return json.loads(f.readall().decode('utf-8'))
+        if uri != self.bucket_name:
+            current_object = self.bucket.Object(key=uri)
+            metadata['name'] = current_object.key
+            metadata['metadata'] = current_object.metadata
+            metadata['size'] = current_object.content_length
+            metadata['content_encoding'] = current_object.content_encoding
+            metadata['content_type'] = current_object.content_type
+            return metadata
+        else:
+            return [o.key for o in self.bucket.objects.all()]
 
     def get_uri_contents_as_stream(self, uri):
         """
@@ -89,16 +57,14 @@ class TorrentSuiteDriver(ProjectionDriver):
         :param uri: URI string
         :return: content bytes
         """
-        uri = self.__prepare_uri(uri)
-        with urllib.request.urlopen(uri) as f:
-            return f.readall()
+        return self.bucket.Object(key=uri).get()['Body'].read()
 
 
-class TorrentSuiteProjector(Projector):
-    def __init__(self, driver, root_projection, prototype_tree):
+class S3Projector(Projector):
+    def __init__(self, driver, root_projection, root_prototype):
         """
-        Initializes Torrent Suite Projector with driver, assigns root projection, builds prototype and projection tree.
-        :param driver: instance of TorrentSuiteDriver
+        Initializes S3 Projector with driver, assigns root projection, builds prototype and projection tree.
+        :param driver: instance of S3Driver
         :param prototype_tree: tree of ProjectionPrototype objects to build projection upon
         """
         assert isinstance(driver, ProjectionDriver), 'Check that driver object is subclass of ProjectionDriver'
@@ -109,7 +75,7 @@ class TorrentSuiteProjector(Projector):
         self.root_projection = root_projection
         self.projection_tree.add_projection(self.root_projection, None)
 
-        self.create_projection_tree({'/': prototype_tree},
+        self.create_projection_tree({'/': root_prototype},
                                     projection_tree=self.projection_tree,
                                     parent_projection=self.root_projection)
         self.projections = self.projection_tree.projections
@@ -179,29 +145,53 @@ class TorrentSuiteProjector(Projector):
 def main(mountpoint, data_folder, foreground=True):
     # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
-    projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
-    mock_torrent_suite = TorrentSuiteMock('mockiontorrent.com', 'tests/mock_resource/torrent_suite_mock_data')
+    mock = mock_s3()
+    mock.start()
+    # Add contents to S3 resource using boto3
+    s3 = boto3.resource('s3')
+    s3.create_bucket(Bucket='parseq', CreateBucketConfiguration={'LocationConstraint': 'us-west-2'})
+    s3.Object('parseq', 'projects/').put(Body=b'')
 
-    projection_configuration = PrototypeDeserializer('torrent_suite_config.yaml')
+    # Setting 'quality' metadata field of files projections and adding files to mock resource
+    for i in range(1, 5):
+        if i <= 2:
+            quality = 'bad'
+        else:
+            quality = 'good'
+        s3.Object('parseq', 'ensembl_{0}.txt'.format(i)).put(Body=b'Test ensembl here!',
+                                                            Metadata={'madefor': 'testing', 'quality': quality})
+
+    s3.Object('parseq', 'projects/ensembl.txt').put(Body=b'Test ensembl here!',
+                                                Metadata={'madefor': 'testing', 'quality': 'good'})
+    # Setting 'quality' metadata field of files in subdir projections and adding files to mock resource
+    for i in range(1,5):
+        if i == 1:
+            quality = 'good'
+        else:
+            quality = 'bad'
+        s3.Object('parseq', 'projects/ensembl_{0}.txt'.format(i)).put(Body=b'Test ensembl here!',
+                                                            Metadata={'madefor': 'testing', 'quality': quality})
+
+    projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
+
+    projection_configuration = PrototypeDeserializer('aws_s3.yaml')
+
     root_projection = Projection('/', projection_configuration.root_projection_uri)
-    projection_dirver = TorrentSuiteDriver(projection_configuration.resource_uri, 'ionadmin', '0ECu1lW')
-    projection_filesystem.projection_manager = TorrentSuiteProjector(projection_dirver,
-                                                                     root_projection,
-                                                                     projection_configuration.prototype_tree)
+
+    sra_driver = S3Driver('test_id', 'test_key',
+                          'us-west-2', projection_configuration.root_projection_uri)
+    projection_filesystem.projection_manager = S3Projector(sra_driver, root_projection,
+                                                           projection_configuration.prototype_tree)
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
     return fuse
 
 if __name__ == '__main__':
-
     script_dir = os.path.dirname(os.path.realpath(__file__))
     logging.config.fileConfig(os.path.join(script_dir, 'logging.cfg'))
 
-    parser = argparse.ArgumentParser(description='Torrent Suite projection.')
+    parser = argparse.ArgumentParser(description='AWS S3 projection.')
     parser.add_argument('-m', '--mount-point', required=True, help='specifies mount point path on host')
     parser.add_argument('-d', '--data-directory', required=True, help='specifies data directory path on host')
     args = parser.parse_args()
 
     main(args.mount_point, args.data_directory)
-
-
-
