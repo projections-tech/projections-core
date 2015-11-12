@@ -24,6 +24,7 @@ class FSDriver(ProjectionDriver):
         :return: dict of URI contents
         """
         # Directory projection returns list of it`s children as metadata
+        logger.debug(uri)
         if os.path.isdir(uri):
             return {'name': os.path.basename(uri), 'size': os.path.getsize(uri), 'type': 'dir',
                     'children': [os.path.join(os.path.abspath(uri), p) for p in os.listdir(uri)], 'extension': None}
