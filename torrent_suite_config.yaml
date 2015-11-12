@@ -8,9 +8,16 @@ root_projection_uri: "experiment?status=run&limit=1&order_by=-id"
 
 
 
+bed_prototype: &bed_prototype
+  type: file
+  children: None
+  name:  "split($.environment.store.targets_bed, '/')[-1]"
+  uri: "join(['/auth/output/Home/', split($.context[1].filesystempath,'/')[-1] , '/plugin_out/' , split($.path, '/')[-1], '/' , split($.store.targets_bed, '/')[-1]])"
+
 plugin_result_prototype: &plugin_result_prototype
   type: directory
-  children: None
+  children:
+    bed_prototype: *bed_prototype
   name: "split($.path, '/')[-1]"
   uri: " $.context[0].pluginresults[@.pluginName is 'variantCaller' and 'VFNA' not in @.pluginName].resource_uri"
 
