@@ -115,7 +115,7 @@ result_prototype: &result_prototype
   type: directory
   children:
     sample_prototype: *sample_prototype
-  name: "split($.filesystempath, '/')[1]"
+  name: "split($.filesystempath, '/')[-1]"
   uri: "$.results"
 
 # Each experiment have plan associated to it, so we create plan metadata prototype

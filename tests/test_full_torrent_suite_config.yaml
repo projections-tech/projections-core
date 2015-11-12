@@ -114,7 +114,7 @@ result_prototype: &result_prototype
   type: directory
   children:
     sample_prototype: *sample_prototype
-  name: "split($.filesystempath, '/')[1]"
+  name: "split($.filesystempath, '/')[-1]"
   uri: "$.results"
 
 exp_plan_metadata_prototype: &exp_plan_metadata_prototype
