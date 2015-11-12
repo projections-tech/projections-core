@@ -90,7 +90,20 @@ class TorrentSuiteDriver(ProjectionDriver):
                         plan_uri = self.__prepare_uri(meta['plan'])
                         with urllib.request.urlopen(plan_uri) as p_f:
                             meta['plan'] = json.loads(p_f.readall().decode('utf-8'))
+
+                        temp = []
+                        for res in meta['results']:
+                            res_uri = self.__prepare_uri(res)
+                            with urllib.request.urlopen(res_uri) as r:
+                                temp.append(json.loads(r.readall().decode('utf-8')))
+                        meta['results'] = temp
+
                     elif '/results/' in meta['resource_uri']:
+
+                        exp_uri = self.__prepare_uri(meta['experiment'])
+                        with urllib.request.urlopen(exp_uri) as ex_f:
+                            meta['experiment'] = json.loads(ex_f.readall().decode('utf-8'))
+
                         temp = []
                         for p_res in meta['pluginresults']:
                             p_res_uri = self.__prepare_uri(p_res)

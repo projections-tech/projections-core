@@ -842,7 +842,7 @@
         "webServerPath": "/output"
     },
     "representative": false,
-    "resource_uri": "/rundb/api/v1/results/8/",
+    "resource_uri": "/rundb/api/v1/results/3/",
     "resultsName": "Run_11_hg19_v3",
     "resultsType": "",
     "runid": "GD95I",
