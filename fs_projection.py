@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 
+import argparse
+import json
+import io
 import logging
 import logging.config
-import io
-import json
 import os
 import time
-import argparse
 
-from projections import Projection, ProjectionDriver, ProjectionTree, Projector, PrototypeDeserializer
 from filesystem import ProjectionFilesystem
 from fuse import FUSE
+from projections import Projection, ProjectionDriver, ProjectionTree, Projector, PrototypeDeserializer
 
 logger = logging.getLogger('filesystem_projection')
 
