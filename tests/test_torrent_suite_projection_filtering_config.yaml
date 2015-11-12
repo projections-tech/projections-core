@@ -30,7 +30,6 @@ plugin_result_prototype: &plugin_result_prototype
     local_settings_prototype: *local_settings_prototype
     bed_prototype: *bed_prototype
     tsvc_vcf_prototype: *tsvc_vcf_prototype
-
   name: "path.basename(content['path'])"
   uri: "[p_res for p_res in context[0]['pluginresults'] if 'variant' in fetch_context(p_res)['pluginName'] and 'VFNA' not in fetch_context(p_res)['pluginName']]"
 
