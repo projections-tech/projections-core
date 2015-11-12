@@ -39,9 +39,8 @@ class TestTorrentSuiteProjector(TestCase):
         projection_paths_list = iontorrent_projector.projections.keys()
 
         # Checking number of created projections,
-        self.assertEqual(len(projection_paths_list), 131,
-                         msg='Checking total number of projections,'
-                             ' expecting 131, got: {}.'.format(len(projection_paths_list)))
+        self.assertEqual(len(projection_paths_list), 69,
+                         msg='Checking total number of projections, got: {}.'.format(len(projection_paths_list)))
 
         # Representation of mock internal structure
         experiment_contents = {
