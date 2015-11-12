@@ -80,9 +80,16 @@ class TorrentSuiteDriver(ProjectionDriver):
         # TODO move this functionality to caller function
         with urllib.request.urlopen(uri) as f:
             if re.search('\.bam$', uri) or re.search('\.vcf$', uri) or re.search('\.bed$', uri):
-                return b''
+                return {}
             else:
-                return json.loads(f.readall().decode('utf-8'))
+                meta = json.loads(f.readall().decode('utf-8'))
+
+                # Here we add fields to metadata if required
+                if 'resource_uri' in meta and '/experiment/' in meta['resource_uri']:
+                    plan_uri = self.__prepare_uri(meta['plan'])
+                    with urllib.request.urlopen(plan_uri) as p_f:
+                        meta['plan_meta'] = json.loads(p_f.readall().decode('utf-8'))
+                return meta
 
     def load_uri_contents_stream(self, uri):
         """

@@ -8,7 +8,8 @@ import time
 import threading
 import yaml
 import pprint
-import jmespath
+import objectpath
+import types
 
 # Import logging configuration from the file provided
 logging.config.fileConfig('logging.cfg')
@@ -363,7 +364,7 @@ class Projector:
         # This is environment in which projections are created (parent_projection content)
         # TODO: in many cases it means double request to parent projection resource so it should be optimized
         environment = self.driver.get_uri_contents_as_dict(parent_projection.uri)
-        logger.debug(environment)
+
         logger.info('Starting prototype creation in the context of resource with uri: %s', parent_projection.uri)
 
         # For every prototype in collection try to create corresponding projections
@@ -376,7 +377,13 @@ class Projector:
 
             logger.info('Creating projections for a prototype: %s', prototype)
 
-            URIs = jmespath.search(prototype.uri, environment)
+            # TODO move prototype context designation to driver
+            environment['context'] = context
+
+            tree = objectpath.Tree(environment)
+            URIs = tree.execute(prototype.uri)
+            if isinstance(URIs, types.GeneratorType):
+                URIs = [el for el in URIs]
             # Treating URIs as list for consistency
             if not isinstance(URIs, list):
                 URIs = [URIs]
@@ -390,8 +397,12 @@ class Projector:
                 content = self.driver.get_uri_contents_as_dict(uri)
                 logger.debug('ENV: %s, CONTENT: %s', environment, content)
 
-                name = jmespath.search(prototype.name, content)
+                content['environment'] = environment
 
+                tree = objectpath.Tree(content)
+                name = tree.execute(prototype.name)
+                if isinstance(name, types.GeneratorType):
+                    name = [el for el in name]
                 # This may be reconsidered with ProjectionTree implementation
                 projection_path = os.path.join(parent_projection.path, name)
 
