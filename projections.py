@@ -390,7 +390,7 @@ class Projector:
                 content = self.driver.get_uri_contents_as_dict(uri)
                 logger.debug('ENV: %s, CONTENT: %s', environment, content)
 
-                name = eval(prototype.name, locals())
+                name = jmespath.search(prototype.name, content)
 
                 # This may be reconsidered with ProjectionTree implementation
                 projection_path = os.path.join(parent_projection.path, name)

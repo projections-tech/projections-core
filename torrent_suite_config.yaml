@@ -10,7 +10,7 @@ root_projection_uri: "experiment?status=run&limit=1&order_by=-id"
 result_prototype: &result_prototype
   type: directory
   children: None
-  name: "path.split(content['filesystempath'])[1]"
+  name: "filesystempath"
   uri: "results[]"
 
 # Each experiment have plan associated to it, so we create plan metadata prototype
@@ -33,5 +33,5 @@ root:
     exp_metadata_prototype: *exp_metadata_prototype
     exp_plan_metadata_prototype: *exp_plan_metadata_prototype
     result_prototype: *result_prototype
-  name: "content['displayName'].replace(' ', '_')"
+  name: "displayName"
   uri: "objects[].resource_uri"
