@@ -29,7 +29,7 @@ class TestDriver(ProjectionDriver):
 
         if uri == 'experiments':
             with open('tests/json/experiments.json') as f:
-                content = json.load(f)['objects']
+                content = json.load(f)
             logger.info('Returning content for uri: %s, content: %s', uri, content)
             return content
 
@@ -53,7 +53,7 @@ class TestDriver(ProjectionDriver):
         if match:
             id = match.groups()[0]
             logger.info('Requesting result data with id: %s', id)
-            return "This is BAM file"
+            return {'meta':"This is BAM file"}
 
         assert False is True, 'Test driver can\'t handle resource request, aborting!'
 
@@ -71,16 +71,16 @@ class TestProjector(TestCase):
         root = Projection('/', 'experiments')
 
         experiment_prototype = ProjectionPrototype('directory')
-        experiment_prototype.name = "content['displayName'].replace(' ', '_')"
-        experiment_prototype.uri = '[object["uri"] for object in environment]'
+        experiment_prototype.name = " replace($.displayName, ' ', '_') "
+        experiment_prototype.uri = ' $.objects.uri '
 
         result_prototype = ProjectionPrototype('directory')
-        result_prototype.name = "path.split(content['filesystempath'])[1]"
-        result_prototype.uri = "environment['results']"
+        result_prototype.name = " split($.filesystempath, '/')[-1] "
+        result_prototype.uri = " $.results "
 
         bam_prototype = ProjectionPrototype('file')
-        bam_prototype.name = "path.split(environment['data'])[1]"
-        bam_prototype.uri = "[environment['data']]"
+        bam_prototype.name = " split($.environment.data, '/')[-1] "
+        bam_prototype.uri = " $.data "
 
         result_prototype.parent = experiment_prototype
         experiment_prototype.children[result_prototype.name] = result_prototype

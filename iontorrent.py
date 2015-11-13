@@ -84,13 +84,16 @@ class TorrentSuiteDriver(ProjectionDriver):
             else:
                 meta = json.loads(f.readall().decode('utf-8'))
 
-                # Here we add fields to metadata if required
+                # Here we add required for projection fields to metadata
                 if 'resource_uri' in meta:
                     if '/experiment/' in meta['resource_uri']:
+                        # Experiment is hierarchically upper element, it`s fields 'plan' and 'results' used by lower
+                        # level projections.
+                        # Firstly we add 'plan' field to metadata
                         plan_uri = self.__prepare_uri(meta['plan'])
                         with urllib.request.urlopen(plan_uri) as p_f:
                             meta['plan'] = json.loads(p_f.readall().decode('utf-8'))
-
+                        # Secondly 'results' field
                         temp = []
                         for res in meta['results']:
                             res_uri = self.__prepare_uri(res)
@@ -99,11 +102,10 @@ class TorrentSuiteDriver(ProjectionDriver):
                         meta['results'] = temp
 
                     elif '/results/' in meta['resource_uri']:
-
+                        # Here we resolve 'experiment' of upper level resource using recursive call
                         exp_uri = self.__prepare_uri(meta['experiment'])
-                        with urllib.request.urlopen(exp_uri) as ex_f:
-                            meta['experiment'] = json.loads(ex_f.readall().decode('utf-8'))
-
+                        meta['experiment'] = self.get_uri_contents_as_dict(exp_uri)
+                        # Adding 'pluginresults' to result meta
                         temp = []
                         for p_res in meta['pluginresults']:
                             p_res_uri = self.__prepare_uri(p_res)

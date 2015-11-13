@@ -10,6 +10,7 @@ import yaml
 import pprint
 import objectpath
 import types
+import copy
 
 # Import logging configuration from the file provided
 logging.config.fileConfig('logging.cfg')
@@ -363,7 +364,8 @@ class Projector:
 
         # This is environment in which projections are created (parent_projection content)
         # TODO: in many cases it means double request to parent projection resource so it should be optimized
-        environment = self.driver.get_uri_contents_as_dict(parent_projection.uri)
+        # We don`t want to change driver contents, hence we made deep copy
+        environment = copy.deepcopy(self.driver.get_uri_contents_as_dict(parent_projection.uri))
 
         logger.info('Starting prototype creation in the context of resource with uri: %s', parent_projection.uri)
 
@@ -377,7 +379,6 @@ class Projector:
 
             logger.info('Creating projections for a prototype: %s', prototype)
 
-            # TODO move prototype context designation to driver
             environment['context'] = context
 
             tree = objectpath.Tree(environment)
@@ -394,15 +395,18 @@ class Projector:
             # Every URI corresponds to projection object
             for uri in URIs:
                 # Get content for a projection
-                content = self.driver.get_uri_contents_as_dict(uri)
+                # We don`t want to change driver contents, hence we made deep copy
+                content = copy.deepcopy(self.driver.get_uri_contents_as_dict(uri))
                 logger.debug('ENV: %s, CONTENT: %s', environment, content)
 
                 content['environment'] = environment
 
                 tree = objectpath.Tree(content)
+
                 name = tree.execute(prototype.name)
                 if isinstance(name, types.GeneratorType):
                     name = [el for el in name]
+
                 # This may be reconsidered with ProjectionTree implementation
                 projection_path = os.path.join(parent_projection.path, name)
 
