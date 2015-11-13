@@ -364,7 +364,7 @@ class Projector:
 
         # This is environment in which projections are created (parent_projection content)
         # TODO: in many cases it means double request to parent projection resource so it should be optimized
-        # We don`t want to change driver contents, hence we made deep copy
+        # We don`t want to change driver contents, hence we made deep copy of dict
         environment = copy.deepcopy(self.driver.get_uri_contents_as_dict(parent_projection.uri))
 
         logger.info('Starting prototype creation in the context of resource with uri: %s', parent_projection.uri)
@@ -379,10 +379,14 @@ class Projector:
 
             logger.info('Creating projections for a prototype: %s', prototype)
 
+            # Adding context of upper level prototypes for lower level projections to use
             environment['context'] = context
 
+            # Creating tree of environment contents which will be parsed by ObjectPath
             tree = objectpath.Tree(environment)
             URIs = tree.execute(prototype.uri)
+            # Object path sometimes returns generator if user uses selectors, for consistency expand it using
+            # list comprehension
             if isinstance(URIs, types.GeneratorType):
                 URIs = [el for el in URIs]
             # Treating URIs as list for consistency
@@ -399,11 +403,15 @@ class Projector:
                 content = copy.deepcopy(self.driver.get_uri_contents_as_dict(uri))
                 logger.debug('ENV: %s, CONTENT: %s', environment, content)
 
+                # Adding environment to use by prototype
                 content['environment'] = environment
 
+                # Creating tree which will be parsed by ObjectPath
                 tree = objectpath.Tree(content)
-
                 name = tree.execute(prototype.name)
+
+                # Object path sometimes returns generator if user uses selectors, for consistency expand it using
+                # list comprehension
                 if isinstance(name, types.GeneratorType):
                     name = [el for el in name]
 
