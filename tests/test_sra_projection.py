@@ -13,7 +13,7 @@ logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('sra_test')
 
 
-class SRAProjectionManager(TestCase):
+class TestSRAProjectionManager(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.mock_resource = SRAMock('http://eutils.ncbi.nlm.nih.gov', 'tests/mock_resource')

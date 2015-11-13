@@ -4,9 +4,10 @@ import logging
 import logging.config
 import json
 import os
-import sys
+import time
 import xmltodict
 import subprocess
+import argparse
 from Bio import Entrez
 from tests.sra_mock import SRAMock
 
@@ -106,10 +107,9 @@ if __name__ == '__main__':
     script_dir = os.path.dirname(os.path.realpath(__file__))
     logging.config.fileConfig(os.path.join(script_dir, 'logging.cfg'))
 
-    # TODO: replace with argparse
-    # Get mount point from args
-    if len(sys.argv) != 3:
-        print('usage: %s <mountpoint> <data folder>' % sys.argv[0])
-        exit(1)
+    parser = argparse.ArgumentParser(description='SRA projection.')
+    parser.add_argument('-m', '--mount-point', required=True, help='specifies mount point path on host')
+    parser.add_argument('-d', '--data-directory', required=True, help='specifies data directory path on host')
+    args = parser.parse_args()
 
-    main(sys.argv[1], sys.argv[2])
+    main(args.mount_point, args.data_directory)
