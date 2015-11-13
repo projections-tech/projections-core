@@ -10,19 +10,19 @@ tsvc_vcf_prototype: &tsvc_vcf_prototype
   type: file
   children: None
   name:  " 'TSVC_variants.vcf' "
-  uri: "join(['/auth/output/Home/', split($.context[1].filesystempath,'/')[-1] , '/plugin_out/' , split($.path, '/')[-1], '/' , $.context[2].plan.barcodedSamples[$.context[0].name].barcodes[0], '/TSVC_variants.vcf'])"
+  uri: "join(['/auth/output/Home/', split($.context[1].filesystempath,'/')[-1], '/plugin_out/', split($.path, '/')[-1], '/', $.context[2].plan.barcodedSamples[$.context[0].name].barcodes[0], '/TSVC_variants.vcf'])"
 
 local_settings_prototype: &local_settings_prototype
   type: file
   children: None
   name:  " 'variant_caller_settings.json' "
-  uri: "join(['/auth/output/Home/', split($.context[1].filesystempath,'/')[-1] , '/plugin_out/' , split($.path, '/')[-1], '/local_parameters.json' ])"
+  uri: "join(['/auth/output/Home/', split($.context[1].filesystempath,'/')[-1], '/plugin_out/', split($.path, '/')[-1], '/local_parameters.json' ])"
 
 bed_prototype: &bed_prototype
   type: file
   children: None
   name:  "split($.environment.store.targets_bed, '/')[-1]"
-  uri: "join(['/auth/output/Home/', split($.context[1].filesystempath,'/')[-1] , '/plugin_out/' , split($.path, '/')[-1], '/' , split($.store.targets_bed, '/')[-1]])"
+  uri: "join(['/auth/output/Home/', split($.context[1].filesystempath,'/')[-1], '/plugin_out/', split($.path, '/')[-1], '/', split($.store.targets_bed, '/')[-1]])"
 
 plugin_result_prototype: &plugin_result_prototype
   type: directory
