@@ -257,7 +257,7 @@ class ProjectionTree(Node):
         projection_on_path = self.get_projection(path)
         uri = projection_on_path.uri
 
-        content = self.driver.get_uri_contents_as_stream(uri)
+        content = self.driver.get_uri_contents_as_bytes(uri)
         logger.info('Got path content: %s\n', path)
 
         projection_on_path.size = len(content)
@@ -361,7 +361,7 @@ class ProjectionDriver(object):
     def get_uri_contents_as_dict(self, uri):
         raise NotImplemented('Implement metadata retrieval from some projection backend.')
 
-    def get_uri_contents_as_stream(self, uri):
+    def get_uri_contents_as_bytes(self, uri):
         raise NotImplemented('Implement data stream retrieval from some projection backend.')
 
 
@@ -423,7 +423,7 @@ class Projector:
             context = context[::-1]
 
             logger.info('Creating projections for a prototype: %s', prototype)
-            # TODO: eval is not safe, consider safer alternative, e.g. JsonPath
+            # TODO: eval is not safe, consider safer alternative, e.g. ObjectPath
             URIs = eval(prototype.uri, locals())
 
             logger.info('Prototype %s has projections on URIs: %s', prototype, URIs)
@@ -437,16 +437,24 @@ class Projector:
 
                 child_tree = ProjectionTree(p_name=name, p_uri=uri)
 
-                # Add newly created projection to projection tree
-                projection_tree.add_child(child_tree)
-                logger.info('Projection created: %s', child_tree)
+                # Add newly created projection to projection tree if prototype is not transparent
+                if not prototype.type == 'transparent':
+                    projection_tree.add_child(child_tree)
+                    logger.info('Projection created: %s', child_tree)
 
                 if prototype.type == 'directory':
                     # If prototype has children, continue tree building
                     if prototype.children:
-                        logger.info('Starting attached prototype projection creation for  prototype: %s with children: %s',
+                        logger.info('Starting attached prototype projection creation for prototype: %s with children: %s',
                                     prototype, prototype.children)
                         self.create_projection_tree(prototype.children, child_tree)
+                elif prototype.type == 'transparent':
+                    # If projection is transparent, continue prototype tree building passing parent projection tree
+                    # and evaluated uri of prototype to it. This behaviour allows to build flat projections there
+                    # all prototypes are on one level due to passed common parent projection
+                    if prototype.children:
+                        projection_tree.data.uri = child_tree.data.uri
+                        self.create_projection_tree(prototype.children, projection_tree)
 
                 elif prototype.type == 'file':
                     # NOTE: content variable is not accessible during file projection creation!

@@ -68,11 +68,11 @@ class SRADriver(ProjectionDriver):
         else:
             return self.query_cache[query[1]]
 
-    def get_uri_contents_as_stream(self, query):
+    def get_uri_contents_as_bytes(self, query):
         """
-        Open URI and return dict of its contents
+        Open URI and return bytes massive
         :param uri: URI string
-        :return: dict of URI contents
+        :return: bytes massive
         """
         logger.debug('Loading query: %s', query)
         query = query.split(':')
@@ -84,13 +84,13 @@ class SRADriver(ProjectionDriver):
 
 
 # For smoke testing
-def main(mountpoint, data_folder, foreground=True):
+def main(cfg_path, mountpoint, data_folder, foreground=True):
     # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
     mock_resource = SRAMock('http://eutils.ncbi.nlm.nih.gov', 'tests/mock_resource')
 
-    projection_configuration = PrototypeDeserializer('sra_config.yaml')
+    projection_configuration = PrototypeDeserializer(cfg_path)
 
     sra_driver = SRADriver('vsvekolkin@parseq.pro')
 
@@ -109,6 +109,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='SRA projection.')
     parser.add_argument('-m', '--mount-point', required=True, help='specifies mount point path on host')
     parser.add_argument('-d', '--data-directory', required=True, help='specifies data directory path on host')
+    parser.add_argument('-c', '--config-path', required=True, help='specifies projection configuration YAML file path')
     args = parser.parse_args()
 
-    main(args.mount_point, args.data_directory)
+    main(args.config_path, args.mount_point, args.data_directory)

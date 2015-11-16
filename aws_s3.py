@@ -49,9 +49,9 @@ class S3Driver(ProjectionDriver):
         else:
             return [o.key for o in self.bucket.objects.all()]
 
-    def get_uri_contents_as_stream(self, uri):
+    def get_uri_contents_as_bytes(self, uri):
         """
-        Load uri contents
+        Load uri contents as bytes
         :param uri: URI string
         :return: content bytes
         """

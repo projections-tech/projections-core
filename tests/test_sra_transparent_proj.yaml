@@ -2,7 +2,7 @@
 dialect: python
 resource_uri: http://eutils.ncbi.nlm.nih.gov'
 
-root_projection_uri: 'query:Streptococcus:10'
+root_projection_uri: 'query:Streptococcus:1'
 
 run_prototype: &run_prototype
   type: file
@@ -13,14 +13,20 @@ run_prototype: &run_prototype
 experiment_meta_prototype: &experiment_meta_prototype
   type: file
   children: None
-  name:  "'metadata.json'"
+  name:  "environment['EXPERIMENT']['@accession'] + '_metadata.json'"
   uri: "['experiment_id:'+environment['EXPERIMENT']['@accession']]"
 
-# This is a root prototype for projections, its context will be used as environment for children prototypes
-root:
-  type: directory
+experiment_prototype: &experiment_prototype
+  type: transparent
   children:
     experiment_meta_prototype: *experiment_meta_prototype
     run_prototype: *run_prototype
-  name: "content['EXPERIMENT']['@accession']"
+  name: "environment['EXPERIMENT']['@accession']"
+  uri: "['experiment_id:'+environment['EXPERIMENT']['@accession']]"
+
+root:
+  type: transparent
+  children:
+    experiment_prototype: *experiment_prototype
+  name: "environment['QueryTranslation']"
   uri: "['search_id:'+id for id in environment['IdList']]"
