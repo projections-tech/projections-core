@@ -5,7 +5,7 @@ import logging
 import logging.config
 from unittest import TestCase, skip
 from tests.torrent_suite_mock import TorrentSuiteMock
-from projections import PrototypeDeserializer, Projection
+from projections import PrototypeDeserializer, Projector
 
 import iontorrent
 
@@ -26,18 +26,21 @@ class TestTorrentSuiteProjector(TestCase):
     def setUpClass(cls):
         cls.mock_resource = TorrentSuiteMock('mockiontorrent.com', 'tests/mock_resource/torrent_suite_mock_data')
 
+    @classmethod
+    def tearDownClass(cls):
+        cls.mock_resource.deactivate()
+
     def test_full_projection(self):
         """
         Tests projections correctness of full projection from root creation.
         """
         projection_configuration = PrototypeDeserializer('tests/test_full_torrent_suite_config.yaml')
-        root_projection = Projection('/', projection_configuration.root_projection_uri)
         driver = iontorrent.TorrentSuiteDriver(projection_configuration.resource_uri, USER, PASSWORD)
-        iontorrent_projector = iontorrent.TorrentSuiteProjector(driver, root_projection,
-                                                           projection_configuration.prototype_tree)
+        iontorrent_projector = Projector(driver, projection_configuration.root_projection_uri,
+                                         projection_configuration.prototype_tree)
 
-        projection_paths_list = iontorrent_projector.projections.keys()
-
+        projection_paths_list = [n.get_path() for n in iontorrent_projector.projection_tree.get_tree_nodes()]
+        logger.debug('Full proj path list: %s', projection_paths_list)
         # Checking number of created projections,
         self.assertEqual(len(projection_paths_list), 131,
                          msg='Checking total number of projections,'
@@ -110,12 +113,11 @@ class TestTorrentSuiteProjector(TestCase):
 
         # Loading configuration where '/rundb/api/v1/results/1/' is root projection
         projection_configuration = PrototypeDeserializer('tests/test_custom_root_torrent_suite_config.yaml')
-        root_projection = Projection('/', projection_configuration.root_projection_uri)
         driver = iontorrent.TorrentSuiteDriver(projection_configuration.resource_uri, USER, PASSWORD)
-        iontorrent_projector = iontorrent.TorrentSuiteProjector(driver, root_projection,
-                                                                projection_configuration.prototype_tree)
+        iontorrent_projector = Projector(driver, projection_configuration.root_projection_uri,
+                                         projection_configuration.prototype_tree)
 
-        projection_paths_list = iontorrent_projector.projections.keys()
+        projection_paths_list = [n.get_path() for n in iontorrent_projector.projection_tree.get_tree_nodes()]
 
         # Checking number of created projections,
         self.assertEqual(len(projection_paths_list), 32,
@@ -168,13 +170,11 @@ class TestTorrentSuiteProjector(TestCase):
         # This config specifies projection that is created from resource root, with filtering of experiment name,
         # run name, and only TSVC VCF file for variant calling
         projection_configuration = PrototypeDeserializer('tests/test_torrent_suite_projection_filtering_config.yaml')
-        root_projection = Projection('/', projection_configuration.root_projection_uri)
         driver = iontorrent.TorrentSuiteDriver(projection_configuration.resource_uri, USER, PASSWORD)
-        iontorrent_projector = iontorrent.TorrentSuiteProjector(driver, root_projection,
-                                                                projection_configuration.prototype_tree)
+        iontorrent_projector = Projector(driver, projection_configuration.root_projection_uri,
+                                         projection_configuration.prototype_tree)
 
-        projection_paths_list = iontorrent_projector.projections.keys()
-
+        projection_paths_list = [n.get_path() for n in iontorrent_projector.projection_tree.get_tree_nodes()]
 
         # Checking number of created projections,
         self.assertEqual(len(projection_paths_list), 19,
