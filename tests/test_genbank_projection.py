@@ -2,7 +2,7 @@
 import logging
 import logging.config
 from unittest import TestCase, skip
-from tests.genbank_mock import GenbankMock
+from tests.mock import MockResource
 from projections import PrototypeDeserializer, Projector
 import genbank
 import subprocess
@@ -19,7 +19,7 @@ logger = logging.getLogger('genbank_test')
 class TestGenbankProjector(TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.mock_resource = GenbankMock('http://eutils.ncbi.nlm.nih.gov', 'tests/mock_resource')
+        cls.mock_resource = MockResource('tests/genbank_mock.json')
 
     @classmethod
     def tearDownClass(cls):
