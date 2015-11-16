@@ -26,6 +26,10 @@ class TestTorrentSuiteProjector(TestCase):
     def setUpClass(cls):
         cls.mock_resource = TorrentSuiteMock('mockiontorrent.com', 'tests/mock_resource/torrent_suite_mock_data')
 
+    @classmethod
+    def tearDownClass(cls):
+        cls.mock_resource.deactivate()
+
     def test_full_projection(self):
         """
         Tests projections correctness of full projection from root creation.

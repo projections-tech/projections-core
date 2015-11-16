@@ -13,10 +13,15 @@ logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('sra_test')
 
 
-class TestSRAProjectionManager(TestCase):
+class TestSRAProjector(TestCase):
+
     @classmethod
     def setUpClass(cls):
         cls.mock_resource = SRAMock('http://eutils.ncbi.nlm.nih.gov', 'tests/mock_resource')
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.mock_resource.deactivate()
 
     def setUp(self):
         driver = sra.SRADriver('test')

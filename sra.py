@@ -4,7 +4,6 @@ import logging
 import logging.config
 import json
 import os
-import time
 import xmltodict
 import subprocess
 import argparse
