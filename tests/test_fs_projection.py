@@ -4,8 +4,8 @@ import subprocess
 import logging
 import logging.config
 from unittest import TestCase, skip
-from projections import PrototypeDeserializer, Projection
-from fs_projection import FSDriver, FSProjector
+from projections import PrototypeDeserializer, Projector
+from fs_projection import FSDriver
 
 MOUNT_POINT = 'tests/mnt'
 DATA_FOLDER = 'tests/data'
@@ -21,15 +21,15 @@ class TestFSProjection(TestCase):
     def setUp(self):
         driver = FSDriver()
         projection_configuration = PrototypeDeserializer(CONFIG_PATH)
-        root_projection = Projection('/', projection_configuration.root_projection_uri)
-        self.fs_projector = FSProjector(driver, root_projection, projection_configuration.prototype_tree)
+        self.fs_projector = Projector(driver, projection_configuration.root_projection_uri,
+                                      projection_configuration.prototype_tree)
 
     def test_create_projections(self):
         """
         Tests if filesystem projector creates projections
         """
 
-        created_projections = self.fs_projector.projections
+        created_projections = [n.get_path() for n in self.fs_projector.projection_tree.get_tree_nodes()]
 
         # Test if number of created projections equals to expected number of projections
         self.assertEqual(37, len(created_projections),

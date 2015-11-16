@@ -14,7 +14,6 @@ logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('projections')
 
 
-
 class Node(object):
     """
     Generic tree class which holds common methods for "tree" structure, must be subclassed to create Prototype and

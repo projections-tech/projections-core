@@ -37,4 +37,4 @@ root:
     bam_projection: *bam_projection
     sample_dir_projection: *sample_dir_projection
   name: " content['name'] "
-  uri: "[ parent_projection.uri ]"
+  uri: "[ projection_tree.data.uri ]"
