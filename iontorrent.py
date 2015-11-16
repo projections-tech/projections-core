@@ -80,9 +80,9 @@ class TorrentSuiteDriver(ProjectionDriver):
             else:
                 return json.loads(f.readall().decode('utf-8'))
 
-    def get_uri_contents_as_stream(self, uri):
+    def get_uri_contents_as_bytes(self, uri):
         """
-        Get uri contents as stream
+        Get uri contents as bytes
         :param uri: URI string
         :return: content bytes
         """

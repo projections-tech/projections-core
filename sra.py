@@ -68,11 +68,11 @@ class SRADriver(ProjectionDriver):
         else:
             return self.query_cache[query[1]]
 
-    def get_uri_contents_as_stream(self, query):
+    def get_uri_contents_as_bytes(self, query):
         """
-        Open URI and return dict of its contents
+        Open URI and return bytes massive
         :param uri: URI string
-        :return: dict of URI contents
+        :return: bytes massive
         """
         logger.debug('Loading query: %s', query)
         query = query.split(':')

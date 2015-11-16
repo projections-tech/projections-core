@@ -50,7 +50,7 @@ class TestS3Driver(TestCase):
         """
         test_ensembl = b'Test ensembl here!'
         for key, exp_content in {'projects/': b'', 'projects/ensembl.txt': test_ensembl}.items():
-            self.assertEqual(exp_content, self.driver.get_uri_contents_as_stream(key),
+            self.assertEqual(exp_content, self.driver.get_uri_contents_as_bytes(key),
                              msg='Checking content of object with URI: {0}'.format(key))
 
     def test_get_uri_contents_as_dict(self):

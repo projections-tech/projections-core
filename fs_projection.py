@@ -30,7 +30,7 @@ class FSDriver(ProjectionDriver):
             return {'name': os.path.basename(uri), 'size': os.path.getsize(uri), 'type': 'file',
                     'extension': os.path.splitext(uri)[1]}
 
-    def get_uri_contents_as_stream(self, uri):
+    def get_uri_contents_as_bytes(self, uri):
         """
         Load uri contents as stream
         :param uri: URI string

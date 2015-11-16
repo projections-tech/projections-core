@@ -38,7 +38,12 @@ class GenbankDriver(ProjectionDriver):
         else:
             return {'id': query[0]}
 
-    def get_uri_contents_as_stream(self, query):
+    def get_uri_contents_as_bytes(self, query):
+        """
+        OPen URI and return it`s content as bytes
+        :param query: query to driver
+        :return: bytes massive
+        """
         logger.debug('Loading query: %s', query)
         query = query.split(':')
         query_type = query[0]

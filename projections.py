@@ -257,7 +257,7 @@ class ProjectionTree(Node):
         projection_on_path = self.get_projection(path)
         uri = projection_on_path.uri
 
-        content = self.driver.get_uri_contents_as_stream(uri)
+        content = self.driver.get_uri_contents_as_bytes(uri)
         logger.info('Got path content: %s\n', path)
 
         projection_on_path.size = len(content)
@@ -361,7 +361,7 @@ class ProjectionDriver(object):
     def get_uri_contents_as_dict(self, uri):
         raise NotImplemented('Implement metadata retrieval from some projection backend.')
 
-    def get_uri_contents_as_stream(self, uri):
+    def get_uri_contents_as_bytes(self, uri):
         raise NotImplemented('Implement data stream retrieval from some projection backend.')
 
 
@@ -423,7 +423,7 @@ class Projector:
             context = context[::-1]
 
             logger.info('Creating projections for a prototype: %s', prototype)
-            # TODO: eval is not safe, consider safer alternative, e.g. JsonPath
+            # TODO: eval is not safe, consider safer alternative, e.g. ObjectPath
             URIs = eval(prototype.uri, locals())
 
             logger.info('Prototype %s has projections on URIs: %s', prototype, URIs)
