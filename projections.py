@@ -333,14 +333,6 @@ class Projector:
         assert isinstance(driver, ProjectionDriver), 'Check that driver object is subclass of ProjectionDriver'
         self.driver = driver
 
-    def fetch_context(self, uri):
-        """
-        Used to fetch contents of uri in microcode
-        :param uri: URI
-        :return: uri contents
-        """
-        return self.driver.get_uri_contents_as_dict(uri)
-
     def create_projection_tree(self, prototypes, projection_tree, parent_projection=None):
         """
         Creates projection tree for a given collection of prototypes.
@@ -359,7 +351,6 @@ class Projector:
         #   file prototypes, while content for directory prototypes only
         environment = None
         content = None
-        fetch_context = self.fetch_context
         path = os.path
 
         # This is environment in which projections are created (parent_projection content)
