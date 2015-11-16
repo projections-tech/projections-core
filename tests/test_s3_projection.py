@@ -1,8 +1,8 @@
 import logging
 import logging.config
 from unittest import TestCase, skip
-from projections import PrototypeDeserializer, Projection
-from aws_s3 import S3Driver, S3Projector
+from projections import PrototypeDeserializer, Projector
+from aws_s3 import S3Driver
 from moto import mock_s3
 import boto3
 # Import logging configuration from the file provided
@@ -103,10 +103,9 @@ class TestS3Projector(TestCase):
 
         projection_configuration = PrototypeDeserializer('tests/test_s3.yaml')
 
-        root_projection = Projection('/', projection_configuration.root_projection_uri)
-
         s3_driver = S3Driver('test_id', 'test_key', 'us-west-2', projection_configuration.root_projection_uri)
-        cls.s3_projector = S3Projector(s3_driver, root_projection, projection_configuration.prototype_tree)
+        cls.s3_projector = Projector(s3_driver, projection_configuration.root_projection_uri,
+                                     projection_configuration.prototype_tree)
 
     @classmethod
     def tearDownClass(cls):
@@ -116,7 +115,7 @@ class TestS3Projector(TestCase):
         """
         Tests if S3 projector creates projections
         """
-        created_projections = self.s3_projector.projections
+        created_projections = [n.get_path() for n in self.s3_projector.projection_tree.get_tree_nodes()]
 
         # Test if number of created projections equals to expected number of projections
         self.assertEqual(6, len(created_projections),

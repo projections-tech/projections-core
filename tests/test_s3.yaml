@@ -5,15 +5,15 @@ resource_uri: "parseq"
 # Name of the bucket
 root_projection_uri: "parseq"
 
-metadata_prototype: &metadata_prototype
+file_prototype: &file_prototype
   type: file
   children: None
-  name:  " content['name'].replace('/','_') "
-  uri: "[ environment['name'] ]"
+  name: " content['name'].replace('/','_') "
+  uri: "[obj for obj in environment if 'quality' in fetch_context(obj)['metadata'] and fetch_context(obj)['metadata']['quality'] == 'good']"
 
 root:
   type: directory
   children:
-    metadata_prototype: *metadata_prototype
+    file_prototype: *file_prototype
   name: " 'parseq' "
-  uri: "[obj for obj in environment if 'quality' in fetch_context(obj)['metadata'] and fetch_context(obj)['metadata']['quality'] == 'good']"
+  uri: " ['parseq'] "
