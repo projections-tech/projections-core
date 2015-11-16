@@ -1,8 +1,9 @@
 import logging
 import logging.config
 from unittest import TestCase, skip
-from tests.sra_mock import SRAMock
+from tests.mock import MockResource
 from projections import PrototypeDeserializer, Projector
+
 import sra
 
 MOUNT_POINT = 'tests/mnt'
@@ -17,7 +18,7 @@ class TestSRAProjector(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.mock_resource = SRAMock('http://eutils.ncbi.nlm.nih.gov', 'tests/mock_resource')
+        cls.mock_resource = MockResource('tests/sra_mock.json')
 
     @classmethod
     def tearDownClass(cls):

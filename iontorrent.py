@@ -13,7 +13,7 @@ from urllib.parse import urljoin
 from projections import ProjectionDriver, Projector, PrototypeDeserializer
 from filesystem import ProjectionFilesystem
 from fuse import FUSE
-from tests.torrent_suite_mock import TorrentSuiteMock
+from tests.mock import MockResource
 
 logger = logging.getLogger('iontorrent_projection')
 
@@ -96,7 +96,7 @@ def main(cfg_path, mountpoint, data_folder, foreground=True):
     # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
-    mock_torrent_suite = TorrentSuiteMock('mockiontorrent.com', 'tests/mock_resource/torrent_suite_mock_data')
+    mock_torrent_suite = MockResource('tests/torrent_suite_mock.json')
     projection_configuration = PrototypeDeserializer(cfg_path)
     projection_driver = TorrentSuiteDriver(projection_configuration.resource_uri, 'ionadmin', '0ECu1lW')
 
@@ -104,7 +104,6 @@ def main(cfg_path, mountpoint, data_folder, foreground=True):
                                             projection_configuration.root_projection_uri,
                                             projection_configuration.prototype_tree).projection_tree
     projection_filesystem.projection_manager = ion_torrent_projection_tree
-
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
     return fuse
 

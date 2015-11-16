@@ -5,7 +5,7 @@ import logging.config
 import os
 import argparse
 from Bio import Entrez
-from tests.genbank_mock import GenbankMock
+from tests.mock import MockResource
 
 from projections import ProjectionDriver, Projector, PrototypeDeserializer
 from filesystem import ProjectionFilesystem
@@ -78,7 +78,7 @@ if __name__ == '__main__':
 
     script_dir = os.path.dirname(os.path.realpath(__file__))
     logging.config.fileConfig(os.path.join(script_dir, 'logging.cfg'))
-    mock_resource = GenbankMock('http://eutils.ncbi.nlm.nih.gov', 'tests/mock_resource')
+    mock_resource = MockResource('tests/genbank_mock.json')
     parser = argparse.ArgumentParser(description='Genbank projection.')
     parser.add_argument('-m', '--mount-point', required=True, help='specifies mount point path on host')
     parser.add_argument('-d', '--data-directory', required=True, help='specifies data directory path on host')
