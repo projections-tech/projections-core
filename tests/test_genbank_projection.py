@@ -3,7 +3,7 @@ import logging
 import logging.config
 from unittest import TestCase, skip
 from tests.genbank_mock import GenbankMock
-from projections import PrototypeDeserializer, Projection
+from projections import PrototypeDeserializer, Projector
 import genbank
 import subprocess
 import time
@@ -28,14 +28,14 @@ class TestGenbankProjector(TestCase):
     def setUp(self):
         driver = genbank.GenbankDriver('test')
         projection_configuration = PrototypeDeserializer('tests/test_genbank_config.yaml')
-        root_projection = Projection('/', projection_configuration.root_projection_uri)
-        self.genbank_projector = genbank.GenbankProjector(driver, root_projection, projection_configuration.prototype_tree)
+        self.genbank_projector = Projector(driver, projection_configuration.root_projection_uri,
+                                                   projection_configuration.prototype_tree)
 
     def test_create_projections(self):
         """
         Tests if Genbank projection manager creates projections
         """
-        created_projections = self.genbank_projector.projections
+        created_projections = [n.get_path() for n in self.genbank_projector.projection_tree.get_tree_nodes()]
 
         # Test if number of created projections equals to expected number of projections
         self.assertEqual(4, len(created_projections),
