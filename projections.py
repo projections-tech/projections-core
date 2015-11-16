@@ -14,6 +14,7 @@ logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('projections')
 
 
+
 class Node(object):
     """
     Generic tree class which holds common methods for "tree" structure, must be subclassed to create Prototype and
@@ -292,17 +293,17 @@ class ProjectionPrototype(Node):
         self.uri = None
         self.context = None
 
-    def __str__(self):
-        return 'ProjectionPrototype for {}'.format(self.uri)
-
-    def __repr__(self):
-        return self.__str__()
-
     def get_context(self):
         """
         Get context of current node defined by contexts of upper nodes
         """
         return [node.context for node in self.get_parent_nodes()]
+
+    def __str__(self):
+        return 'ProjectionPrototype for {}'.format(self.uri)
+
+    def __repr__(self):
+        return self.__str__()
 
 
 class PrototypeDeserializer(object):
@@ -411,7 +412,6 @@ class Projector:
 
         # This is environment in which projections are created (parent_projection content)
         # TODO: in many cases it means double request to parent projection resource so it should be optimized
-
         environment = self.driver.get_uri_contents_as_dict(projection_tree.data.uri)
         logger.info('Starting prototype creation in the context of resource with uri: %s', projection_tree.data.uri)
 
