@@ -81,9 +81,6 @@ class MockResource(object):
                                        content_type=content_type,
                                        match_querystring=True)
 
-    def __del__(self):
-        """
-        Destructor of mock resource object
-        """
+    def deactivate(self):
         httpretty.disable()
         httpretty.reset()

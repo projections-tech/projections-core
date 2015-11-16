@@ -10,7 +10,7 @@ import sys
 import time
 from fuse import FUSE, FuseOSError, Operations
 
-from projections import Projection, ProjectionManager
+from projections import Projection
 
 logger = logging.getLogger('projection_filesystem')
 
@@ -34,7 +34,7 @@ class ProjectionFilesystem(Operations):
 
         logger.debug('Content of data directory: %s', os.listdir(self.data_path))
         # Creating projection manager
-        self.projection_manager = ProjectionManager()
+        self.projection_manager = None
 
     # FUSE methods
     def _extend_data_path(self, path):
@@ -80,7 +80,7 @@ class ProjectionFilesystem(Operations):
             return path
 
         # Get projections and exclude the ones that are already on the disk
-        projections = [remove_heading_slash(p) for p in self.projection_manager.get_projections(path) if
+        projections = [remove_heading_slash(p) for p in self.projection_manager.get_projections_on_path(path) if
                        remove_heading_slash(p) not in dirents]
         logger.debug('Filtered projections: %s', projections)
         # Mix-in projections to directory entries
