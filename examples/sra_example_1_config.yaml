@@ -1,15 +1,22 @@
 ---
+# This is example configuration of SRA projection.
+# This projection uses python as it`s microcode
 dialect: python
 resource_uri: http://eutils.ncbi.nlm.nih.gov'
 
-root_projection_uri: 'query:Streptococcus:1'
+# Root projection us query to Entrez eutils esearch, this enables user to enter desired search query to search SRA
+# database and project search results.
+# Here we project specific experiment by its accession number
+root_projection_uri: 'query:SRX1045233:1'
 
+# Prototype of run, projects to SAM file which corresponds to experiment
 run_prototype: &run_prototype
   type: file
   children: None
-  name:  "content + '.sam' "
+  name:  "content + '.sam'"
   uri: "['load_run:'+ run for run in fetch_context('get_experiment_runs:'+environment['EXPERIMENT']['@accession'])]"
 
+# Prototype of experiment metadata, projects to json file
 experiment_meta_prototype: &experiment_meta_prototype
   type: file
   children: None

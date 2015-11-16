@@ -2,18 +2,16 @@
 
 import logging
 import logging.config
-import io
 import json
 import os
-import sys
-import time
 import xmltodict
 import subprocess
+import argparse
 from Bio import Entrez
 from tests.sra_mock import SRAMock
 
 
-from projections import Projection,  ProjectionDriver, ProjectionTree, Projector, PrototypeDeserializer
+from projections import ProjectionDriver, Projector, PrototypeDeserializer
 from filesystem import ProjectionFilesystem
 from fuse import FUSE
 
@@ -71,93 +69,18 @@ class SRADriver(ProjectionDriver):
             return self.query_cache[query[1]]
 
     def get_uri_contents_as_stream(self, query):
+        """
+        Open URI and return dict of its contents
+        :param uri: URI string
+        :return: dict of URI contents
+        """
         logger.debug('Loading query: %s', query)
         query = query.split(':')
         query_type = query[0]
-
-        if query_type == 'get_experiment_runs':
-            return subprocess.check_output(['./sratoolkit.2.5.2-ubuntu64/bin/sam-dump', query[1]])
+        if query_type == 'load_run':
+            return subprocess.check_output(['./sratoolkit.2.5.4-1-ubuntu64/bin/sam-dump', query[1]])
         else:
             return json.dumps(self.query_cache[query[1]]).encode()
-
-
-class SRAProjector(Projector):
-    def __init__(self, driver, root_projection, root_prototype):
-        """
-        Initializes SRA Projector with driver, assigns root projection, builds prototype and projection tree.
-        :param driver: instance of SRADriver
-        :param prototype_tree: tree of ProjectionPrototype objects to build projection upon
-        """
-        assert isinstance(driver, ProjectionDriver), 'Check that driver object is subclass of ProjectionDriver'
-        self.driver = driver
-
-        # Initializing projection tree with root projection.
-        self.projection_tree = ProjectionTree()
-        self.root_projection = root_projection
-        self.projection_tree.add_projection(self.root_projection, None)
-
-        self.create_projection_tree({'/': root_prototype}, projection_tree=self.projection_tree, parent_projection=self.root_projection)
-        self.projections = self.projection_tree.projections
-
-    def is_managing_path(self, path):
-        return path in self.projections
-
-    def get_projections(self, path):
-        logger.info('Requesting projections for path: %s', path)
-        projections = []
-        for p in self.projections:
-            if p.startswith(path):
-                # limit projections to one level only
-                logging.debug('Analyzing projection candidate: %s', p)
-                suffix = p[len(path):]
-                if suffix and suffix[0] == '/':
-                    suffix = suffix[1:]
-                logger.debug('Path suffix: %s', suffix)
-                if suffix and '/' not in suffix:
-                    projections.append('/' + suffix)
-
-        logger.debug('Returning projections: %s', projections)
-        return projections
-
-    def get_attributes(self, path):
-        assert path in self.projections
-
-        projection = self.projections[path]
-
-        now = time.time()
-        attributes = dict()
-
-        # Set projection attributes
-
-        # This is implementation specific and should be binded to projector data
-        attributes['st_atime'] = now
-        # This may be implemented as last projection cashing time is casing is enabled
-        attributes['st_mtime'] = now
-        # On Unix this is time for metedata modification we can use the same conception
-        attributes['st_ctime'] = now
-        # If this is projection the size is zero
-        attributes['st_size'] = projection.size
-        # Set type to link anf grant full access to everyone
-        attributes['st_mode'] = (projection.type | 0o0777)
-        # Set number of hard links to 0
-        attributes['st_nlink'] = 0
-        # Set id as inode number.
-        attributes['st_ino'] = 1
-
-        return attributes
-
-    def open_resource(self, path):
-        uri = self.projections[path].uri
-
-        content = self.driver.get_uri_contents_as_stream(uri)
-        logger.info('Got path content: %s\n', path)
-
-        self.projections[path].size = len(content)
-
-        file_header = 3
-        resource_io = io.BytesIO(content)
-
-        return file_header, resource_io
 
 
 # For smoke testing
@@ -171,10 +94,10 @@ def main(mountpoint, data_folder, foreground=True):
 
     sra_driver = SRADriver('vsvekolkin@parseq.pro')
 
-    root_projection = Projection('/', projection_configuration.root_projection_uri)
+    sra_projection_tree = Projector(sra_driver, projection_configuration.root_projection_uri,
+                                    projection_configuration.prototype_tree).projection_tree
 
-    projection_filesystem.projection_manager = SRAProjector(sra_driver, root_projection,
-                                                            projection_configuration.prototype_tree)
+    projection_filesystem.projection_manager = sra_projection_tree
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
     return fuse
 
@@ -183,10 +106,9 @@ if __name__ == '__main__':
     script_dir = os.path.dirname(os.path.realpath(__file__))
     logging.config.fileConfig(os.path.join(script_dir, 'logging.cfg'))
 
-    # TODO: replace with argparse
-    # Get mount point from args
-    if len(sys.argv) != 3:
-        print('usage: %s <mountpoint> <data folder>' % sys.argv[0])
-        exit(1)
+    parser = argparse.ArgumentParser(description='SRA projection.')
+    parser.add_argument('-m', '--mount-point', required=True, help='specifies mount point path on host')
+    parser.add_argument('-d', '--data-directory', required=True, help='specifies data directory path on host')
+    args = parser.parse_args()
 
-    main(sys.argv[1], sys.argv[2])
+    main(args.mount_point, args.data_directory)

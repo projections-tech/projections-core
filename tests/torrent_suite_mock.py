@@ -4,6 +4,7 @@ import json
 import httpretty
 from tests.mock import MockResource
 
+
 class TorrentSuiteMock(MockResource):
 
     def mock_auth_response(self):
