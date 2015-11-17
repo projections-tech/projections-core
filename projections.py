@@ -1,6 +1,7 @@
 __author__ = 'abragin'
 
 import io
+import json
 import logging
 import os
 import stat
@@ -174,6 +175,7 @@ class Projection(object):
         self.type = type
         # Should be nonzero to trigger projection object reading
         self.size = size
+        self.metadata_uri = None
 
     def __str__(self):
         return 'Projection from {} to {}'.format(self.uri, self.name)
@@ -406,16 +408,24 @@ class Projector:
         # file prototypes, while content for directory prototypes only
         environment = None
         content = None
+        metadata_uri = projection_tree.data.uri
         fetch_context = self.fetch_context
         path = os.path
 
         # This is environment in which projections are created (parent_projection content)
         # TODO: in many cases it means double request to parent projection resource so it should be optimized
-        environment = self.driver.get_uri_contents_as_dict(projection_tree.data.uri)
-        logger.info('Starting prototype creation in the context of resource with uri: %s', projection_tree.data.uri)
+
+        environment = self.driver.get_uri_contents_as_dict(metadata_uri)
+        logger.info('Starting prototype creation in the context of resource with uri: %s', metadata_uri)
 
         # For every prototype in collection try to create corresponding projections
         for key, prototype in prototypes.items():
+            if prototype.parent:
+                # Add metadata by URI to prototype environment if it`s parent was metadata prototype or it is metadata
+                if prototype.parent.type == 'metadata' or prototype.type == 'metadata':
+                    # Metadata must be valid JSON file, in other case do conversion in driver
+                    environment['file_metadata'] = json.loads(self.driver.get_uri_contents_as_bytes(metadata_uri).decode())
+
             # Set current prototype context to current environment for children node to use
             prototype.context = environment
             # Get context of current node from contexts of parent nodes
@@ -436,9 +446,11 @@ class Projector:
                 name = eval(prototype.name, locals())
 
                 child_tree = ProjectionTree(p_name=name, p_uri=uri)
+                # Setting projection metadata URI
+                child_tree.data.metadata_uri = metadata_uri
 
-                # Add newly created projection to projection tree if prototype is not transparent
-                if not prototype.type == 'transparent':
+                # Add newly created projection to projection tree if prototype is not transparent or metadata
+                if not prototype.type == 'transparent' and not prototype.type == 'metadata':
                     projection_tree.add_child(child_tree)
                     logger.info('Projection created: %s', child_tree)
 
@@ -448,10 +460,11 @@ class Projector:
                         logger.info('Starting attached prototype projection creation for prototype: %s with children: %s',
                                     prototype, prototype.children)
                         self.create_projection_tree(prototype.children, child_tree)
-                elif prototype.type == 'transparent':
-                    # If projection is transparent, continue prototype tree building passing parent projection tree
-                    # and evaluated uri of prototype to it. This behaviour allows to build flat projections there
-                    # all prototypes are on one level due to passed common parent projection
+
+                elif prototype.type == 'transparent' or prototype.type == 'metadata':
+                    # If projection is transparent or metadata, continue prototype tree building passing parent
+                    # projection tree and evaluated uri of prototype to it. This behaviour allows to build flat
+                    # projections there all prototypes are on one level due to passed common parent projection
                     if prototype.children:
                         projection_tree.data.uri = child_tree.data.uri
                         self.create_projection_tree(prototype.children, projection_tree)

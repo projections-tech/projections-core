@@ -1,0 +1,33 @@
+---
+dialect: python
+resource_uri: None
+
+root_projection_uri: 'tests/test_dir'
+
+
+bam_metadata: &bam_metadata
+  type: file
+  children: None
+  name: " content['name'] "
+  uri: " [environment['resource_uri']] "
+
+bam_projection: &bam_projection
+  type: file
+  children: None
+  name: " content['name'] "
+  uri: "[environment['dir_path'] + '/' + environment['file_metadata']['result']] if environment['file_metadata']['quality'] == 'good' else [] "
+
+bam_projection_meta: &bam_projection_meta
+  type: metadata
+  children:
+    bam_projection: *bam_projection
+    bam_metadata: *bam_metadata
+  name: " content['name'] "
+  uri: " [p for p in environment['children'] if fetch_context(p)['type'] == 'file' and fetch_context(p)['extension'] == '.json' and 'bam' in fetch_context(p)['name']] "
+
+root:
+  type: directory
+  children:
+    bam_projection_meta: *bam_projection_meta
+  name: " content['name'] "
+  uri: "[ projection_tree.data.uri ]"
