@@ -4,7 +4,7 @@ import os
 from unittest import TestCase, skip
 from projections import PrototypeDeserializer, Projector
 
-import miseq_projection
+import miseq
 
 MOUNT_POINT = 'tests/mnt'
 DATA_FOLDER = 'tests/data'
@@ -32,12 +32,12 @@ class TestMiseqProjection(TestCase):
 
     def setUp(self):
         # Monkey patching MiSeq Driver initialization
-        miseq_projection.MiSeqDriver.__init__ = no_mount_init
+        miseq.MiSeqDriver.__init__ = no_mount_init
         # Monkey patching MiSeq Driver destructor
-        miseq_projection.MiSeqDriver.__del__ = deactivate_driver
+        miseq.MiSeqDriver.__del__ = deactivate_driver
 
         projection_configuration = PrototypeDeserializer('tests/test_miseq_config.yaml')
-        driver = miseq_projection.MiSeqDriver('test', projection_configuration.resource_uri)
+        driver = miseq.MiSeqDriver('test', projection_configuration.resource_uri)
 
         self.miseq_projector = Projector(driver, 'tests/mock_resource/miseq_mock_data',
                                          projection_configuration.prototype_tree)
