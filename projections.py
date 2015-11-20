@@ -450,7 +450,7 @@ class Projector:
                 child_tree.data.metadata_uri = metadata_uri
 
                 # Add newly created projection to projection tree if prototype is not transparent or metadata
-                if not prototype.type == 'transparent' and not prototype.type == 'metadata':
+                if prototype.type != 'transparent' and prototype.type != 'metadata':
                     projection_tree.add_child(child_tree)
                     logger.info('Projection created: %s', child_tree)
 
