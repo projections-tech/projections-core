@@ -45,9 +45,10 @@ class S3Driver(ProjectionDriver):
             metadata['size'] = current_object.content_length
             metadata['content_encoding'] = current_object.content_encoding
             metadata['content_type'] = current_object.content_type
+            metadata['resource_uri'] = uri
             return metadata
         else:
-            return [o.key for o in self.bucket.objects.all()]
+            return {'bucket_contents': [self.get_uri_contents_as_dict(o.key) for o in self.bucket.objects.all()]}
 
     def get_uri_contents_as_bytes(self, uri):
         """

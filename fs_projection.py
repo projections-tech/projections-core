@@ -24,10 +24,19 @@ class FSDriver(ProjectionDriver):
         # Directory projection returns list of it`s children as metadata
         logger.debug(uri)
         if os.path.isdir(uri):
-            return {'name': os.path.basename(uri), 'size': os.path.getsize(uri), 'type': 'dir',
-                    'children': [os.path.join(os.path.abspath(uri), p) for p in os.listdir(uri)], 'extension': None}
+            return {'name': os.path.basename(uri),
+                    'resource_uri': os.path.abspath(uri),
+                    'size': os.path.getsize(uri),
+                    'type': 'dir',
+                    'children': [
+                        self.get_uri_contents_as_dict(os.path.join(os.path.abspath(uri), p)) for p in os.listdir(uri)
+                        ],
+                    'extension': None}
         else:
-            return {'name': os.path.basename(uri), 'size': os.path.getsize(uri), 'type': 'file',
+            return {'name': os.path.basename(uri),
+                    'resource_uri': os.path.abspath(uri),
+                    'size': os.path.getsize(uri),
+                    'type': 'file',
                     'extension': os.path.splitext(uri)[1]}
 
     def get_uri_contents_as_bytes(self, uri):

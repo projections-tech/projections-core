@@ -73,12 +73,43 @@ class TorrentSuiteDriver(ProjectionDriver):
         """
 
         uri = self.__prepare_uri(uri)
+        logger.info(uri)
         # TODO move this functionality to caller function
         with urllib.request.urlopen(uri) as f:
             if re.search('\.bam$', uri) or re.search('\.vcf$', uri) or re.search('\.bed$', uri):
-                return b''
+                return {}
             else:
-                return json.loads(f.readall().decode('utf-8'))
+                meta = json.loads(f.readall().decode('utf-8'))
+
+                # Here we add required for projection fields to metadata
+                if 'resource_uri' in meta:
+                    if '/experiment/' in meta['resource_uri']:
+                        # Experiment is hierarchically upper element, it`s fields 'plan' and 'results' used by lower
+                        # level projections.
+                        # Firstly we add 'plan' field to metadata
+                        plan_uri = self.__prepare_uri(meta['plan'])
+                        with urllib.request.urlopen(plan_uri) as p_f:
+                            meta['plan'] = json.loads(p_f.readall().decode('utf-8'))
+                        # Secondly 'results' field
+                        temp = []
+                        for res in meta['results']:
+                            res_uri = self.__prepare_uri(res)
+                            with urllib.request.urlopen(res_uri) as r:
+                                temp.append(json.loads(r.readall().decode('utf-8')))
+                        meta['results'] = temp
+
+                    elif '/results/' in meta['resource_uri']:
+                        # Here we resolve 'experiment' of upper level resource using recursive call
+                        exp_uri = self.__prepare_uri(meta['experiment'])
+                        meta['experiment'] = self.get_uri_contents_as_dict(exp_uri)
+                        # Adding 'pluginresults' to result meta
+                        temp = []
+                        for p_res in meta['pluginresults']:
+                            p_res_uri = self.__prepare_uri(p_res)
+                            with urllib.request.urlopen(p_res_uri) as p_r:
+                                temp.append(json.loads(p_r.readall().decode('utf-8')))
+                        meta['pluginresults'] = temp
+                return meta
 
     def get_uri_contents_as_bytes(self, uri):
         """

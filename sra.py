@@ -4,11 +4,16 @@ import logging
 import logging.config
 import json
 import os
+import re
+import sys
+import time
 import xmltodict
 import subprocess
 import argparse
 from Bio import Entrez
+
 from tests.mock import MockResource
+
 
 
 from projections import ProjectionDriver, Projector, PrototypeDeserializer
@@ -21,66 +26,84 @@ logger = logging.getLogger('sra_projection')
 
 class SRADriver(ProjectionDriver):
     def __init__(self, email):
+        """
+        Initialize driver telling NCBI using user email and name of program
+        :param email:
+        :return:
+        """
         Entrez.email = email
         Entrez.tool = 'sra_projection_manager'
-        self.query_cache = {}
+        self.driver_cache = {}
 
-    def get_uri_contents_as_dict(self, query):
+    def get_uri_contents_as_dict(self, uri):
         """
-        Loads content from SRA using Biopython in driver cache, with queries in format: "query_type:query"
-        :param query: str containing query to SRA
+        Loads content from SRA using Biopython in driver cache
+        :param uri: str containing uri
         :return: dict of query contents
         """
-        query = query.split(':')
-        logger.debug('Current query: %s', query)
-        query_type = query[0]
         # Info about Biopython`s eutils: http://biopython.org/DIST/docs/tutorial/Tutorial.html#chapter:entrez
         # Query looks as: 'query:Test_species'
-        if query_type == 'query':
-            # Returns esearch response dict.
-            esearch_handle = Entrez.esearch(db='sra', term=query[1], retmax=query[2])
-            return Entrez.read(esearch_handle)
-        # Query looks as 'search_id:102354'
-        elif query_type == 'search_id':
-            if query[1] not in self.query_cache:
-                fetch_handler = Entrez.efetch(db='sra', id=query[1])
-                sample_dict = xmltodict.parse(fetch_handler.read())
-                search_query_contents = sample_dict['EXPERIMENT_PACKAGE_SET']['EXPERIMENT_PACKAGE']
-                # Adding resources to cache dict with their IDs as keys
-                self.query_cache[query[1]] = search_query_contents
-                self.query_cache[search_query_contents['EXPERIMENT']['@accession']] = search_query_contents
-                # Run set is most times dict, but sometimes list, treating dict as list to resolve inconsistency
-                if isinstance(search_query_contents['RUN_SET']['RUN'], list):
-                    for run in search_query_contents['RUN_SET']['RUN']:
-                        self.query_cache[run['@accession']] = run['@accession']
-                else:
-                    self.query_cache[search_query_contents['RUN_SET']['RUN']['@accession']] = search_query_contents['RUN_SET']['RUN']['@accession']
-                return search_query_contents
-            else:
-                return self.query_cache[query[1]]
-        elif query_type == 'get_experiment_runs':
-            experiment_data = self.query_cache[query[1]]
-            # Run set is most times dict, but sometimes list, treating dict as list to resolve inconsistency
-            if isinstance(experiment_data['RUN_SET']['RUN'], list):
-                return [run['@accession'] for run in experiment_data['RUN_SET']['RUN']]
-            else:
-                return [experiment_data['RUN_SET']['RUN']['@accession']]
-        else:
-            return self.query_cache[query[1]]
+        logger.debug('Current query: %s', uri)
 
-    def get_uri_contents_as_bytes(self, query):
-        """
-        Open URI and return bytes massive
-        :param uri: URI string
-        :return: bytes massive
-        """
-        logger.debug('Loading query: %s', query)
-        query = query.split(':')
-        query_type = query[0]
-        if query_type == 'load_run':
-            return subprocess.check_output(['./sratoolkit.2.5.4-1-ubuntu64/bin/sam-dump', query[1]])
+        if uri not in self.driver_cache:
+            uri_parts = uri.split(':')
+            # Returns esearch response dict for SRA database.
+            esearch_handle = Entrez.esearch(db='sra', term=uri_parts[1], retmax=uri_parts[2])
+            search_result = Entrez.read(esearch_handle)
+            # Id`s of experiment resources
+            for sra_id in search_result['IdList']:
+                # Driver accesses experiments using id`s like sra_id:1214564
+                res_uri = 'sra_id:{0}'.format(sra_id)
+                # Handler to fetch SRA database by experiment id
+                fetch_handler = Entrez.efetch(db='sra', id=sra_id)
+
+                # Converts nested ordered dicts to default dicts required by ObjectPath
+                experiment = json.loads(json.dumps(xmltodict.parse(fetch_handler.read())))
+                # Setting resource uri for experiment on driver
+                experiment['resource_uri'] = res_uri
+
+                # Experiment resource contains data about runs, which contain id`s of SAM files in database
+                # Run set is most times dict, but sometimes list, treating dict as list to resolve inconsistency
+                run_set = experiment['EXPERIMENT_PACKAGE_SET']['EXPERIMENT_PACKAGE']['RUN_SET']['RUN']
+                if not isinstance(run_set, list):
+                    run_set = [run_set]
+                # Setting corrected run set field for experiment
+                experiment['EXPERIMENT_PACKAGE_SET']['EXPERIMENT_PACKAGE']['RUN_SET']['RUN'] = run_set
+                # Adding experiment resource in driver cache by uri
+                self.driver_cache[res_uri] = experiment
+
+                # Adding runs to driver cache by their accession
+                for run in run_set:
+                    self.driver_cache[run['@accession']] = run
+
+            # Adding sra_id prefix by which experiment resources will be accessed using driver cache
+            search_result['IdList'] = [''.join(['sra_id:', id]) for id in search_result['IdList']]
+            # Adding resource uri to search results meta
+            search_result['resource_uri'] = uri
+            # Converting search result into proper dict, not biopython subclass, because ObjectPath can handle only
+            # standard dicts
+            search_result = dict(search_result)
+            # Adding results of search to driver cache
+            self.driver_cache[uri] = search_result
+            return search_result
         else:
-            return json.dumps(self.query_cache[query[1]]).encode()
+            return self.driver_cache[uri]
+
+    def load_uri_contents_as_bytes(self, uri):
+        """
+        Returns stream of uri contents
+        :param uri: uri of resource
+        :return: stream of resource contents
+        """
+        logger.debug('Loading query: %s', uri)
+        # Regex matches id`s in SRA database
+        sam_uri_regex = '(SRR|SRX|ERX|DRX|DRR|ERR)\d+'
+        if re.match(sam_uri_regex, uri):
+            # Using subprocess.check to run sam-dump, which returns stream after loading of sam file,
+            # this approach may be slow, other approaches lock script execution, need to reconsider
+            return subprocess.check_output(['./sratoolkit.2.5.4-1-ubuntu64/bin/sam-dump', uri])
+        else:
+            return json.dumps(self.driver_cache[uri]).encode()
 
 
 # For smoke testing

@@ -1,7 +1,7 @@
 ---
 # This is example configuration of SRA projection.
-# This projection uses python as it`s microcode
-dialect: python
+# This projection uses ObjectPath as it`s microcode
+dialect: ObjectPath
 resource_uri: http://eutils.ncbi.nlm.nih.gov'
 
 # Root projection us query to Entrez eutils esearch, this enables user to enter desired search query to search SRA
@@ -13,15 +13,15 @@ root_projection_uri: 'query:SRX1045233:1'
 run_prototype: &run_prototype
   type: file
   children: None
-  name:  "content + '.sam'"
-  uri: "['load_run:'+ run for run in fetch_context('get_experiment_runs:'+environment['EXPERIMENT']['@accession'])]"
+  name:  " $.@accession + '.sam' "
+  uri: " $.EXPERIMENT_PACKAGE_SET.EXPERIMENT_PACKAGE.RUN_SET.RUN.@accession "
 
 # Prototype of experiment metadata, projects to json file
 experiment_meta_prototype: &experiment_meta_prototype
   type: file
   children: None
-  name:  "'metadata.json'"
-  uri: "['experiment_id:'+environment['EXPERIMENT']['@accession']]"
+  name:  " 'metadata.json' "
+  uri: " $.resource_uri "
 
 # This is a root prototype for projections, its context will be used as environment for children prototypes
 root:
@@ -29,5 +29,5 @@ root:
   children:
     experiment_meta_prototype: *experiment_meta_prototype
     run_prototype: *run_prototype
-  name: "content['EXPERIMENT']['@accession']"
-  uri: "['search_id:'+id for id in environment['IdList']]"
+  name: " $.environment.QueryTranslation "
+  uri: " $.IdList "

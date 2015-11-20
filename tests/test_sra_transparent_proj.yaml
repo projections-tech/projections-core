@@ -1,32 +1,32 @@
 ---
-dialect: python
+dialect: ObjectPath
 resource_uri: http://eutils.ncbi.nlm.nih.gov'
 
-root_projection_uri: 'query:Streptococcus:1'
+root_projection_uri: 'search_query:Streptococcus:1'
 
 run_prototype: &run_prototype
   type: file
   children: None
-  name:  "content + '.sam' "
-  uri: "['load_run:'+ run for run in fetch_context('get_experiment_runs:'+environment['EXPERIMENT']['@accession'])]"
+  name:  " $.@accession + '.sam' "
+  uri: " $.EXPERIMENT_PACKAGE_SET.EXPERIMENT_PACKAGE.RUN_SET.RUN.@accession "
 
 experiment_meta_prototype: &experiment_meta_prototype
   type: file
   children: None
-  name:  "environment['EXPERIMENT']['@accession'] + '_metadata.json'"
-  uri: "['experiment_id:'+environment['EXPERIMENT']['@accession']]"
+  name:  " 'metadata.json' "
+  uri: " $.resource_uri "
 
 experiment_prototype: &experiment_prototype
   type: transparent
   children:
     experiment_meta_prototype: *experiment_meta_prototype
     run_prototype: *run_prototype
-  name: "environment['EXPERIMENT']['@accession']"
-  uri: "['experiment_id:'+environment['EXPERIMENT']['@accession']]"
+  name: " $.EXPERIMENT_PACKAGE_SET.EXPERIMENT_PACKAGE.EXPERIMENT.@accession "
+  uri: " $.resource_uri "
 
 root:
   type: transparent
   children:
     experiment_prototype: *experiment_prototype
-  name: "environment['QueryTranslation']"
-  uri: "['search_id:'+id for id in environment['IdList']]"
+  name: " $.environment.QueryTranslation "
+  uri: " $.IdList "
