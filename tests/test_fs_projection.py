@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import subprocess
 import logging
@@ -86,10 +87,11 @@ class TestFSProjection(TestCase):
         # Unmount any previous tests
         subprocess.Popen(['fusermount', '-u', MOUNT_POINT])
 
-        fs_proj = subprocess.Popen(['./fs_projection.py',
-                                     '-m', MOUNT_POINT,
-                                     '-d', DATA_FOLDER,
-                                     '-c', CONFIG_PATH],
+        fs_proj = subprocess.Popen([sys.executable,
+                                    'fs_projection.py',
+                                    '-m', MOUNT_POINT,
+                                    '-d', DATA_FOLDER,
+                                    '-c', CONFIG_PATH],
                                     stdout=subprocess.DEVNULL)
         # Time to initialize Projector properly
         time.sleep(0.2)
