@@ -58,9 +58,10 @@ class TestS3Driver(TestCase):
         Tests driver get_uri_contents_as_dict method
         """
         contents_meta = [{'content_encoding': None, 'size': 0, 'name': 'projects/',
-                          'content_type': 'text/plain; charset=utf-8', 'metadata': {}},
+                          'content_type': 'text/plain; charset=utf-8', 'metadata': {}, 'resource_uri': 'projects/'},
                          {'content_encoding': None, 'size': 18, 'name': 'projects/ensembl.txt',
-                          'content_type': 'text/plain; charset=utf-8', 'metadata': {'madefor': 'testing', 'quality': 'good'}}]
+                          'content_type': 'text/plain; charset=utf-8',
+                          'resource_uri': 'projects/ensembl.txt', 'metadata': {'madefor': 'testing', 'quality': 'good'}}]
         for meta in contents_meta:
             self.assertDictEqual(meta, self.driver.get_uri_contents_as_dict(meta['name']),
                                  msg='Checking meta of object with URI: {0}'.format(meta['name']))
