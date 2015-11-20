@@ -1,6 +1,7 @@
 
 import logging
 import logging.config
+import sys
 from unittest import TestCase, skip
 from tests.mock import MockResource
 from projections import PrototypeDeserializer, Projector
@@ -42,17 +43,17 @@ class TestGenbankProjector(TestCase):
                          msg='Checking if Genbank projector created 4 projections, current number: {}'.format(len(created_projections)))
 
         # Check query projection creation
-        self.assertIn('/GI:939732440',
+        self.assertIn('/"Escherichia"[Organism] AND complete genome[title]',
                       created_projections,
                       msg='Checking creation of query projection')
 
         # Check gb file projection creation
-        self.assertIn('/GI:939732440/sequence.gb',
+        self.assertIn('/"Escherichia"[Organism] AND complete genome[title]/sequence.gb',
                       created_projections,
                       msg='Checking creation of experiment projection.')
 
         # Check fasta projection creation
-        self.assertIn('/GI:939732440/sequence.fasta',
+        self.assertIn('/"Escherichia"[Organism] AND complete genome[title]/sequence.fasta',
                       created_projections,
                       msg='Checking creation of metadata projection.')
 
@@ -62,7 +63,8 @@ class TestGenbankProjector(TestCase):
         """
         # Starting Genbank projector process
 
-        gbk_proj = subprocess.Popen(['./genbank.py',
+        gbk_proj = subprocess.Popen([ sys.executable,
+                                      'genbank.py',
                                      '-m', 'tests/mnt',
                                      '-d', 'tests/data',
                                      '-c', 'tests/test_genbank_config.yaml'],
@@ -73,11 +75,11 @@ class TestGenbankProjector(TestCase):
         with open('tests/mock_resource/genbank_mock_data/mock_contents.txt') as f_f:
             test_contents = f_f.readlines()
         # Checking fasta file projection contents
-        with open('tests/mnt/GI:939732440/sequence.fasta') as p_f:
+        with open('tests/mnt/"Escherichia"[Organism] AND complete genome[title]/sequence.fasta') as p_f:
             projected_fasta = p_f.readlines()
         self.assertEqual(projected_fasta, test_contents, msg='Check if fasta file contents loaded properly.')
         # Checking gb file projection contents
-        with open('tests/mnt/GI:939732440/sequence.gb') as p_f:
+        with open('tests/mnt/"Escherichia"[Organism] AND complete genome[title]/sequence.gb') as p_f:
             projected_gb = p_f.readlines()
         self.assertEqual(projected_gb, test_contents, msg='Check if gb file contents loaded properly.')
         # Stopping projector
