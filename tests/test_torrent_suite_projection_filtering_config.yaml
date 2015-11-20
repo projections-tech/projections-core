@@ -1,5 +1,5 @@
 ---
-dialect: python
+dialect: ObjectPath
 resource_uri: mockiontorrent.com
 user: ionadmin
 password: ionadmin

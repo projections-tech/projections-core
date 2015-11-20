@@ -450,6 +450,7 @@ class Projector:
 
                 # Adding environment to use by prototype
                 content['environment'] = environment
+                content['context'] = context
 
                 # Creating tree which will be parsed by ObjectPath
                 tree = objectpath.Tree(content)
@@ -473,6 +474,7 @@ class Projector:
                         logger.info('Starting attached prototype projection creation for prototype: %s with children: %s',
                                     prototype, prototype.children)
                         self.create_projection_tree(prototype.children, child_tree)
+
                 elif prototype.type == 'transparent':
                     # If projection is transparent, continue prototype tree building passing parent projection tree
                     # and evaluated uri of prototype to it. This behaviour allows to build flat projections there
