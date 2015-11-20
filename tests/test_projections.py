@@ -65,11 +65,6 @@ class TestProjector(TestCase):
         Testing projection tree creation with projection prototypes.
 
         """
-
-        # Root projection has ho associated prototypes.
-        # This behavior may be changed to provide more uniform approach.
-        root = Projection('/', 'experiments')
-
         experiment_prototype = ProjectionPrototype('directory')
         experiment_prototype.name = " replace($.displayName, ' ', '_') "
         experiment_prototype.uri = ' $.objects.uri '
@@ -87,21 +82,21 @@ class TestProjector(TestCase):
         bam_prototype.parent = result_prototype
         result_prototype.children[bam_prototype.name] = bam_prototype
 
-        # Create projection tree with the prototypes provided
-        projector = Projector(TestDriver())
-        projection_tree = ProjectionTree()
-        projection_tree.add_projection(root, None)
-
-        projector.create_projection_tree({'/': experiment_prototype}, projection_tree=projection_tree, parent_projection=root)
+        projector = Projector(TestDriver(), 'experiments', experiment_prototype)
 
         dir_paths = ['/', '/experiment_0', '/experiment_1', '/experiment_2',
                  '/experiment_1/result_1', '/experiment_1/result_2',
                  '/experiment_2/result_3', '/experiment_2/result_4', '/experiment_2/result_5']
 
+        created_projections = [n.get_path() for n in projector.projection_tree.get_tree_nodes()]
+        logger.info('Created projections: %s', created_projections)
         for dir_path in dir_paths:
             logger.info('Checking projection on path: %s', dir_path)
-            self.assertTrue(dir_path in projection_tree.projections, 'Check that projection exists')
-            projection = projection_tree.projections[dir_path]
+
+            self.assertTrue(dir_path in created_projections, 'Check that projection exists')
+
+            projection = projector.projection_tree.get_projection(dir_path)
+
             self.assertTrue(projection.type == stat.S_IFDIR, 'Check that this is a directory projection')
 
         file_paths = ['/experiment_1/result_1/1.bam', '/experiment_1/result_2/2.bam',
@@ -109,15 +104,15 @@ class TestProjector(TestCase):
 
         for file_path in file_paths:
             logger.info('Checking file projection on path: %s', file_path)
-            self.assertTrue(file_path in projection_tree.projections, 'Check that projection exists')
-            projection = projection_tree.projections[file_path]
+            self.assertTrue(file_path in created_projections, 'Check that projection exists')
+            projection = projector.projection_tree.get_projection(file_path)
             self.assertTrue(projection.type == stat.S_IFREG, 'Check that this is a file projection')
 
 
-class TestTree(TestCase):
+class TestNode(TestCase):
 
     def setUp(self):
-        self.tree = Node(name=None)
+        self.tree = Node(name='/')
 
         self.first_level_names = []
         self.second_level_names = []
@@ -147,17 +142,17 @@ class TestTree(TestCase):
         self.assertListEqual([], self.tree.get_parent_nodes())
 
         for first_level_child in self.tree.get_children():
-            self.assertListEqual([None],
+            self.assertListEqual(['/'],
                                  [n.name for n in first_level_child.get_parent_nodes()],
                                  msg='Checking path to first level nodes of a tree')
 
             for second_level_child in first_level_child.get_children():
-                self.assertListEqual([None, first_level_child.name],
+                self.assertListEqual(['/', first_level_child.name],
                                  [n.name for n in second_level_child.get_parent_nodes()],
                                  msg='Checking path to second level nodes of a tree')
 
                 for third_level_child in second_level_child.get_children():
-                    self.assertListEqual([None, first_level_child.name, second_level_child.name],
+                    self.assertListEqual(['/', first_level_child.name, second_level_child.name],
                                      [n.name for n in third_level_child.get_parent_nodes()],
                                      msg='Checking path to third level nodes of a tree')
 
@@ -187,7 +182,7 @@ class TestTree(TestCase):
 
             for j, second_level_child in enumerate(first_level_child.get_children()):
                 self.assertIn(second_level_child.name, self.second_level_names,
-                                 msg='Checking name to second level nodes of a tree')
+                              msg='Checking name to second level nodes of a tree')
 
                 for k, third_level_child in enumerate(second_level_child.get_children()):
                     self.assertIn(third_level_child.name, self.third_level_names,
@@ -231,6 +226,33 @@ class TestTree(TestCase):
         node_by_path = node_2.find_node_by_path(path)
         self.assertTrue(node_by_path.name == 'a',
                         msg='Checking if node: {0} is on path: {1}'.format(node_by_path.name, path))
+
+    def test_node_removal_by_path(self):
+        """
+        Checks node removal from tree by node path
+        """
+        tree = Node(name='/')
+        node_1 = Node(name='experiments')
+        node_1_1 = Node(name='a')
+        node_1_2 = Node(name='b')
+        node_2 = Node(name='results')
+        node_2_1 = Node(name='a')
+        node_2_2 = Node(name='b')
+
+        tree.add_child(node_1)
+        node_1.add_child(node_2)
+        node_1.add_child(node_1_1)
+        node_1.add_child(node_1_2)
+        node_2.add_child(node_2_1)
+        node_2.add_child(node_2_2)
+
+        all_paths = ['/experiments', '/experiments/a', '/experiments/b',
+                     '/experiments/results', '/experiments/results/a', '/experiments/results/b']
+
+        for node_path in all_paths:
+            tree.remove_node_by_path(node_path)
+            self.assertNotIn(node_path, [n.get_path() for n in tree.get_tree_nodes()],
+                             msg='Checking if node {0} is no in tree nodes list.')
 
 
 class TestPrototypeDeserializer(TestCase):

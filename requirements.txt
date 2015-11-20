@@ -4,3 +4,5 @@ httpretty==0.8.10
 xmltodict==0.9.2
 PyYAML==3.11
 objectpath==0.5
+boto3==1.1.4
+moto==0.4.18
