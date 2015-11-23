@@ -4,6 +4,7 @@ import time
 import subprocess
 import logging
 import logging.config
+import sys
 from unittest import TestCase, skip
 
 MOUNT_POINT = 'tests/mnt'
@@ -31,7 +32,8 @@ class TestTransparentProjection(TestCase):
         """
         subprocess.Popen(['fusermount', '-u', MOUNT_POINT])
         # Starting iontorrent projection
-        ts_proj = subprocess.Popen(['./iontorrent.py',
+        ts_proj = subprocess.Popen([sys.executable,
+                                    'iontorrent.py',
                                     '-m', MOUNT_POINT,
                                     '-d', DATA_FOLDER,
                                     '-c', 'tests/test_ts_transparent_proj.yaml'],
@@ -79,8 +81,7 @@ class TestTransparentProjection(TestCase):
         # Time to initialize projector properly
         time.sleep(1)
 
-
-        root_dir_contents = ['file', 'folder', 'SRX1058124_metadata.json', 'SRR2062160.sam']
+        root_dir_contents = ['file', 'folder', 'metadata.json', 'SRR2062160.sam']
 
         self.assertSetEqual(set(root_dir_contents), set(os.listdir('tests/mnt')), msg='Checking flat SRA projection.')
 

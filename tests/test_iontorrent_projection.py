@@ -43,8 +43,7 @@ class TestTorrentSuiteProjector(TestCase):
         logger.debug('Full proj path list: %s', projection_paths_list)
         # Checking number of created projections,
         self.assertEqual(len(projection_paths_list), 131,
-                         msg='Checking total number of projections,'
-                             ' expecting 131, got: {}.'.format(len(projection_paths_list)))
+                         msg='Checking total number of projections, got: {}.'.format(len(projection_paths_list)))
 
         # Representation of mock internal structure
         experiment_contents = {
@@ -177,8 +176,7 @@ class TestTorrentSuiteProjector(TestCase):
 
         # Checking number of created projections,
         self.assertEqual(len(projection_paths_list), 19,
-                         msg='Checking total number of projections,'
-                             ' expecting 19, got: {}.'.format(len(projection_paths_list)))
+                         msg='Checking total number of projections, got: {}.'.format(len(projection_paths_list)))
 
         # Representation of mock internal structure
         experiment_contents = {
