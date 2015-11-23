@@ -5,8 +5,8 @@ import logging
 import logging.config
 from fuse import FUSE
 from filesystem import ProjectionFilesystem
-from projections import Projection, PrototypeDeserializer
-from fs_projection import FSDriver, FSProjector
+from projections import Projector, PrototypeDeserializer
+from fs_projection import FSDriver
 
 def main(cfg_path, mountpoint, data_folder, foreground=True):
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
@@ -18,9 +18,9 @@ def main(cfg_path, mountpoint, data_folder, foreground=True):
     # This driver is used to connect with projection resource
     projection_driver = FSDriver()
 
-    projection_filesystem.projection_manager = FSProjector(projection_driver,
-                                                           projection_configuration.root_projection_uri,
-                                                           projection_configuration.prototype_tree)
+    projection_filesystem.projection_manager = Projector(projection_driver,
+                                                         projection_configuration.root_projection_uri,
+                                                         projection_configuration.prototype_tree).projection_tree
 
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
     return fuse
