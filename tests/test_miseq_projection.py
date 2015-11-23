@@ -4,43 +4,24 @@ import os
 from unittest import TestCase, skip
 from projections import PrototypeDeserializer, Projector
 
-import miseq
+import fs_projection
 
 MOUNT_POINT = 'tests/mnt'
 DATA_FOLDER = 'tests/data'
+CONFIG_PATH = 'tests/test_miseq_config.yaml'
 
 # Import logging configuration from the file provided
 logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('miseq_test')
 
 
-def no_mount_init(self, username, shared_dir_path):
-    """
-    Used to monkeypatch MiSeq driver init, supplying miseq_mock_data dir as projected dir
-    """
-    self.shared_dir_path = 'tests/mock_resource/miseq_mock_data'
-    self.temp_dir_path = 'tests/mock_resource/miseq_mock_data'
-
-def deactivate_driver(self):
-    """
-    Used to monkeypatch MiSeq driver destructor
-    """
-    pass
-
-
 class TestMiseqProjection(TestCase):
 
     def setUp(self):
-        # Monkey patching MiSeq Driver initialization
-        miseq.MiSeqDriver.__init__ = no_mount_init
-        # Monkey patching MiSeq Driver destructor
-        miseq.MiSeqDriver.__del__ = deactivate_driver
-
-        projection_configuration = PrototypeDeserializer('tests/test_miseq_config.yaml')
-        driver = miseq.MiSeqDriver('test', projection_configuration.resource_uri)
-
-        self.miseq_projector = Projector(driver, 'tests/mock_resource/miseq_mock_data',
-                                         projection_configuration.prototype_tree)
+        driver = fs_projection.FSDriver()
+        projection_configuration = PrototypeDeserializer(CONFIG_PATH)
+        self.miseq_projector = Projector(driver, projection_configuration.root_projection_uri,
+                                      projection_configuration.prototype_tree)
 
     def test_create_projections(self):
         """
