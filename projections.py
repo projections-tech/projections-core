@@ -428,6 +428,7 @@ class Projector:
                 if prototype.parent.type == 'metadata' or prototype.type == 'metadata':
                     # Metadata must be valid JSON file, in other case do conversion in driver
                     environment['file_metadata'] = json.loads(self.driver.get_uri_contents_as_bytes(metadata_uri).decode())
+                    logger.info(environment['file_metadata'])
 
             # Set current prototype context to current environment for children node to use
             prototype.context = environment
@@ -442,6 +443,7 @@ class Projector:
             # Creating tree of environment contents which will be parsed by ObjectPath
             tree = objectpath.Tree(environment)
             URIs = tree.execute(prototype.uri)
+            logger.info(URIs)
             # Object path sometimes returns generator if user uses selectors, for consistency expand it using
             # list comprehension
             if isinstance(URIs, types.GeneratorType):
