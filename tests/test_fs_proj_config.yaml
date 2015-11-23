@@ -1,5 +1,5 @@
 ---
-dialect: python
+dialect: ObjectPath
 resource_uri: None
 
 root_projection_uri: 'tests/test_dir'
@@ -8,42 +8,42 @@ root_projection_uri: 'tests/test_dir'
 bed_projection: &bed_projection
   type: file
   children: None
-  name: " content['name'] "
-  uri: " [p for p in environment['children'] if fetch_context(p)['type'] == 'file' and fetch_context(p)['extension'] == '.bed'] "
+  name: " $.name "
+  uri: " $.children[@.type is 'file' and @.extension is '.bed'].resource_uri "
 
 vcf_projection: &vcf_projection
   type: file
   children: None
-  name: " content['name'] "
-  uri: " [p for p in environment['children'] if fetch_context(p)['type'] == 'file' and fetch_context(p)['extension'] == '.vcf'] "
+  name: " $.name "
+  uri: " $.children[@.type is 'file' and @.extension is '.vcf'].resource_uri "
 
 bam_projection: &bam_projection
   type: file
   children: None
-  name: " content['name'] "
-  uri: " [p for p in environment['children'] if fetch_context(p)['type'] == 'file' and fetch_context(p)['extension'] == '.bam'] "
+  name: " $.name "
+  uri: " $.children[@.type is 'file' and @.extension is '.bam'].resource_uri "
 
 rerun_dir_projection: &rerun_dir_projection
   type: directory
   children:
     vcf_projection: *vcf_projection
     bed_projection: *bed_projection
-  name: " content['name'] "
-  uri: " [p for p in environment['children'] if fetch_context(p)['type'] == 'dir'] "
+  name: " $.name "
+  uri: " $.children[@.type is 'dir'].resource_uri "
 
 sample_dir_projection: &sample_dir_projection
   type: directory
   children:
-    rerun_dir_projection: *rerun_dir_projection
     vcf_projection: *vcf_projection
     bed_projection: *bed_projection
-  name: " content['name'] "
-  uri: " [p for p in environment['children'] if fetch_context(p)['type'] == 'dir'] "
+    rerun_dir_projection: *rerun_dir_projection
+  name: " $.name "
+  uri: " $.children[@.type is 'dir'].resource_uri "
 
 root:
   type: directory
   children:
     bam_projection: *bam_projection
     sample_dir_projection: *sample_dir_projection
-  name: " content['name'] "
-  uri: "[ projection_tree.data.uri ]"
+  name: " $.name "
+  uri: " 'tests/test_dir' "
