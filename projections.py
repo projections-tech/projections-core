@@ -12,6 +12,7 @@ import pprint
 import objectpath
 import types
 import copy
+import itertools
 
 # Import logging configuration from the file provided
 logging.config.fileConfig('logging.cfg')
@@ -412,24 +413,20 @@ class Projector:
         content = None
 
         metadata_uri = projection_tree.data.uri
-        fetch_context = self.fetch_context
+
         path = os.path
 
         # This is environment in which projections are created (parent_projection content)
         # TODO: in many cases it means double request to parent projection resource so it should be optimized
         # We don`t want to change driver contents, hence we made deep copy of dict
         environment = copy.deepcopy(self.driver.get_uri_contents_as_dict(projection_tree.data.uri))
+
+        logger.info(' '.join([p.type for p in prototypes.values()]))
+
         logger.info('Starting prototype creation in the context of resource with uri: %s', projection_tree.data.uri)
 
         # For every prototype in collection try to create corresponding projections
         for key, prototype in prototypes.items():
-            if prototype.parent:
-                # Add metadata by URI to prototype environment if it`s parent was metadata prototype or it is metadata
-                if prototype.parent.type == 'metadata' or prototype.type == 'metadata':
-                    # Metadata must be valid JSON file, in other case do conversion in driver
-                    environment['file_metadata'] = json.loads(self.driver.get_uri_contents_as_bytes(metadata_uri).decode())
-                    logger.info(environment['file_metadata'])
-
             # Set current prototype context to current environment for children node to use
             prototype.context = environment
             # Get context of current node from contexts of parent nodes
@@ -443,7 +440,7 @@ class Projector:
             # Creating tree of environment contents which will be parsed by ObjectPath
             tree = objectpath.Tree(environment)
             URIs = tree.execute(prototype.uri)
-            logger.info(URIs)
+
             # Object path sometimes returns generator if user uses selectors, for consistency expand it using
             # list comprehension
             if isinstance(URIs, types.GeneratorType):
@@ -456,6 +453,10 @@ class Projector:
             # We get projection URIs based on environment and prototype properties
             # Every URI corresponds to projection object
             for uri in URIs:
+                if prototype.type == 'metadata':
+                    # Metadata must be valid JSON file, in other case do conversion
+                    environment['file_metadata'] = json.loads(self.driver.get_uri_contents_as_bytes(uri).decode())
+
                 # Get content for a projection
                 # We don`t want to change driver contents, hence we made deep copy
                 content = copy.deepcopy(self.driver.get_uri_contents_as_dict(uri))
@@ -468,6 +469,13 @@ class Projector:
                 # Creating tree which will be parsed by ObjectPath
                 tree = objectpath.Tree(content)
                 name = tree.execute(prototype.name)
+
+                if prototype.type == 'metadata':
+                    if isinstance(name, types.GeneratorType):
+                        name = [el for el in name]
+                    logger.info('NAme contents: %s', name)
+                    if not name:
+                        break
 
                 # Object path sometimes returns generator if user uses selectors, for consistency expand it using
                 # list comprehension

@@ -15,14 +15,14 @@ bam_projection: &bam_projection
   type: file
   children: None
   name: " $.name "
-  uri: " $.dir_path + '/' + $.file_metadata.result"
+  uri: " $.dir_path + $.context[0].file_metadata.result "
 
 bam_projection_meta: &bam_projection_meta
   type: metadata
   children:
     bam_projection: *bam_projection
     bam_metadata: *bam_metadata
-  name: " $.name "
+  name: " $.environment.file_metadata[@.quality is 'good'].quality "
   uri: " $.children[@.extension is '.json' and 'bam' in @.name].resource_uri "
 
 root:

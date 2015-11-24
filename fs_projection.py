@@ -30,7 +30,7 @@ class FSDriver(ProjectionDriver):
                     'children': [
                         self.get_uri_contents_as_dict(os.path.join(os.path.abspath(uri), p)) for p in os.listdir(uri)
                         ],
-                    'dir_path': os.path.split(os.path.abspath(uri))[0],
+                    'dir_path': os.path.split(os.path.abspath(uri))[0] + '/',
                     'extension': None
                     }
         else:
@@ -38,7 +38,7 @@ class FSDriver(ProjectionDriver):
                     'resource_uri': os.path.abspath(uri),
                     'size': os.path.getsize(uri),
                     'type': 'file',
-                    'dir_path': os.path.split(os.path.abspath(uri))[0],
+                    'dir_path': os.path.split(os.path.abspath(uri))[0] + '/',
                     'extension': os.path.splitext(uri)[1]
                     }
 
