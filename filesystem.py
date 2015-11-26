@@ -33,7 +33,7 @@ class ProjectionFilesystem(Operations):
                     self.mount_point, self.data_path)
 
         logger.debug('Content of data directory: %s', os.listdir(self.data_path))
-        # Creating projection manager
+        
         self.projection_manager = None
 
     # FUSE methods
@@ -118,33 +118,34 @@ class ProjectionFilesystem(Operations):
             os.lseek(fh, offset, os.SEEK_SET)
             return os.read(fh, length)
 
-        # Looking fo data from projection manager
+        # Looking for data from projection manager
         logger.info('Reading file on path: %s. Length: %s, offset: %s, header: %s', path, length, offset, fh)
         if self.projection_manager.is_managing_path(path):
             logger.debug('Reading projection resource on path: %s', path)
-            content = self.projection_manager.get_resource(path)
+            content = self.projection_manager.open_resource(path)
             logger.debug('Got content for uri: %s: %s', path, content)
             return content
 
     def open(self, path, flags):
         logger.info('Opening file on path: %s with flags: %s', path, flags)
-        # If the path is managed by projection manager than it should place original resource on drive before opening
-        if self.projection_manager.is_managing_path(path):
-            file_header, resource_io = self.projection_manager.open_resource(path)
-            logger.debug('Opening resource at path: %s returned header: %s', path, file_header)
-            logger.info('Saving resource content to local drive')
-            # Create folder if not exists
-            dirname = os.path.dirname(self._extend_data_path(path))
+        if not os.path.exists(self._extend_data_path(path)):
+            # If the path is managed by projection manager than it should place original resource on drive before opening
+            if self.projection_manager.is_managing_path(path):
+                file_header, resource_io = self.projection_manager.open_resource(path)
+                logger.debug('Opening resource at path: %s returned header: %s', path, file_header)
+                logger.info('Saving resource content to local drive')
+                # Create folder if not exists
+                dirname = os.path.dirname(self._extend_data_path(path))
 
-            logger.debug('Creating directory if not exists: %s', dirname)
-            if not os.path.exists(dirname):
-                logger.debug('Creating directory: %s', dirname)
-                os.makedirs(dirname)
+                logger.debug('Creating directory if not exists: %s', dirname)
+                if not os.path.exists(dirname):
+                    logger.debug('Creating directory: %s', dirname)
+                    os.makedirs(dirname)
 
-            data_path = self._extend_data_path(path)
+                data_path = self._extend_data_path(path)
 
-            with open(data_path, 'wb') as f:
-                f.write(resource_io.read())
+                with open(data_path, 'wb') as f:
+                    f.write(resource_io.read())
 
         # Opening real file that was created
         return os.open(self._extend_data_path(path), flags)
