@@ -152,7 +152,7 @@ class TestFSProjection(TestCase):
         created_projections = [n.get_path() for n in fs_projector.projection_tree.get_tree_nodes()]
 
         # Test if number of created projections equals to expected number of projections
-        self.assertEqual(10, len(created_projections),
+        self.assertEqual(8, len(created_projections),
                          msg='FS projector created {0} projections.'.format(len(created_projections)))
 
         # Check root dir projection creation

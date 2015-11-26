@@ -421,8 +421,6 @@ class Projector:
         # We don`t want to change driver contents, hence we made deep copy of dict
         environment = copy.deepcopy(self.driver.get_uri_contents_as_dict(projection_tree.data.uri))
 
-        logger.info(' '.join([p.type for p in prototypes.values()]))
-
         logger.info('Starting prototype creation in the context of resource with uri: %s', projection_tree.data.uri)
 
         # For every prototype in collection try to create corresponding projections
@@ -469,13 +467,18 @@ class Projector:
                 # Creating tree which will be parsed by ObjectPath
                 tree = objectpath.Tree(content)
                 name = tree.execute(prototype.name)
+                # If prototype is metadata use it`s name as file meta evaluation context
 
                 if prototype.type == 'metadata':
+                    # Object path sometimes returns generator if user uses selectors, for consistency expand it using
+                    # list comprehension
+
                     if isinstance(name, types.GeneratorType):
                         name = [el for el in name]
-                    logger.info('NAme contents: %s', name)
-                    if not name:
-                        break
+
+                    # If name is empty list then stop projection tree creation and continue to next prototype
+                    if len(name) == 0:
+                        continue
 
                 # Object path sometimes returns generator if user uses selectors, for consistency expand it using
                 # list comprehension
