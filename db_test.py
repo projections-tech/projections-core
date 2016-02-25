@@ -64,6 +64,7 @@ class DBProjector:
         self.db_create_tables()
         # Building projections tree
         self.db_build_tree(prototypes_tree)
+        # Updating paths of nodes in tree_table
 
     def __del__(self):
         """
@@ -97,7 +98,7 @@ class DBProjector:
                                 "meta_parent_path varchar, "
                                 "meta_contents jsonb);".format(self.metadata_table_name))
 
-    def db_build_tree(self, prototype_tree, parent_id=None):
+    def db_build_tree(self, prototype_tree, parent_id=None, projection_path=None):
         """
         This method recursively builds projections file structure in tree_table from prototype tree
         :param prototype_tree: Prototype Tree object
@@ -108,11 +109,24 @@ class DBProjector:
 
         projection_name = prototype_tree.name
         projection_type = prototype_tree.type
+        if not projection_path is None:
+            # Copying projection path before current path appending
+            projection_path = projection_path[:]
+            projection_path.append(projection_name)
+        else:
+            projection_path = [projection_name]
 
-        insertion_command = "INSERT INTO {0} (parent_id, name, type) " \
-                            "VALUES (%s, %s, %s) RETURNING node_id".format(self.tree_table_name)
+        insertion_command = "INSERT INTO {0} (parent_id, name, type, path) " \
+                            "SELECT %(p_id)s, %(name)s, %(type)s, %(path)s" \
+                            "WHERE NOT EXISTS (" \
+                            "SELECT * FROM {0} " \
+                            "WHERE path=%(path)s::varchar[])" \
+                            "RETURNING node_id".format(self.tree_table_name)
 
-        self.cursor.execute(insertion_command, (parent_id, projection_name, projection_type))
+        self.cursor.execute(insertion_command, {'p_id': parent_id,
+                                                'name': projection_name,
+                                                'type': projection_type,
+                                                'path': projection_path})
         parent_id = self.cursor.fetchone()
 
         if prototype_tree.type == 'meta':
@@ -122,7 +136,7 @@ class DBProjector:
                                                     psycopg2.extras.Json(prototype_tree.meta_contents)))
 
         for _, child in prototype_tree.children.items():
-            self.db_build_tree(child, parent_id)
+            self.db_build_tree(child, parent_id, projection_path)
 
         self.db_connection.commit()
 
@@ -136,30 +150,6 @@ class DBProjector:
         """.format(self.tree_table_name, self.metadata_table_name)
         # Executing and committing result on success
         self.cursor.execute(insertion_command)
-        self.db_connection.commit()
-
-    def db_update_tree_paths(self):
-        """
-        This method sets proper paths for nodes in projection tree after it`s creation
-        """
-        # Forming recursive path update command
-        recursive_update_command = """
-
-        WITH RECURSIVE ancestors_table AS (
-            SELECT node_id, ARRAY[]::integer[] AS ancestors, ARRAY[{0}.name]::varchar[] AS anc_paths
-            FROM {0} WHERE parent_id IS NULL
-
-            UNION ALL
-
-            SELECT {0}.node_id, ancestors_table.ancestors || {0}.parent_id, ancestors_table.anc_paths || {0}.name
-            FROM {0}, ancestors_table
-            WHERE {0}.parent_id = ancestors_table.node_id
-        )
-        UPDATE {0} SET path=ancestors_table.anc_paths FROM ancestors_table WHERE {0}.node_id=ancestors_table.node_id;
-
-        """.format(self.tree_table_name)
-
-        self.cursor.execute(recursive_update_command)
         self.db_connection.commit()
 
     def db_update_node_descendants_paths(self, moved_node_id, new_parent_node_id):
