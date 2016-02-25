@@ -288,7 +288,8 @@ class ProjectionPrototype(Node):
         # Initialize Node class, passing current object in Node data field
         super().__init__(name, self)
         self.parent = parent
-
+        self.meta_parent_id = None
+        self.meta_target_id = None
         self.type = type
         # TODO: consider logical synchronization of name and uri
         # Dialect specific description that is used as a generator for projection uri's

@@ -1,42 +1,20 @@
 import logging
 import logging.config
+
 import psycopg2
 import psycopg2.extras
-from string import ascii_lowercase
+
+import iontorrent
+from projections import PrototypeDeserializer
+from tests.mock import MockResource
+
+import objectpath
+import types
+import copy
+import os
 
 logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('db_test')
-
-
-class Tree:
-    def __init__(self, name, type, root=None):
-        self.name = name
-        self.root = root
-        self.type = type
-        self.uri = None
-        self.children = {}
-        self.meta_parent_path = None
-        self.meta_contents = None
-
-
-root = Tree('/', 'dir')
-
-for i in range(3):
-    child = Tree(ascii_lowercase[i], 'dir', root=root)
-    root.children[i] = child
-    for j in range(3):
-        sub_child = Tree(name=ascii_lowercase[j], type='dir', root=child)
-        child.children[j] = sub_child
-        for k in range(2):
-            sub_sub_child = Tree(name=ascii_lowercase[k] + '.txt', type='file', root=sub_child)
-            sub_child.children[k] = sub_sub_child
-            sub_sub_child_meta = Tree(name=ascii_lowercase[k] + '.txt.meta', type='meta', root=sub_child)
-            sub_sub_child_meta.meta_parent_path = ['/'] + [ascii_lowercase[el] for el in [i, j, k]]
-            sub_sub_child_meta.meta_parent_path[-1] += '.txt'
-            sub_sub_child_meta.meta_contents = {'valid': True, 'name': str(k)}
-            if k == 1:
-                sub_sub_child_meta.meta_contents['valid'] = False
-            sub_child.children[str(k)+'meta'] = sub_sub_child_meta
 
 
 class DBProjector:
@@ -45,12 +23,15 @@ class DBProjector:
     Current implementation is subject of future rewrites and optimisations,
     """
 
-    def __init__(self, user_name, database_name, prototypes_tree):
+    def __init__(self, projection_driver, user_name, database_name, prototypes_tree):
         """
         This method initializes database which will hold projection tree and associated metadata
         """
         self.tree_table_name = 'tree_table'
         self.metadata_table_name = 'metadata_table'
+
+        # Initializing projection driver
+        self.projection_driver = projection_driver
 
         # Initializing psycopg JSONB support
         psycopg2.extras.register_json(oid=3802, array_oid=3807)
@@ -63,7 +44,9 @@ class DBProjector:
         # Creating tables with which DBProjector will work
         self.db_create_tables()
         # Building projections tree
-        self.db_build_tree(prototypes_tree)
+        self.db_build_tree({'/': prototypes_tree},
+                           projection_path=['/'],
+                           root_projection_uri='experiment?status=run&limit=1&order_by=-id')
         # Updating paths of nodes in tree_table
 
     def __del__(self):
@@ -87,58 +70,121 @@ class DBProjector:
                                 "node_id serial PRIMARY KEY, "
                                 "parent_id integer, "
                                 "name varchar, "
+                                "uri varchar, "
                                 "path varchar[][], "
                                 "type varchar"
                                 ");".format(self.tree_table_name))
+
+            self.cursor.execute("DROP TABLE IF EXISTS {0}".format(self.metadata_table_name))
 
             self.cursor.execute("CREATE TABLE {} ("
                                 "meta_id serial PRIMARY KEY,"
                                 "node_id integer REFERENCES tree_table(node_id) ON DELETE CASCADE,"
                                 "parent_node_id integer REFERENCES tree_table(node_id) ON DELETE CASCADE,"
-                                "meta_parent_path varchar, "
                                 "meta_contents jsonb);".format(self.metadata_table_name))
 
-    def db_build_tree(self, prototype_tree, parent_id=None, projection_path=None):
+    def db_build_tree(self, prototypes, parent_id=None, projection_path=None, root_projection_uri=None):
         """
         This method recursively builds projections file structure in tree_table from prototype tree
-        :param prototype_tree: Prototype Tree object
+        :param prototypes: Prototype Tree object
         :param parent_id: node_id of parent projection in tree_table
+        :param projection_path:
+        :param root_projection_uri
         """
-        #TODO add actual driver support
         #TODO solve Metadata-Projection binding!
 
-        projection_name = prototype_tree.name
-        projection_type = prototype_tree.type
-        if not projection_path is None:
-            # Copying projection path before current path appending
-            projection_path = projection_path[:]
-            projection_path.append(projection_name)
-        else:
-            projection_path = [projection_name]
+        environment = None
+        content = None
+        path = os.path
 
-        insertion_command = "INSERT INTO {0} (parent_id, name, type, path) " \
-                            "SELECT %(p_id)s, %(name)s, %(type)s, %(path)s" \
-                            "WHERE NOT EXISTS (" \
-                            "SELECT * FROM {0} " \
-                            "WHERE path=%(path)s::varchar[])" \
-                            "RETURNING node_id".format(self.tree_table_name)
+        # This is environment in which projections are created (parent_projection content)
+        # TODO: in many cases it means double request to parent projection resource so it should be optimized
+        # We don`t want to change driver contents, hence we made deep copy of dict
+        environment = copy.deepcopy(self.projection_driver.get_uri_contents_as_dict(root_projection_uri))
 
-        self.cursor.execute(insertion_command, {'p_id': parent_id,
-                                                'name': projection_name,
-                                                'type': projection_type,
-                                                'path': projection_path})
-        parent_id = self.cursor.fetchone()
+        # For every prototype in collection try to create corresponding projections
 
-        if prototype_tree.type == 'meta':
-            insertion_command = 'INSERT INTO {0} (node_id, meta_parent_path, meta_contents) ' \
-                                'VALUES (%s, %s, %s)'.format(self.metadata_table_name)
-            self.cursor.execute(insertion_command, (parent_id, prototype_tree.meta_parent_path,
-                                                    psycopg2.extras.Json(prototype_tree.meta_contents)))
+        for key, prototype in prototypes.items():
+            # Set current prototype context to current environment for children node to use
+            prototype.context = environment
+            # Get context of current node from contexts of parent nodes
+            context = prototype.get_context()
+            context = context[::-1]
 
-        for _, child in prototype_tree.children.items():
-            self.db_build_tree(child, parent_id, projection_path)
+            # Adding context of upper level prototypes for lower level projections to use
+            environment['context'] = context
 
-        self.db_connection.commit()
+            # Creating tree of environment contents which will be parsed by ObjectPath
+            tree = objectpath.Tree(environment)
+            URIs = tree.execute(prototype.uri)
+            # Object path sometimes returns generator if user uses selectors, for consistency expand it using
+            # list comprehension
+            if isinstance(URIs, types.GeneratorType):
+                URIs = [el for el in URIs]
+            # Treating URIs as list for consistency
+            if not isinstance(URIs, list):
+                URIs = [URIs]
+
+            # We get projection URIs based on environment and prototype properties
+            # Every URI corresponds to projection object
+            for uri in URIs:
+                current_projection_path = projection_path[:]
+                # Get content for a projection
+                # We don`t want to change driver contents, hence we made deep copy
+                content = copy.deepcopy(self.projection_driver.get_uri_contents_as_dict(uri))
+
+                # Adding environment to use by prototype
+                content['environment'] = environment
+                content['context'] = context
+
+                # Creating tree which will be parsed by ObjectPath
+                tree = objectpath.Tree(content)
+                name = tree.execute(prototype.name)
+
+                # Object path sometimes returns generator if user uses selectors, for consistency expand it using
+                # list comprehension
+                if isinstance(name, types.GeneratorType):
+                    name = [el for el in name]
+
+                if prototype.type != 'metadata':
+                    set_parent_id = parent_id
+                    current_projection_path.append(name)
+                else:
+                    current_projection_path = current_projection_path[:-1]
+                    current_projection_path.append(name)
+                    set_parent_id = prototype.meta_parent_id
+
+                insertion_command = "INSERT INTO {0} (parent_id, name, uri, type, path) " \
+                                    "SELECT %(p_id)s, %(name)s, %(uri)s, %(type)s, %(path)s" \
+                                    "WHERE NOT EXISTS (" \
+                                    "SELECT * FROM {0} " \
+                                    "WHERE path=%(path)s::varchar[])" \
+                                    "RETURNING node_id".format(self.tree_table_name)
+
+                self.cursor.execute(insertion_command, {'p_id': set_parent_id,
+                                                        'name': name,
+                                                        'type': prototype.type,
+                                                        'path': current_projection_path,
+                                                        'uri': uri})
+                new_parent_id = self.cursor.fetchone()
+
+                for key, child in prototype.children.items():
+                    if child.type == 'metadata':
+                        child.meta_parent_id = set_parent_id
+                        child.meta_target_id = new_parent_id
+
+                if prototype.type == 'metadata':
+                    meta_table_insertion_command = "INSERT INTO {0} (node_id, parent_node_id, meta_contents) " \
+                                                   "VALUES (%s, %s, %s)".format(self.metadata_table_name)
+
+                    metadata_contents = self.projection_driver.get_uri_contents_as_dict(uri)
+                    self.cursor.execute(meta_table_insertion_command, (new_parent_id, prototype.meta_target_id,
+                                                                       psycopg2.extras.Json(metadata_contents)))
+                    self.db_connection.commit()
+
+                self.db_build_tree(prototype.children, new_parent_id, current_projection_path, root_projection_uri=uri)
+
+                self.db_connection.commit()
 
     def db_fill_metadata_table(self):
         """
@@ -194,42 +240,6 @@ class DBProjector:
         """.format(self.tree_table_name, new_parent_node_id)
 
         self.cursor.execute(recursive_update_command)
-        self.db_connection.commit()
-
-        metadata_path_update_command = """
-        WITH RECURSIVE
-
-        descendants_table AS (
-            WITH RECURSIVE tree AS (
-                SELECT node_id, ARRAY[{2}]::integer[] AS ancestors
-                FROM {0} WHERE parent_id = {2}
-
-                UNION ALL
-
-                SELECT {0}.node_id, tree.ancestors || {0}.parent_id
-                FROM {0}, tree
-                WHERE {0}.parent_id = tree.node_id
-            )
-            SELECT node_id FROM tree WHERE {2} = ANY(tree.ancestors)
-        ),
-
-        ancestors_table AS (
-            SELECT node_id, ARRAY[]::integer[] AS ancestors, ARRAY[{0}.name]::varchar[] AS anc_paths
-            FROM {0} WHERE parent_id IS NULL
-
-            UNION ALL
-
-            SELECT {0}.node_id, ancestors_table.ancestors || {0}.parent_id, ancestors_table.anc_paths || {0}.name
-            FROM {0}, ancestors_table
-            WHERE {0}.parent_id = ancestors_table.node_id
-        )
-
-        UPDATE {1} SET meta_parent_path={0}.path
-        FROM {0}, descendants_table
-        WHERE parent_node_id = descendants_table.node_id AND {0}.node_id = descendants_table.node_id
-        """.format(self.tree_table_name, self.metadata_table_name, moved_node_id)
-
-        self.cursor.execute(metadata_path_update_command)
         self.db_connection.commit()
 
     def db_move_node(self, node_to_move_path, new_node_root_path):
@@ -332,9 +342,17 @@ class DBProjector:
         self.cursor.execute(binding_command, (target_path, metadata_path))
         self.db_connection.commit()
 
-
 # Smoke testing commences here
 if __name__ == '__main__':
-    test_db_projector = DBProjector('viktor', 'test', root)
+    USER = 'user'
+    PASSWORD = 'password'
+    mock_resource = MockResource('tests/torrent_suite_mock.json')
+    projection_configuration = PrototypeDeserializer('test_full_torrent_suite_config.yaml')
+    driver = iontorrent.TorrentSuiteDriver(projection_configuration.resource_uri, USER, PASSWORD)
+
+    test_db_projector = DBProjector(driver, 'viktor', 'test',
+                                    projection_configuration.prototype_tree)
+
+    mock_resource.deactivate()
 
 
