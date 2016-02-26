@@ -131,10 +131,9 @@ def main(cfg_path, mountpoint, data_folder, foreground=True):
     projection_configuration = PrototypeDeserializer(cfg_path)
     projection_driver = TorrentSuiteDriver(projection_configuration.resource_uri, 'ionadmin', '0ECu1lW')
 
-    ion_torrent_projection_tree = Projector(projection_driver,
-                                            projection_configuration.root_projection_uri,
-                                            projection_configuration.prototype_tree).projection_tree
-
+    from db_projector import DBProjector
+    ion_torrent_projection_tree = DBProjector(projection_driver, 'viktor', 'test',
+                                              projection_configuration.prototype_tree)
     projection_filesystem.projection_manager = ion_torrent_projection_tree
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
     return fuse

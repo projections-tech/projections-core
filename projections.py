@@ -241,7 +241,7 @@ class ProjectionTree(Node):
         attributes['st_ctime'] = now
         # If this is projection the size is zero
         attributes['st_size'] = projection.size
-        # Set type to link anf grant full access to everyone
+        # Set type to link and grant full access to everyone
         attributes['st_mode'] = (projection.type | 0o0777)
         # Set number of hard links to 0
         attributes['st_nlink'] = 0

@@ -2,6 +2,9 @@ import copy
 import logging
 import logging.config
 import os
+import stat
+import io
+import time
 import types
 
 import objectpath
@@ -22,13 +25,15 @@ class DBProjector:
     Current implementation is subject of future rewrites and optimisations,
     """
 
-    def __init__(self, projection_driver, user_name, database_name, prototypes_tree):
+    def __init__(self, projection_driver, user_name, database_name, prototypes_tree, root_uri):
         """
         This method initializes database which will hold projection tree and associated metadata
         """
         self.tree_table_name = 'tree_table'
         self.metadata_table_name = 'metadata_table'
+        self.projections_attributes_table_name = 'projections_attributes_table'
         self.prototypes_tree = prototypes_tree
+        self.root_uri = root_uri
 
         # Initializing projection driver
         self.projection_driver = projection_driver
@@ -42,7 +47,7 @@ class DBProjector:
         self.cursor = self.db_connection.cursor()
 
         # Creating tables with which DBProjector will work
-        self.db_create_tables()
+        self.db_create_tables(root_uri)
 
     def __del__(self):
         """
@@ -50,6 +55,26 @@ class DBProjector:
         """
         self.cursor.close()
         self.db_connection.close()
+
+    def __split_path(self, path):
+        """
+        Split path string in parts preserving path root
+        :param path: path string
+        :return: list of path parts strings
+        """
+        temp = []
+        while True:
+            head, tail = os.path.split(path)
+            if head == '/' or head == '':
+                if tail == '':
+                    return [head]
+                else:
+                    temp.append(tail)
+                    if not head == '':
+                        temp.append(head)
+                    return temp[::-1]
+            temp.append(tail)
+            path = head
 
     def db_create_tables(self):
         """
@@ -78,8 +103,49 @@ class DBProjector:
                                 "parent_node_id integer REFERENCES tree_table(node_id) ON DELETE CASCADE,"
                                 "meta_contents jsonb);".format(self.metadata_table_name))
 
+            self.cursor.execute("DROP TABLE IF EXISTS {0}".format(self.projections_attributes_table_name))
+
+            self.cursor.execute("CREATE TABLE {} ("
+                                "attr_id serial PRIMARY KEY,"
+                                "node_id integer REFERENCES tree_table(node_id) ON DELETE CASCADE, "
+                                "st_atime int, "
+                                "st_mtime int, "
+                                "st_ctime int, "
+                                "st_size int, "
+                                "st_mode varchar, "
+                                "st_nlink int, "
+                                "st_ino int);".format(self.projections_attributes_table_name))
+
+            # Add root node to tables
+            tree_table_insertion_command = "INSERT INTO {0} (parent_id, name, uri, type, path) " \
+                                    "SELECT %(p_id)s, %(name)s, %(uri)s, %(type)s, %(path)s" \
+                                    "WHERE NOT EXISTS (" \
+                                    "SELECT * FROM {0} " \
+                                    "WHERE path=%(path)s::varchar[])" \
+                                    "RETURNING node_id".format(self.tree_table_name)
+
+            self.cursor.execute(tree_table_insertion_command, {'p_id': None,
+                                                    'name': '/',
+                                                    'type': 'directory',
+                                                    'path': ['/'],
+                                                    'uri': 'experiment?status=run&limit=1&order_by=-id'})
+
+            now = time.time()
+            projection_attributes_insertion_command = """
+            INSERT INTO {0} (node_id, st_atime, st_mtime, st_ctime, st_size, st_mode, st_nlink, st_ino)
+            VALUES (%(node_id)s, %(time)s, %(time)s, %(time)s, %(size)s, %(mode)s, %(nlink)s, %(ino)s);
+            """.format(self.projections_attributes_table_name)
+            self.cursor.execute(projection_attributes_insertion_command,
+                                {'node_id': 1,
+                                 'time': now,
+                                 'size': 0,
+                                 'mode': 'directory',
+                                 'nlink': 0,
+                                 'ino': 1
+                                 })
+
             self.db_build_tree({'/': self.prototypes_tree}, projection_path=['/'],
-                           root_projection_uri='experiment?status=run&limit=1&order_by=-id')
+                           root_projection_uri='experiment?status=run&limit=1&order_by=-id', parent_id=1)
 
     def db_build_tree(self, prototypes, parent_id=None, projection_path=None, root_projection_uri=None,
                       parent_id_for_meta=None):
@@ -153,50 +219,65 @@ class DBProjector:
                     current_projection_path.append(name)
                     set_parent_id = prototype.meta_parent_id
 
-                insertion_command = "INSERT INTO {0} (parent_id, name, uri, type, path) " \
+                tree_table_insertion_command = "INSERT INTO {0} (parent_id, name, uri, type, path) " \
                                     "SELECT %(p_id)s, %(name)s, %(uri)s, %(type)s, %(path)s" \
                                     "WHERE NOT EXISTS (" \
                                     "SELECT * FROM {0} " \
                                     "WHERE path=%(path)s::varchar[])" \
                                     "RETURNING node_id".format(self.tree_table_name)
 
-                self.cursor.execute(insertion_command, {'p_id': set_parent_id,
+                self.cursor.execute(tree_table_insertion_command, {'p_id': set_parent_id,
                                                         'name': name,
                                                         'type': prototype.type,
                                                         'path': current_projection_path,
                                                         'uri': uri})
                 new_parent_id = self.cursor.fetchone()
 
-                has_meta = False
-                for key, child in prototype.children.items():
-                    if child.type == 'metadata':
-                        child.meta_parent_id = set_parent_id
-                        has_meta = True
+                if new_parent_id is not None:
+                    now = time.time()
 
-                if prototype.type == 'metadata' and not (new_parent_id is None and parent_id_for_meta is None):
-                    meta_table_insertion_command = "INSERT INTO {0} (node_id, parent_node_id, meta_contents) " \
-                                                   "VALUES (%(node_id)s, %(parent_node_id)s, %(meta_contents)s)".format(self.metadata_table_name)
+                    projection_attributes_insertion_command = """
+                    INSERT INTO {0} (node_id, st_atime, st_mtime, st_ctime, st_size, st_mode, st_nlink, st_ino)
+                    VALUES (%(node_id)s, %(time)s, %(time)s, %(time)s, %(size)s, %(mode)s, %(nlink)s, %(ino)s);
+                    """.format(self.projections_attributes_table_name)
+                    self.cursor.execute(projection_attributes_insertion_command,
+                                        {'node_id': new_parent_id,
+                                         'time': now,
+                                         'size': 0,
+                                         'mode': prototype.type,
+                                         'nlink': 0,
+                                         'ino': 1
+                                         })
 
-                    metadata_contents = self.projection_driver.get_uri_contents_as_dict(uri)
+                    has_meta = False
+                    for key, child in prototype.children.items():
+                        if child.type == 'metadata':
+                            child.meta_parent_id = set_parent_id
+                            has_meta = True
 
-                    self.cursor.execute(meta_table_insertion_command, {'node_id': new_parent_id,
-                                                                       'parent_node_id': parent_id_for_meta,
-                                                                       'meta_contents': psycopg2.extras.Json(metadata_contents)})
+                    if prototype.type == 'metadata':
+                        meta_table_insertion_command = "INSERT INTO {0} (node_id, parent_node_id, meta_contents) " \
+                                                       "VALUES (%(node_id)s, %(parent_node_id)s, %(meta_contents)s)".format(self.metadata_table_name)
 
-                if has_meta:
-                    self.db_build_tree(prototype.children, new_parent_id, current_projection_path,
-                                       root_projection_uri=uri, parent_id_for_meta=new_parent_id)
-                else:
-                    self.db_build_tree(prototype.children, new_parent_id, current_projection_path,
-                                       root_projection_uri=uri)
+                        metadata_contents = self.projection_driver.get_uri_contents_as_dict(uri)
 
-                self.db_connection.commit()
+                        self.cursor.execute(meta_table_insertion_command, {'node_id': new_parent_id,
+                                                                           'parent_node_id': parent_id_for_meta,
+                                                                           'meta_contents': psycopg2.extras.Json(metadata_contents)})
 
-    def db_update_node_descendants_paths(self, moved_node_id, new_parent_node_id):
+                    if has_meta:
+                        self.db_build_tree(prototype.children, new_parent_id, current_projection_path,
+                                           root_projection_uri=uri, parent_id_for_meta=new_parent_id)
+                    else:
+                        self.db_build_tree(prototype.children, new_parent_id, current_projection_path,
+                                           root_projection_uri=uri)
+
+                    self.db_connection.commit()
+
+    def db_update_node_descendants_paths(self, new_parent_node_id):
         """
-        This method updates node descendants paths, and path to parent node in metadata table
-        :param moved_node_id: node_id of moved node in tree_table
-        :param new_parent_node_id: node_id of new parent node in tree_table
+        This method updates node descendants paths
+        :param new_parent_node_id: node_id of new parent node in tree_table which descendants we update
         """
 
         recursive_update_command = """
@@ -236,12 +317,34 @@ class DBProjector:
         self.cursor.execute(recursive_update_command)
         self.db_connection.commit()
 
-    def db_move_node(self, node_to_move_path, new_node_root_path):
+    def get_projections_on_path(self, path):
+        """
+        Method returns list of nodes on path
+        :param path: path to node string
+        :return: list of nodes paths strings
+        """
+        path = self.__split_path(path)
+
+        assert isinstance(path, list), 'Path is no a list!'
+        paths_request_command = """
+        WITH node_on_path AS (
+            SELECT node_id AS node_on_path_id FROM {0} WHERE path=%s::varchar[]
+        )
+        SELECT {0}.name FROM {0}, node_on_path WHERE {0}.parent_id=node_on_path.node_on_path_id
+        """.format(self.tree_table_name)
+
+        self.cursor.execute(paths_request_command, (path, ) )
+        return [row[0] for row in self.cursor]
+
+    def db_move_projection(self, node_to_move_path, new_node_root_path):
         """
         This methods moves node in a tree to a new parent node, and updates node paths accordingly
         :param node_to_move_path: path to node which will be moved as list of strings
         :param new_node_root_path: path to new parent node list of strings
         """
+        node_to_move_path = self.__split_path(node_to_move_path)
+        new_node_root_path = self.__split_path(new_node_root_path)
+
         assert isinstance(node_to_move_path, list), 'Input old path is not a list!'
         assert isinstance(new_node_root_path, list), 'Input new path is not a list!'
         if node_to_move_path == new_node_root_path:
@@ -274,13 +377,15 @@ class DBProjector:
         self.cursor.execute(move_command)
         self.db_connection.commit()
 
-        self.db_update_node_descendants_paths(node_id, new_parent_id)
+        self.db_update_node_descendants_paths(new_parent_id)
 
-    def db_remove_node(self, node_path):
+    def db_remove_projection(self, node_path):
         """
         This method removes node from tree_table and all of it`s descendants
         :param node_path: path to node list of strings
         """
+        node_path = self.__split_path(node_path)
+
         assert isinstance(node_path, list), 'Node path is not a list!'
 
         fetch_node_to_remove_id_command = """
@@ -323,6 +428,9 @@ class DBProjector:
         :param metadata_path: path to metadata object which will be binded, list of strings
         """
 
+        target_path = self.__split_path(target_path)
+        metadata_path = self.__split_path(metadata_path)
+
         binding_command = """
         WITH
         target AS (
@@ -339,6 +447,89 @@ class DBProjector:
 
         self.db_connection.commit()
 
+    def is_managing_path(self, path):
+        """
+        Checj if database is managing path
+        :param path: projection path string
+        :return: bool
+        """
+        path = self.__split_path(path)
+
+        # This command checks existance of projection row in tree_table by path
+        projection_on_path_existance_check = """
+        SELECT EXISTS(
+            SELECT * FROM {0} WHERE path=%s::varchar[]
+        )
+        """.format(self.tree_table_name)
+        # Run command and return check result as bool
+        self.cursor.execute(projection_on_path_existance_check, (path, ))
+        return self.cursor.fetchone()[0]
+
+    def get_attributes(self, path):
+        """
+        Get attributes of projection on given path
+        """
+
+        path = self.__split_path(path)
+
+        attributes_order = ['st_atime', 'st_mtime', 'st_ctime', 'st_size', 'st_mode', 'st_nlink', 'st_ino']
+
+        get_attributes_command = """
+        WITH projection_on_path AS (
+            SELECT node_id FROM {0} WHERE path = %s::varchar[]
+        )
+        SELECT {2} FROM {1} JOIN projection_on_path ON {1}.node_id=projection_on_path.node_id
+        """.format(self.tree_table_name, self.projections_attributes_table_name, ', '.join(attributes_order))
+
+        self.cursor.execute(get_attributes_command, (path, ))
+        # Fetching results of query
+        attributes = self.cursor.fetchone()
+
+        # Setting projection attributes dictionary using query results
+        attributes = {el[0]: el[1] for el in zip(attributes_order, attributes)}
+
+        # Setting appropriate types access modes for projection types for FUSE
+        access_modes = {'file': (stat.S_IFREG | 0o0777),
+                       'metadata': (stat.S_IFREG | 0o0777),
+                       'directory': (stat.S_IFDIR | 0o0777)}
+
+        attributes['st_mode'] = access_modes[attributes['st_mode']]
+        return attributes
+
+    def open_resource(self, path):
+        """
+        Opens resource on path and returns it`s header and contents stream
+        :param path path string
+        :return file_header
+        :return resource_io
+        """
+        path = self.__split_path(path)
+
+        projection_id_and_uri_query = """
+        SELECT node_id, uri, type FROM {0} WHERE path = %s::varchar[]
+        """.format(self.tree_table_name)
+
+        self.cursor.execute(projection_id_and_uri_query, (path, ))
+
+        node_id, uri, projecton_type = self.cursor.fetchone()
+
+        content = self.projection_driver.get_uri_contents_as_bytes(uri)
+        logger.info('Got path content: %s\n', path)
+
+        projection_size = len(content)
+
+        update_projection_attributes_command = """
+        UPDATE {0} SET st_size=%s WHERE node_id=%s
+        """.format(self.projections_attributes_table_name)
+        self.cursor.execute(update_projection_attributes_command, (projection_size, node_id,))
+
+        file_header = 3
+        resource_io = io.BytesIO(content)
+
+        self.db_connection.commit()
+
+        return file_header, resource_io
+
 # Smoke testing commences here
 if __name__ == '__main__':
     USER = 'user'
@@ -350,7 +541,7 @@ if __name__ == '__main__':
     test_db_projector = DBProjector(driver, 'viktor', 'test',
                                     projection_configuration.prototype_tree)
 
-    test_db_projector.db_move_node(['/', 'test_experiment_1_plannedexperiment.meta'], ['/', 'test_experiment_2'])
+    print(test_db_projector.open_resource('/test_experiment_1/test_run_1/sample_1.meta'))
 
     mock_resource.deactivate()
 
