@@ -289,8 +289,8 @@ class ProjectionPrototype(Node):
         super().__init__(name, self)
         self.parent = parent
         self.meta_parent_id = None
-        self.meta_target_id = None
         self.type = type
+        self.level = None
         # TODO: consider logical synchronization of name and uri
         # Dialect specific description that is used as a generator for projection uri's
         self.uri = None
@@ -332,6 +332,7 @@ class PrototypeDeserializer(object):
         pp.name = yaml_dict['name']
         pp.uri = yaml_dict['uri']
         pp.parent = parent
+
         if isinstance(yaml_dict['children'], dict):
             pp.children = {x[0]: self.get_prototypes_tree(x[1], parent=pp) for x in yaml_dict['children'].items()}
             return pp

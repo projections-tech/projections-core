@@ -1,17 +1,16 @@
+import copy
 import logging
 import logging.config
+import os
+import types
 
+import objectpath
 import psycopg2
 import psycopg2.extras
 
 import iontorrent
 from projections import PrototypeDeserializer
 from tests.mock import MockResource
-
-import objectpath
-import types
-import copy
-import os
 
 logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('db_test')
@@ -29,6 +28,7 @@ class DBProjector:
         """
         self.tree_table_name = 'tree_table'
         self.metadata_table_name = 'metadata_table'
+        self.prototypes_tree = prototypes_tree
 
         # Initializing projection driver
         self.projection_driver = projection_driver
@@ -43,11 +43,6 @@ class DBProjector:
 
         # Creating tables with which DBProjector will work
         self.db_create_tables()
-        # Building projections tree
-        self.db_build_tree({'/': prototypes_tree},
-                           projection_path=['/'],
-                           root_projection_uri='experiment?status=run&limit=1&order_by=-id')
-        # Updating paths of nodes in tree_table
 
     def __del__(self):
         """
@@ -83,7 +78,11 @@ class DBProjector:
                                 "parent_node_id integer REFERENCES tree_table(node_id) ON DELETE CASCADE,"
                                 "meta_contents jsonb);".format(self.metadata_table_name))
 
-    def db_build_tree(self, prototypes, parent_id=None, projection_path=None, root_projection_uri=None):
+            self.db_build_tree({'/': self.prototypes_tree}, projection_path=['/'],
+                           root_projection_uri='experiment?status=run&limit=1&order_by=-id')
+
+    def db_build_tree(self, prototypes, parent_id=None, projection_path=None, root_projection_uri=None,
+                      parent_id_for_meta=None):
         """
         This method recursively builds projections file structure in tree_table from prototype tree
         :param prototypes: Prototype Tree object
@@ -168,35 +167,30 @@ class DBProjector:
                                                         'uri': uri})
                 new_parent_id = self.cursor.fetchone()
 
+                has_meta = False
                 for key, child in prototype.children.items():
                     if child.type == 'metadata':
                         child.meta_parent_id = set_parent_id
-                        child.meta_target_id = new_parent_id
+                        has_meta = True
 
-                if prototype.type == 'metadata':
+                if prototype.type == 'metadata' and not (new_parent_id is None and parent_id_for_meta is None):
                     meta_table_insertion_command = "INSERT INTO {0} (node_id, parent_node_id, meta_contents) " \
-                                                   "VALUES (%s, %s, %s)".format(self.metadata_table_name)
+                                                   "VALUES (%(node_id)s, %(parent_node_id)s, %(meta_contents)s)".format(self.metadata_table_name)
 
                     metadata_contents = self.projection_driver.get_uri_contents_as_dict(uri)
-                    self.cursor.execute(meta_table_insertion_command, (new_parent_id, prototype.meta_target_id,
-                                                                       psycopg2.extras.Json(metadata_contents)))
-                    self.db_connection.commit()
 
-                self.db_build_tree(prototype.children, new_parent_id, current_projection_path, root_projection_uri=uri)
+                    self.cursor.execute(meta_table_insertion_command, {'node_id': new_parent_id,
+                                                                       'parent_node_id': parent_id_for_meta,
+                                                                       'meta_contents': psycopg2.extras.Json(metadata_contents)})
+
+                if has_meta:
+                    self.db_build_tree(prototype.children, new_parent_id, current_projection_path,
+                                       root_projection_uri=uri, parent_id_for_meta=new_parent_id)
+                else:
+                    self.db_build_tree(prototype.children, new_parent_id, current_projection_path,
+                                       root_projection_uri=uri)
 
                 self.db_connection.commit()
-
-    def db_fill_metadata_table(self):
-        """
-        This method does object-metadata binding for all objects in tree_table which have metadata
-        """
-        # Forming insertion command
-        insertion_command = """
-        UPDATE {1} SET parent_node_id={0}.node_id FROM {0} WHERE {0}.path=meta_parent_path::varchar[];
-        """.format(self.tree_table_name, self.metadata_table_name)
-        # Executing and committing result on success
-        self.cursor.execute(insertion_command)
-        self.db_connection.commit()
 
     def db_update_node_descendants_paths(self, moved_node_id, new_parent_node_id):
         """
@@ -332,14 +326,17 @@ class DBProjector:
         binding_command = """
         WITH
         target AS (
-            SELECT node_id, path AS target_id FROM {0} WHERE path=%s::varchar[]
+            SELECT node_id AS target_id FROM {0} WHERE path=%s::varchar[]
         ),
         metadata AS (
             SELECT node_id AS metadata_id FROM {0} WHERE path=%s::varchar[]
         )
-        INSERT INTO {1} (parent_node_id, meta_parent_path, node_id) SELECT * FROM target, metadata RETURNING node_id
+        INSERT INTO {1} (parent_node_id, node_id) SELECT target.target_id, metadata.metadata_id FROM target, metadata
+        WHERE NOT EXISTS (SELECT * FROM target, metadata, metadata_table
+        WHERE metadata_table.node_id = metadata.metadata_id AND metadata_table.parent_node_id = target.target_id)
         """.format(self.tree_table_name, self.metadata_table_name)
         self.cursor.execute(binding_command, (target_path, metadata_path))
+
         self.db_connection.commit()
 
 # Smoke testing commences here
@@ -352,6 +349,8 @@ if __name__ == '__main__':
 
     test_db_projector = DBProjector(driver, 'viktor', 'test',
                                     projection_configuration.prototype_tree)
+
+    test_db_projector.db_move_node(['/', 'test_experiment_1_plannedexperiment.meta'], ['/', 'test_experiment_2'])
 
     mock_resource.deactivate()
 

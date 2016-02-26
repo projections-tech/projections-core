@@ -1,6 +1,6 @@
 {
     "autoAnalyze": true,
-    "baselineRun": false,
+    "baselineRun": true,
     "chefChipExpiration1": "",
     "chefChipExpiration2": "",
     "chefChipType1": "",
