@@ -133,7 +133,8 @@ def main(cfg_path, mountpoint, data_folder, foreground=True):
 
     from db_projector import DBProjector
     ion_torrent_projection_tree = DBProjector(projection_driver, 'viktor', 'test',
-                                              projection_configuration.prototype_tree)
+                                              projection_configuration.prototype_tree,
+                                              projection_configuration.root_projection_uri)
     projection_filesystem.projection_manager = ion_torrent_projection_tree
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
     return fuse

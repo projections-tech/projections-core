@@ -82,8 +82,10 @@ def main(config_path, mountpoint, data_folder, foreground=True):
 
     genbank_driver = GenbankDriver('vsvekolkin@parseq.pro')
 
-    projection_filesystem.projection_manager = Projector(genbank_driver, projection_configuration.root_projection_uri,
-                                                         projection_configuration.prototype_tree).projection_tree
+    from db_projector import DBProjector
+    projection_filesystem.projection_manager = DBProjector(genbank_driver, 'viktor', 'test',
+                                                           projection_configuration.prototype_tree,
+                                                           projection_configuration.root_projection_uri)
 
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
     return fuse

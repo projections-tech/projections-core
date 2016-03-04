@@ -47,7 +47,7 @@ class DBProjector:
         self.cursor = self.db_connection.cursor()
 
         # Creating tables with which DBProjector will work
-        self.db_create_tables(root_uri)
+        self.db_create_tables()
 
     def __del__(self):
         """
@@ -128,7 +128,7 @@ class DBProjector:
                                                     'name': '/',
                                                     'type': 'directory',
                                                     'path': ['/'],
-                                                    'uri': 'experiment?status=run&limit=1&order_by=-id'})
+                                                    'uri': self.root_uri})
 
             now = time.time()
             projection_attributes_insertion_command = """
@@ -145,7 +145,7 @@ class DBProjector:
                                  })
 
             self.db_build_tree({'/': self.prototypes_tree}, projection_path=['/'],
-                           root_projection_uri='experiment?status=run&limit=1&order_by=-id', parent_id=1)
+                           root_projection_uri=self.root_uri, parent_id=1)
 
     def db_build_tree(self, prototypes, parent_id=None, projection_path=None, root_projection_uri=None,
                       parent_id_for_meta=None):
