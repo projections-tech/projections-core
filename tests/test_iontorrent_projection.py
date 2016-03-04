@@ -39,6 +39,8 @@ class TestTorrentSuiteProjector(TestCase):
         cls.mock_resource.deactivate()
         cls.cursor.execute(" DELETE FROM tree_table WHERE projection_name='test_iontorrent_projection' ")
         cls.db_connection.commit()
+        cls.cursor.close()
+        cls.db_connection.close()
 
     def tearDown(self):
         self.cursor.execute(" DELETE FROM tree_table WHERE projection_name='test_iontorrent_projection' ")
@@ -55,7 +57,7 @@ class TestTorrentSuiteProjector(TestCase):
                                               projection_configuration.prototype_tree,
                                               projection_configuration.root_projection_uri)
 
-        self.cursor.execute('SELECT path FROM tree_table')
+        self.cursor.execute(" SELECT path FROM tree_table WHERE projection_name='test_iontorrent_projection' ")
 
         projection_paths_list = [os.path.join(*r[0]) for r in self.cursor]
 
@@ -122,8 +124,6 @@ class TestTorrentSuiteProjector(TestCase):
                                                      variant_file_name)
                         self.assertIn(vcf_file_path, projection_paths_list, msg='VCF path: {}'.format(vcf_file_path))
 
-
-
     def test_non_root_projection(self):
         """
         Test creation of projection with user specified root
@@ -138,7 +138,7 @@ class TestTorrentSuiteProjector(TestCase):
                                               projection_configuration.prototype_tree,
                                               projection_configuration.root_projection_uri)
 
-        self.cursor.execute('SELECT path FROM tree_table')
+        self.cursor.execute(" SELECT path FROM tree_table WHERE projection_name='test_iontorrent_projection' ")
 
         projection_paths_list = [os.path.join(*r[0]) for r in self.cursor]
 
@@ -202,7 +202,7 @@ class TestTorrentSuiteProjector(TestCase):
                                               projection_configuration.prototype_tree,
                                               projection_configuration.root_projection_uri)
 
-        self.cursor.execute('SELECT path FROM tree_table')
+        self.cursor.execute(" SELECT path FROM tree_table WHERE projection_name='test_iontorrent_projection' ")
 
         projection_paths_list = [os.path.join(*r[0]) for r in self.cursor]
 

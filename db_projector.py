@@ -118,11 +118,11 @@ class DBProjector:
 
         # Add root node to tables
         tree_table_insertion_command = "INSERT INTO {0} (projection_name, parent_id, name, uri, type, path) " \
-                                "SELECT %(proj_name)s, %(p_id)s, %(name)s, %(uri)s, %(type)s, %(path)s " \
-                                "WHERE NOT EXISTS (" \
-                                "SELECT * FROM {0} " \
-                                "WHERE (path=%(path)s::varchar[]) AND projection_name=%(proj_name)s)" \
-                                "RETURNING node_id".format(self.tree_table_name)
+                                       "SELECT %(proj_name)s, %(p_id)s, %(name)s, %(uri)s, %(type)s, %(path)s " \
+                                       "WHERE NOT EXISTS (" \
+                                       "SELECT * FROM {0} " \
+                                       "WHERE (path=%(path)s::varchar[]) AND projection_name=%(proj_name)s)" \
+                                       "RETURNING node_id".format(self.tree_table_name)
 
         self.cursor.execute(tree_table_insertion_command, {'proj_name': self.projection_name,
                                                            'p_id': None,
@@ -223,11 +223,12 @@ class DBProjector:
                     set_parent_id = prototype.meta_parent_id
 
                 tree_table_insertion_command = "INSERT INTO {0} (projection_name, parent_id, name, uri, type, path) " \
-                                    "SELECT %(proj_name)s, %(p_id)s, %(name)s, %(uri)s, %(type)s, %(path)s" \
-                                    "WHERE NOT EXISTS (" \
-                                    "SELECT * FROM {0} " \
-                                    "WHERE (path=%(path)s::varchar[] AND projection_name=%(proj_name)s))" \
-                                    "RETURNING node_id".format(self.tree_table_name)
+                                               "SELECT %(proj_name)s, %(p_id)s, %(name)s, " \
+                                               "%(uri)s, %(type)s, %(path)s" \
+                                               "WHERE NOT EXISTS (" \
+                                               "SELECT * FROM {0} " \
+                                               "WHERE (path=%(path)s::varchar[] AND projection_name=%(proj_name)s))" \
+                                               "RETURNING node_id".format(self.tree_table_name)
 
                 self.cursor.execute(tree_table_insertion_command, {'proj_name': self.projection_name,
                                                                    'p_id': set_parent_id,
