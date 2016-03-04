@@ -1,19 +1,15 @@
 import copy
+import io
 import logging
 import logging.config
 import os
 import stat
-import io
 import time
 import types
 
 import objectpath
 import psycopg2
 import psycopg2.extras
-
-import iontorrent
-from projections import PrototypeDeserializer
-from tests.mock import MockResource
 
 logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('db_test')
@@ -25,10 +21,12 @@ class DBProjector:
     Current implementation is subject of future rewrites and optimisations,
     """
 
-    def __init__(self, projection_driver, user_name, database_name, prototypes_tree, root_uri):
+    def __init__(self, projection_name, projection_driver, user_name, database_name, prototypes_tree, root_uri):
         """
         This method initializes database which will hold projection tree and associated metadata
         """
+        self.projection_name = projection_name
+
         self.tree_table_name = 'tree_table'
         self.metadata_table_name = 'metadata_table'
         self.projections_attributes_table_name = 'projections_attributes_table'
@@ -48,6 +46,7 @@ class DBProjector:
 
         # Creating tables with which DBProjector will work
         self.db_create_tables()
+        logger.debug('Initialized projection: {}'.format(self.projection_name))
 
     def __del__(self):
         """
@@ -88,6 +87,7 @@ class DBProjector:
         if not bool(is_tree_table_exist):
             self.cursor.execute("CREATE TABLE {} ("
                                 "node_id serial PRIMARY KEY, "
+                                "projection_name varchar,"
                                 "parent_id integer, "
                                 "name varchar, "
                                 "uri varchar, "
@@ -116,36 +116,39 @@ class DBProjector:
                                 "st_nlink int, "
                                 "st_ino int);".format(self.projections_attributes_table_name))
 
-            # Add root node to tables
-            tree_table_insertion_command = "INSERT INTO {0} (parent_id, name, uri, type, path) " \
-                                    "SELECT %(p_id)s, %(name)s, %(uri)s, %(type)s, %(path)s" \
-                                    "WHERE NOT EXISTS (" \
-                                    "SELECT * FROM {0} " \
-                                    "WHERE path=%(path)s::varchar[])" \
-                                    "RETURNING node_id".format(self.tree_table_name)
+        # Add root node to tables
+        tree_table_insertion_command = "INSERT INTO {0} (projection_name, parent_id, name, uri, type, path) " \
+                                "SELECT %(proj_name)s, %(p_id)s, %(name)s, %(uri)s, %(type)s, %(path)s " \
+                                "WHERE NOT EXISTS (" \
+                                "SELECT * FROM {0} " \
+                                "WHERE (path=%(path)s::varchar[]) AND projection_name=%(proj_name)s)" \
+                                "RETURNING node_id".format(self.tree_table_name)
 
-            self.cursor.execute(tree_table_insertion_command, {'p_id': None,
-                                                    'name': '/',
-                                                    'type': 'directory',
-                                                    'path': ['/'],
-                                                    'uri': self.root_uri})
+        self.cursor.execute(tree_table_insertion_command, {'proj_name': self.projection_name,
+                                                           'p_id': None,
+                                                           'name': '/',
+                                                           'type': 'directory',
+                                                           'path': ['/'],
+                                                           'uri': self.root_uri})
 
-            now = time.time()
-            projection_attributes_insertion_command = """
-            INSERT INTO {0} (node_id, st_atime, st_mtime, st_ctime, st_size, st_mode, st_nlink, st_ino)
-            VALUES (%(node_id)s, %(time)s, %(time)s, %(time)s, %(size)s, %(mode)s, %(nlink)s, %(ino)s);
-            """.format(self.projections_attributes_table_name)
-            self.cursor.execute(projection_attributes_insertion_command,
-                                {'node_id': 1,
-                                 'time': now,
-                                 'size': 0,
-                                 'mode': 'directory',
-                                 'nlink': 0,
-                                 'ino': 1
-                                 })
+        new_parent_id = self.cursor.fetchone()
 
-            self.db_build_tree({'/': self.prototypes_tree}, projection_path=['/'],
-                           root_projection_uri=self.root_uri, parent_id=1)
+        now = time.time()
+        projection_attributes_insertion_command = """
+        INSERT INTO {0} (node_id, st_atime, st_mtime, st_ctime, st_size, st_mode, st_nlink, st_ino)
+        VALUES (%(node_id)s, %(time)s, %(time)s, %(time)s, %(size)s, %(mode)s, %(nlink)s, %(ino)s);
+        """.format(self.projections_attributes_table_name)
+        self.cursor.execute(projection_attributes_insertion_command,
+                            {'node_id': new_parent_id,
+                             'time': now,
+                             'size': 0,
+                             'mode': 'directory',
+                             'nlink': 0,
+                             'ino': 1
+                             })
+
+        self.db_build_tree({'/': self.prototypes_tree}, projection_path=['/'],
+                           root_projection_uri=self.root_uri, parent_id=new_parent_id)
 
     def db_build_tree(self, prototypes, parent_id=None, projection_path=None, root_projection_uri=None,
                       parent_id_for_meta=None):
@@ -219,18 +222,19 @@ class DBProjector:
                     current_projection_path.append(name)
                     set_parent_id = prototype.meta_parent_id
 
-                tree_table_insertion_command = "INSERT INTO {0} (parent_id, name, uri, type, path) " \
-                                    "SELECT %(p_id)s, %(name)s, %(uri)s, %(type)s, %(path)s" \
+                tree_table_insertion_command = "INSERT INTO {0} (projection_name, parent_id, name, uri, type, path) " \
+                                    "SELECT %(proj_name)s, %(p_id)s, %(name)s, %(uri)s, %(type)s, %(path)s" \
                                     "WHERE NOT EXISTS (" \
                                     "SELECT * FROM {0} " \
-                                    "WHERE path=%(path)s::varchar[])" \
+                                    "WHERE (path=%(path)s::varchar[] AND projection_name=%(proj_name)s))" \
                                     "RETURNING node_id".format(self.tree_table_name)
 
-                self.cursor.execute(tree_table_insertion_command, {'p_id': set_parent_id,
-                                                        'name': name,
-                                                        'type': prototype.type,
-                                                        'path': current_projection_path,
-                                                        'uri': uri})
+                self.cursor.execute(tree_table_insertion_command, {'proj_name': self.projection_name,
+                                                                   'p_id': set_parent_id,
+                                                                   'name': name,
+                                                                   'type': prototype.type,
+                                                                   'path': current_projection_path,
+                                                                   'uri': uri})
                 new_parent_id = self.cursor.fetchone()
 
                 if new_parent_id is not None:
@@ -529,20 +533,3 @@ class DBProjector:
         self.db_connection.commit()
 
         return file_header, resource_io
-
-# Smoke testing commences here
-if __name__ == '__main__':
-    USER = 'user'
-    PASSWORD = 'password'
-    mock_resource = MockResource('tests/torrent_suite_mock.json')
-    projection_configuration = PrototypeDeserializer('test_full_torrent_suite_config.yaml')
-    driver = iontorrent.TorrentSuiteDriver(projection_configuration.resource_uri, USER, PASSWORD)
-
-    test_db_projector = DBProjector(driver, 'viktor', 'test',
-                                    projection_configuration.prototype_tree)
-
-    print(test_db_projector.open_resource('/test_experiment_1/test_run_1/sample_1.meta'))
-
-    mock_resource.deactivate()
-
-

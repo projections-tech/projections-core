@@ -123,7 +123,7 @@ class TorrentSuiteDriver(ProjectionDriver):
 
 
 # For smoke testing
-def main(cfg_path, mountpoint, data_folder, foreground=True):
+def main(cfg_path, mountpoint, data_folder, projection_name, foreground=True):
     # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
@@ -132,7 +132,7 @@ def main(cfg_path, mountpoint, data_folder, foreground=True):
     projection_driver = TorrentSuiteDriver(projection_configuration.resource_uri, 'ionadmin', '0ECu1lW')
 
     from db_projector import DBProjector
-    ion_torrent_projection_tree = DBProjector(projection_driver, 'viktor', 'test',
+    ion_torrent_projection_tree = DBProjector(projection_name, projection_driver, 'viktor', 'test',
                                               projection_configuration.prototype_tree,
                                               projection_configuration.root_projection_uri)
     projection_filesystem.projection_manager = ion_torrent_projection_tree
@@ -145,12 +145,13 @@ if __name__ == '__main__':
     logging.config.fileConfig(os.path.join(script_dir, 'logging.cfg'))
 
     parser = argparse.ArgumentParser(description='Torrent Suite projection.')
+    parser.add_argument('-p', '--projection-name', required=True, help='name of current projection')
     parser.add_argument('-m', '--mount-point', required=True, help='specifies mount point path on host')
     parser.add_argument('-d', '--data-directory', required=True, help='specifies data directory path on host')
     parser.add_argument('-c', '--config-path', required=True, help='specifies projection configuration YAML file path')
     args = parser.parse_args()
 
-    main(args.config_path, args.mount_point, args.data_directory)
+    main(args.config_path, args.mount_point, args.data_directory, args.projection_name)
 
 
 

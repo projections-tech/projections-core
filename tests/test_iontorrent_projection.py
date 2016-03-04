@@ -5,7 +5,10 @@ import logging
 import logging.config
 from unittest import TestCase, skip
 from tests.mock import MockResource
-from projections import PrototypeDeserializer, Projector
+from projections import PrototypeDeserializer
+from db_projector import DBProjector
+import psycopg2
+
 
 import iontorrent
 
@@ -26,21 +29,36 @@ class TestTorrentSuiteProjector(TestCase):
     def setUpClass(cls):
         cls.mock_resource = MockResource('tests/torrent_suite_mock.json')
 
+        cls.db_connection = psycopg2.connect("dbname={db_name} user={user_name}".format(db_name='test',
+                                                                                        user_name='viktor'))
+        # Creating cursor, which will be used to interact with database
+        cls.cursor = cls.db_connection.cursor()
+
     @classmethod
     def tearDownClass(cls):
         cls.mock_resource.deactivate()
+        cls.cursor.execute(" DELETE FROM tree_table WHERE projection_name='test_iontorrent_projection' ")
+        cls.db_connection.commit()
+
+    def tearDown(self):
+        self.cursor.execute(" DELETE FROM tree_table WHERE projection_name='test_iontorrent_projection' ")
+        self.db_connection.commit()
 
     def test_full_projection(self):
         """
         Tests projections correctness of full projection from root creation.
         """
         projection_configuration = PrototypeDeserializer('tests/test_full_torrent_suite_config.yaml')
-        driver = iontorrent.TorrentSuiteDriver(projection_configuration.resource_uri, USER, PASSWORD)
-        iontorrent_projector = Projector(driver, projection_configuration.root_projection_uri,
-                                         projection_configuration.prototype_tree)
+        projection_driver = iontorrent.TorrentSuiteDriver(projection_configuration.resource_uri, USER, PASSWORD)
 
-        projection_paths_list = [n.get_path() for n in iontorrent_projector.projection_tree.get_tree_nodes()]
-        logger.debug('Full proj path list: %s', projection_paths_list)
+        ion_torrent_projection = DBProjector('test_iontorrent_projection', projection_driver, 'viktor', 'test',
+                                              projection_configuration.prototype_tree,
+                                              projection_configuration.root_projection_uri)
+
+        self.cursor.execute('SELECT path FROM tree_table')
+
+        projection_paths_list = [os.path.join(*r[0]) for r in self.cursor]
+
         # Checking number of created projections,
         self.assertEqual(len(projection_paths_list), 131,
                          msg='Checking total number of projections, got: {}.'.format(len(projection_paths_list)))
@@ -104,6 +122,8 @@ class TestTorrentSuiteProjector(TestCase):
                                                      variant_file_name)
                         self.assertIn(vcf_file_path, projection_paths_list, msg='VCF path: {}'.format(vcf_file_path))
 
+
+
     def test_non_root_projection(self):
         """
         Test creation of projection with user specified root
@@ -111,12 +131,19 @@ class TestTorrentSuiteProjector(TestCase):
 
         # Loading configuration where '/rundb/api/v1/results/1/' is root projection
         projection_configuration = PrototypeDeserializer('tests/test_custom_root_torrent_suite_config.yaml')
-        driver = iontorrent.TorrentSuiteDriver(projection_configuration.resource_uri, USER, PASSWORD)
-        iontorrent_projector = Projector(driver, projection_configuration.root_projection_uri,
-                                         projection_configuration.prototype_tree)
 
-        projection_paths_list = [n.get_path() for n in iontorrent_projector.projection_tree.get_tree_nodes()]
+        projection_driver = iontorrent.TorrentSuiteDriver(projection_configuration.resource_uri, USER, PASSWORD)
 
+        ion_torrent_projection = DBProjector('test_iontorrent_projection', projection_driver, 'viktor', 'test',
+                                              projection_configuration.prototype_tree,
+                                              projection_configuration.root_projection_uri)
+
+        self.cursor.execute('SELECT path FROM tree_table')
+
+        projection_paths_list = [os.path.join(*r[0]) for r in self.cursor]
+
+
+        logger.debug('Full projection path list: %s', projection_paths_list)
         # Checking number of created projections,
         self.assertEqual(len(projection_paths_list), 32,
                          msg='Checking total number of projections,'
@@ -168,11 +195,16 @@ class TestTorrentSuiteProjector(TestCase):
         # This config specifies projection that is created from resource root, with filtering of experiment name,
         # run name, and only TSVC VCF file for variant calling
         projection_configuration = PrototypeDeserializer('tests/test_torrent_suite_projection_filtering_config.yaml')
-        driver = iontorrent.TorrentSuiteDriver(projection_configuration.resource_uri, USER, PASSWORD)
-        iontorrent_projector = Projector(driver, projection_configuration.root_projection_uri,
-                                         projection_configuration.prototype_tree)
 
-        projection_paths_list = [n.get_path() for n in iontorrent_projector.projection_tree.get_tree_nodes()]
+        projection_driver = iontorrent.TorrentSuiteDriver(projection_configuration.resource_uri, USER, PASSWORD)
+
+        ion_torrent_projection = DBProjector('test_iontorrent_projection', projection_driver, 'viktor', 'test',
+                                              projection_configuration.prototype_tree,
+                                              projection_configuration.root_projection_uri)
+
+        self.cursor.execute('SELECT path FROM tree_table')
+
+        projection_paths_list = [os.path.join(*r[0]) for r in self.cursor]
 
         # Checking number of created projections,
         self.assertEqual(len(projection_paths_list), 19,
@@ -227,8 +259,8 @@ class TestTorrentSuiteProjector(TestCase):
 
                 # Checking if selected TSVC VCF file was created
                 tsvc_vcf_file_path = os.path.join(exp_dir, run_name, sample_id,
-                                             'variantCaller_out{}'.format(variant_caller_dir),
-                                             'TSVC_variants.vcf')
+                                                  'variantCaller_out{}'.format(variant_caller_dir),
+                                                  'TSVC_variants.vcf')
                 self.assertIn(tsvc_vcf_file_path, projection_paths_list, msg='VCF path: {}'.format(tsvc_vcf_file_path))
 
                 # Checking VCF files filtration
