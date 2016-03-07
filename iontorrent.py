@@ -2,17 +2,18 @@
 __author__ = 'abragin'
 
 import argparse
+import json
 import logging
 import logging.config
-import re
-import json
 import os
+import re
 import urllib.request
 from urllib.parse import urljoin
 
-from projections import ProjectionDriver, Projector, PrototypeDeserializer
+from db_projector import DBProjector
 from filesystem import ProjectionFilesystem
 from fuse import FUSE
+from projections import ProjectionDriver, PrototypeDeserializer
 from tests.mock import MockResource
 
 logger = logging.getLogger('iontorrent_projection')
@@ -131,8 +132,7 @@ def main(cfg_path, mountpoint, data_folder, projection_name, foreground=True):
     projection_configuration = PrototypeDeserializer(cfg_path)
     projection_driver = TorrentSuiteDriver(projection_configuration.resource_uri, 'ionadmin', '0ECu1lW')
 
-    from db_projector import DBProjector
-    ion_torrent_projection_tree = DBProjector(projection_name, projection_driver, 'viktor', 'test',
+    ion_torrent_projection_tree = DBProjector(projection_name, projection_driver,
                                               projection_configuration.prototype_tree,
                                               projection_configuration.root_projection_uri)
     projection_filesystem.projection_manager = ion_torrent_projection_tree

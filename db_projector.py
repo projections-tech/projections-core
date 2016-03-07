@@ -1,4 +1,5 @@
 import copy
+import getpass
 import io
 import logging
 import logging.config
@@ -21,7 +22,7 @@ class DBProjector:
     Current implementation is subject of future rewrites and optimisations,
     """
 
-    def __init__(self, projection_name, projection_driver, user_name, database_name, prototypes_tree, root_uri):
+    def __init__(self, projection_name, projection_driver, prototypes_tree, root_uri):
         """
         This method initializes database which will hold projection tree and associated metadata
         """
@@ -38,9 +39,21 @@ class DBProjector:
 
         # Initializing psycopg JSONB support
         psycopg2.extras.register_json(oid=3802, array_oid=3807)
-        # Opening connection with database
-        self.db_connection = psycopg2.connect("dbname={db_name} user={user_name}".format(db_name=database_name,
-                                                                                         user_name=user_name))
+
+        try:
+            # Opening connection with database
+            self.db_connection = psycopg2.connect(
+                "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
+        except Exception as e:
+            logger.debug(e)
+            logger.debug('Database "projections_database" was not found! Creating database.')
+            with psycopg2.connect(dbname='postgres', user=getpass.getuser()) as temp_connection:
+                from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+                temp_connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+
+                with temp_connection.cursor() as temp_cursor:
+                    temp_cursor.execute("CREATE DATABASE projections_database")
+
         # Creating cursor, which will be used to interact with database
         self.cursor = self.db_connection.cursor()
 

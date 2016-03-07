@@ -1,17 +1,17 @@
 __author__ = 'abragin'
 
-import os
+import getpass
 import logging
 import logging.config
-from unittest import TestCase, skip
-from tests.mock import MockResource
-from projections import PrototypeDeserializer
-from db_projector import DBProjector
+import os
+from unittest import TestCase
+
 import psycopg2
 
-
 import iontorrent
-
+from db_projector import DBProjector
+from projections import PrototypeDeserializer
+from tests.mock import MockResource
 
 MOUNT_POINT = 'tests/mnt'
 DATA_FOLDER = 'tests/data'
@@ -29,8 +29,8 @@ class TestTorrentSuiteProjector(TestCase):
     def setUpClass(cls):
         cls.mock_resource = MockResource('tests/torrent_suite_mock.json')
 
-        cls.db_connection = psycopg2.connect("dbname={db_name} user={user_name}".format(db_name='test',
-                                                                                        user_name='viktor'))
+        cls.db_connection = psycopg2.connect(
+            "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
         # Creating cursor, which will be used to interact with database
         cls.cursor = cls.db_connection.cursor()
 
@@ -53,9 +53,9 @@ class TestTorrentSuiteProjector(TestCase):
         projection_configuration = PrototypeDeserializer('tests/test_full_torrent_suite_config.yaml')
         projection_driver = iontorrent.TorrentSuiteDriver(projection_configuration.resource_uri, USER, PASSWORD)
 
-        ion_torrent_projection = DBProjector('test_iontorrent_projection', projection_driver, 'viktor', 'test',
-                                              projection_configuration.prototype_tree,
-                                              projection_configuration.root_projection_uri)
+        ion_torrent_projection = DBProjector('test_iontorrent_projection', projection_driver,
+                                             projection_configuration.prototype_tree,
+                                             projection_configuration.root_projection_uri)
 
         self.cursor.execute(" SELECT path FROM tree_table WHERE projection_name='test_iontorrent_projection' ")
 
@@ -134,9 +134,9 @@ class TestTorrentSuiteProjector(TestCase):
 
         projection_driver = iontorrent.TorrentSuiteDriver(projection_configuration.resource_uri, USER, PASSWORD)
 
-        ion_torrent_projection = DBProjector('test_iontorrent_projection', projection_driver, 'viktor', 'test',
-                                              projection_configuration.prototype_tree,
-                                              projection_configuration.root_projection_uri)
+        ion_torrent_projection = DBProjector('test_iontorrent_projection', projection_driver,
+                                             projection_configuration.prototype_tree,
+                                             projection_configuration.root_projection_uri)
 
         self.cursor.execute(" SELECT path FROM tree_table WHERE projection_name='test_iontorrent_projection' ")
 
@@ -198,9 +198,9 @@ class TestTorrentSuiteProjector(TestCase):
 
         projection_driver = iontorrent.TorrentSuiteDriver(projection_configuration.resource_uri, USER, PASSWORD)
 
-        ion_torrent_projection = DBProjector('test_iontorrent_projection', projection_driver, 'viktor', 'test',
-                                              projection_configuration.prototype_tree,
-                                              projection_configuration.root_projection_uri)
+        ion_torrent_projection = DBProjector('test_iontorrent_projection', projection_driver,
+                                             projection_configuration.prototype_tree,
+                                             projection_configuration.root_projection_uri)
 
         self.cursor.execute(" SELECT path FROM tree_table WHERE projection_name='test_iontorrent_projection' ")
 
