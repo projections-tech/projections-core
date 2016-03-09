@@ -176,7 +176,7 @@ class DBProjector:
         :param projection_path:
         :param root_projection_uri
         """
-        #TODO solve Metadata-Projection binding!
+        # TODO solve Metadata-Projection binding!
 
         environment = None
         content = None
@@ -265,7 +265,7 @@ class DBProjector:
                     self.cursor.execute(projection_attributes_insertion_command,
                                         {'node_id': new_parent_id,
                                          'time': now,
-                                         'size': 0,
+                                         'size': 1,
                                          'mode': prototype.type,
                                          'nlink': 0,
                                          'ino': 1
@@ -279,13 +279,15 @@ class DBProjector:
 
                     if prototype.type == 'metadata':
                         meta_table_insertion_command = "INSERT INTO {0} (node_id, parent_node_id, meta_contents) " \
-                                                       "VALUES (%(node_id)s, %(parent_node_id)s, %(meta_contents)s)".format(self.metadata_table_name)
+                                                       "VALUES (%(node_id)s, %(parent_node_id)s, %(meta_contents)s)".format(
+                            self.metadata_table_name)
 
                         metadata_contents = self.projection_driver.get_uri_contents_as_dict(uri)
 
                         self.cursor.execute(meta_table_insertion_command, {'node_id': new_parent_id,
                                                                            'parent_node_id': parent_id_for_meta,
-                                                                           'meta_contents': psycopg2.extras.Json(metadata_contents)})
+                                                                           'meta_contents': psycopg2.extras.Json(
+                                                                               metadata_contents)})
 
                     if has_meta:
                         self.db_build_tree(prototype.children, new_parent_id, current_projection_path,
@@ -347,7 +349,7 @@ class DBProjector:
         """
         path = self.__split_path(path)
 
-        assert isinstance(path, list), 'Path is no a list!'
+        assert isinstance(path, list), 'Path is not a list!'
         paths_request_command = """
         WITH node_on_path AS (
             SELECT node_id AS node_on_path_id FROM {0} WHERE path=%s::varchar[]
@@ -355,7 +357,7 @@ class DBProjector:
         SELECT {0}.name FROM {0}, node_on_path WHERE {0}.parent_id=node_on_path.node_on_path_id
         """.format(self.tree_table_name)
 
-        self.cursor.execute(paths_request_command, (path, ) )
+        self.cursor.execute(paths_request_command, (path,))
         return [row[0] for row in self.cursor]
 
     def db_move_projection(self, node_to_move_path, new_node_root_path):
@@ -413,7 +415,7 @@ class DBProjector:
         fetch_node_to_remove_id_command = """
         SELECT node_id FROM {0} WHERE path=%s::varchar[]
         """.format(self.tree_table_name)
-        self.cursor.execute(fetch_node_to_remove_id_command, (node_path, ))
+        self.cursor.execute(fetch_node_to_remove_id_command, (node_path,))
         self.db_connection.commit()
 
         fetch_result = self.cursor.fetchone()
@@ -471,7 +473,7 @@ class DBProjector:
 
     def is_managing_path(self, path):
         """
-        Checj if database is managing path
+        Check if database is managing path
         :param path: projection path string
         :return: bool
         """
@@ -484,8 +486,9 @@ class DBProjector:
         )
         """.format(self.tree_table_name)
         # Run command and return check result as bool
-        self.cursor.execute(projection_on_path_existance_check, (path, ))
-        return self.cursor.fetchone()[0]
+        self.cursor.execute(projection_on_path_existance_check, (path,))
+
+        return bool(self.cursor.fetchone()[0])
 
     def get_attributes(self, path):
         """
@@ -503,7 +506,7 @@ class DBProjector:
         SELECT {2} FROM {1} JOIN projection_on_path ON {1}.node_id=projection_on_path.node_id
         """.format(self.tree_table_name, self.projections_attributes_table_name, ', '.join(attributes_order))
 
-        self.cursor.execute(get_attributes_command, (path, ))
+        self.cursor.execute(get_attributes_command, (path,))
         # Fetching results of query
         attributes = self.cursor.fetchone()
 
@@ -512,11 +515,24 @@ class DBProjector:
 
         # Setting appropriate types access modes for projection types for FUSE
         access_modes = {'file': (stat.S_IFREG | 0o0777),
-                       'metadata': (stat.S_IFREG | 0o0777),
-                       'directory': (stat.S_IFDIR | 0o0777)}
+                        'metadata': (stat.S_IFREG | 0o0777),
+                        'directory': (stat.S_IFDIR | 0o0777)}
 
         attributes['st_mode'] = access_modes[attributes['st_mode']]
         return attributes
+
+    def update_projection_size_attribute(self, path, size):
+        path = self.__split_path(path)
+
+        size_update_command = """
+        WITH projection_on_path AS (
+            SELECT node_id FROM {0} WHERE path = %s::varchar[]
+        )
+        UPDATE {1} SET st_size={2} FROM projection_on_path WHERE {1}.node_id=projection_on_path.node_id
+        """.format(self.tree_table_name, self.projections_attributes_table_name, size)
+
+        self.cursor.execute(size_update_command, (path,))
+        self.db_connection.commit()
 
     def open_resource(self, path):
         """
@@ -531,7 +547,7 @@ class DBProjector:
         SELECT node_id, uri, type FROM {0} WHERE path = %s::varchar[]
         """.format(self.tree_table_name)
 
-        self.cursor.execute(projection_id_and_uri_query, (path, ))
+        self.cursor.execute(projection_id_and_uri_query, (path,))
 
         node_id, uri, projecton_type = self.cursor.fetchone()
 

@@ -5,12 +5,9 @@ __author__ = 'abragin'
 import logging
 import logging.config
 import os
-import stat
 import sys
-import time
-from fuse import FUSE, FuseOSError, Operations
 
-from projections import Projection
+from fuse import FUSE, Operations
 
 logger = logging.getLogger('projection_filesystem')
 
@@ -49,7 +46,9 @@ class ProjectionFilesystem(Operations):
         # If attributes belong to projection manager than return
         if self.projection_manager.is_managing_path(path):
             attributes = self.projection_manager.get_attributes(path)
+
             logger.debug('Projection attributes received: %s', attributes)
+
             if attributes:
                 return attributes
 
@@ -60,7 +59,7 @@ class ProjectionFilesystem(Operations):
             logger.debug('Data stats received: %s', st)
             return dict((key, getattr(st, key)) for key in ('st_atime', 'st_ctime', 'st_gid', 'st_mode',
                                                             'st_mtime', 'st_nlink', 'st_size', 'st_uid'))
-        # If nobody manages this path than raise exception
+        # If nobody manages this path then raise exception
         raise RuntimeWarning('Resource on {} have no associated attributes'.format(path))
 
     def readdir(self, path, fh):
@@ -129,9 +128,11 @@ class ProjectionFilesystem(Operations):
     def open(self, path, flags):
         logger.info('Opening file on path: %s with flags: %s', path, flags)
         if not os.path.exists(self._extend_data_path(path)):
-            # If the path is managed by projection manager than it should place original resource on drive before opening
+            # If the path is managed by projection manager
+            # then it should place original resource on drive before opening
             if self.projection_manager.is_managing_path(path):
                 file_header, resource_io = self.projection_manager.open_resource(path)
+
                 logger.debug('Opening resource at path: %s returned header: %s', path, file_header)
                 logger.info('Saving resource content to local drive')
                 # Create folder if not exists
@@ -146,6 +147,9 @@ class ProjectionFilesystem(Operations):
 
                 with open(data_path, 'wb') as f:
                     f.write(resource_io.read())
+
+        projection_size = os.stat(self._extend_data_path(path)).st_size
+        self.projection_manager.update_projection_size_attribute(path, projection_size)
 
         # Opening real file that was created
         return os.open(self._extend_data_path(path), flags)

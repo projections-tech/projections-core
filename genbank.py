@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 
-import json
+import argparse
 import logging
 import logging.config
 import os
-import argparse
-from Bio import Entrez
-from tests.mock import MockResource
 
-from projections import ProjectionDriver, Projector, PrototypeDeserializer
+from Bio import Entrez
+
 from filesystem import ProjectionFilesystem
 from fuse import FUSE
+from projections import ProjectionDriver, PrototypeDeserializer
+from tests.mock import MockResource
 
 logger = logging.getLogger('genbank_projection')
 
@@ -54,7 +54,7 @@ class GenbankDriver(ProjectionDriver):
 
     def get_uri_contents_as_bytes(self, query):
         """
-        OPen URI and return it`s content as bytes
+        Open URI and return it`s content as bytes
         :param query: query to driver
         :return: bytes massive
         """
@@ -74,7 +74,7 @@ class GenbankDriver(ProjectionDriver):
 
 
 # For smoke testing
-def main(config_path, mountpoint, data_folder, foreground=True):
+def main(config_path, mountpoint, data_folder, projection_name, foreground=True):
     # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
@@ -83,7 +83,7 @@ def main(config_path, mountpoint, data_folder, foreground=True):
     genbank_driver = GenbankDriver('vsvekolkin@parseq.pro')
 
     from db_projector import DBProjector
-    projection_filesystem.projection_manager = DBProjector(genbank_driver, 'viktor', 'test',
+    projection_filesystem.projection_manager = DBProjector(projection_name, genbank_driver,
                                                            projection_configuration.prototype_tree,
                                                            projection_configuration.root_projection_uri)
 
@@ -94,12 +94,15 @@ if __name__ == '__main__':
 
     script_dir = os.path.dirname(os.path.realpath(__file__))
     logging.config.fileConfig(os.path.join(script_dir, 'logging.cfg'))
+
     mock_resource = MockResource('tests/genbank_mock.json')
+
     parser = argparse.ArgumentParser(description='Genbank projection.')
+    parser.add_argument('-p', '--projection-name', required=True, help='name of current projection')
     parser.add_argument('-m', '--mount-point', required=True, help='specifies mount point path on host')
     parser.add_argument('-d', '--data-directory', required=True, help='specifies data directory path on host')
     parser.add_argument('-c', '--config-path', required=True, help='specifies projection configuration YAML file path')
     args = parser.parse_args()
 
-    main(args.config_path, args.mount_point, args.data_directory)
+    main(args.config_path, args.mount_point, args.data_directory, args.projection_name)
     mock_resource.deactivate()

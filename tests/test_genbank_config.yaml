@@ -21,5 +21,5 @@ root:
   children:
     gb_file_prototype: *gb_file_prototype
     fasta_file_prototype: *fasta_file_prototype
-  name: " $.QueryTranslation "
+  name: ' test_query_folder '
   uri: " 'search_query:escherichia[orgn] AND complete genome[title]:1' "
