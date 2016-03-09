@@ -103,7 +103,7 @@ class TestTransparentSRAProjection(TestCase):
     @classmethod
     def tearDownClass(cls):
         # Removing test projection entries from projections db
-        cls.cursor.execute(" DELETE FROM tree_table WHERE projection_name='test_iontorrent_projection' ")
+        cls.cursor.execute(" DELETE FROM tree_table WHERE projection_name='test_sra_projection' ")
         cls.db_connection.commit()
         # Closing cursor and connection
         cls.cursor.close()
@@ -121,7 +121,7 @@ class TestTransparentSRAProjection(TestCase):
 
         self.sra_projection = subprocess.Popen([sys.executable,
                                                 'sra.py',
-                                                '-p', 'test_iontorrent_projection',
+                                                '-p', 'test_sra_projection',
                                                 '-m', 'tests/mnt',
                                                 '-d', 'tests/data',
                                                 '-c', 'tests/test_sra_transparent_proj.yaml'],
@@ -139,7 +139,7 @@ class TestTransparentSRAProjection(TestCase):
         subprocess.Popen(['fusermount', '-u', 'tests/mnt'])
 
         # Clean up previous test entries in db
-        self.cursor.execute(" DELETE FROM tree_table WHERE projection_name='test_iontorrent_projection' ")
+        self.cursor.execute(" DELETE FROM tree_table WHERE projection_name='test_sra_projection' ")
         self.db_connection.commit()
 
     def flat_sra_projection(self):
