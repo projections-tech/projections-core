@@ -37,12 +37,15 @@ class TestTorrentSuiteProjector(TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.mock_resource.deactivate()
+        # Removing test projection entries from projections db
         cls.cursor.execute(" DELETE FROM tree_table WHERE projection_name='test_iontorrent_projection' ")
         cls.db_connection.commit()
+        # Closing cursor and connection
         cls.cursor.close()
         cls.db_connection.close()
 
     def tearDown(self):
+        # Clean up previous test entries
         self.cursor.execute(" DELETE FROM tree_table WHERE projection_name='test_iontorrent_projection' ")
         self.db_connection.commit()
 

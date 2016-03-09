@@ -1,10 +1,17 @@
+import getpass
 import logging
 import logging.config
-from unittest import TestCase, skip
-from projections import PrototypeDeserializer, Projector
-from aws_s3 import S3Driver
-from moto import mock_s3
+import os
+from unittest import TestCase
+
 import boto3
+import psycopg2
+from moto import mock_s3
+
+from aws_s3 import S3Driver
+from db_projector import DBProjector
+from projections import PrototypeDeserializer
+
 # Import logging configuration from the file provided
 logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('s3_test')
@@ -102,21 +109,41 @@ class TestS3Projector(TestCase):
             s3.Object('parseq', 'projects/ensembl_{0}.txt'.format(i)).put(Body=b'Test ensembl here!',
                                                                 Metadata={'madefor': 'testing', 'quality': quality})
 
-        projection_configuration = PrototypeDeserializer('tests/test_s3.yaml')
+        # Initializing database connection which will be used during tests
+        cls.db_connection = psycopg2.connect(
+            "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
+        # Creating cursor, which will be used to interact with database
+        cls.cursor = cls.db_connection.cursor()
 
+
+        projection_configuration = PrototypeDeserializer('tests/test_s3.yaml')
         s3_driver = S3Driver('test_id', 'test_key', 'us-west-2', projection_configuration.root_projection_uri)
-        cls.s3_projector = Projector(s3_driver, projection_configuration.root_projection_uri,
-                                     projection_configuration.prototype_tree)
+        cls.s3_projector = DBProjector('test_s3_projection', s3_driver,
+                                       projection_configuration.prototype_tree,
+                                       projection_configuration.root_projection_uri)
 
     @classmethod
     def tearDownClass(cls):
         cls.mock.stop()
+        # Removing test projection entries from projections db
+        cls.cursor.execute(" DELETE FROM tree_table WHERE projection_name='test_s3_projection' ")
+        cls.db_connection.commit()
+        # Closing cursor and connection
+        cls.cursor.close()
+        cls.db_connection.close()
+
+    def tearDown(self):
+        # Clean up previous test entries
+        self.cursor.execute(" DELETE FROM tree_table WHERE projection_name='test_s3_projection' ")
+        self.db_connection.commit()
 
     def test_create_projections(self):
         """
         Tests if S3 projector creates projections
         """
-        created_projections = [n.get_path() for n in self.s3_projector.projection_tree.get_tree_nodes()]
+        self.cursor.execute(" SELECT path FROM tree_table WHERE projection_name='test_s3_projection' ")
+
+        created_projections = [os.path.join(*r[0]) for r in self.cursor]
 
         # Test if number of created projections equals to expected number of projections
         self.assertEqual(6, len(created_projections),
