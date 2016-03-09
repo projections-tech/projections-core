@@ -1,11 +1,17 @@
-import os
-import time
-import subprocess
+import getpass
 import logging
 import logging.config
-from unittest import TestCase, skip
-from projections import PrototypeDeserializer, Projector
+import os
+import subprocess
+import sys
+import time
+from unittest import TestCase
+
+import psycopg2
+
+from db_projector import DBProjector
 from fs_projection import FSDriver
+from projections import PrototypeDeserializer
 
 MOUNT_POINT = 'tests/mnt'
 DATA_FOLDER = 'tests/data'
@@ -17,19 +23,43 @@ logger = logging.getLogger('fs_proj_test')
 
 
 class TestFSProjection(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # Initializing database connection which will be used during tests
+        cls.db_connection = psycopg2.connect(
+            "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
+        # Creating cursor, which will be used to interact with database
+        cls.cursor = cls.db_connection.cursor()
+
+    @classmethod
+    def tearDownClass(cls):
+        # Removing test projection entries from projections db
+        cls.cursor.execute(" DELETE FROM tree_table WHERE projection_name='test_fs_projection' ")
+        cls.db_connection.commit()
+        # Closing cursor and connection
+        cls.cursor.close()
+        cls.db_connection.close()
 
     def setUp(self):
         driver = FSDriver()
         projection_configuration = PrototypeDeserializer(CONFIG_PATH)
-        self.fs_projector = Projector(driver, projection_configuration.root_projection_uri,
-                                      projection_configuration.prototype_tree)
+
+        self.fs_projector = DBProjector('test_fs_projection', driver,
+                                        projection_configuration.prototype_tree,
+                                        projection_configuration.root_projection_uri)
+
+    def tearDown(self):
+        # Clean up previous test entries
+        self.cursor.execute(" DELETE FROM tree_table WHERE projection_name='test_fs_projection' ")
+        self.db_connection.commit()
 
     def test_create_projections(self):
         """
         Tests if filesystem projector creates projections
         """
+        self.cursor.execute(" SELECT path FROM tree_table WHERE projection_name='test_fs_projection' ")
 
-        created_projections = [n.get_path() for n in self.fs_projector.projection_tree.get_tree_nodes()]
+        created_projections = [os.path.join(*r[0]) for r in self.cursor]
 
         # Test if number of created projections equals to expected number of projections
         self.assertEqual(37, len(created_projections),
@@ -80,17 +110,50 @@ class TestFSProjection(TestCase):
                           msg='Checking creation of {0} projection'.format(bed_proj_path))
 
 
+class TestFSProjectionContents(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # Initializing database connection which will be used during tests
+        cls.db_connection = psycopg2.connect(
+            "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
+        # Creating cursor, which will be used to interact with database
+        cls.cursor = cls.db_connection.cursor()
+
+    @classmethod
+    def tearDownClass(cls):
+        # Removing test projection entries from projections db
+        cls.cursor.execute(" DELETE FROM tree_table WHERE projection_name='test_fs_projection' ")
+        cls.db_connection.commit()
+        # Closing cursor and connection
+        cls.cursor.close()
+        cls.db_connection.close()
+
+    def setUp(self):
+        self.fs_proj = subprocess.Popen([sys.executable,
+                                         'fs_projection.py',
+                                         '-p', 'test_fs_projection',
+                                         '-m', 'tests/mnt',
+                                         '-d', 'tests/data',
+                                         '-c', 'tests/test_fs_proj_config.yaml'],
+                                        stdout=subprocess.DEVNULL)
+
+        # Wait to initialize Projector
+        time.sleep(0.5)
+
+    def tearDown(self):
+        # Shutting down genbank projection
+        self.fs_proj.terminate()
+
+        # Unmounting projection dir
+        subprocess.Popen(['fusermount', '-u', 'tests/mnt'])
+
+        # Clean up previous test entries in db
+        self.cursor.execute(" DELETE FROM tree_table WHERE projection_name='test_fs_projection' ")
+        self.db_connection.commit()
+
     def test_projections_contents(self):
         # Unmount any previous tests
         subprocess.Popen(['fusermount', '-u', MOUNT_POINT])
-
-        fs_proj = subprocess.Popen(['./fs_projection.py',
-                                     '-m', MOUNT_POINT,
-                                     '-d', DATA_FOLDER,
-                                     '-c', CONFIG_PATH],
-                                    stdout=subprocess.DEVNULL)
-        # Time to initialize Projector properly
-        time.sleep(0.2)
 
         # Expected mock files contents
         expected_bam = 'Mock bam here!\n'
@@ -131,9 +194,3 @@ class TestFSProjection(TestCase):
                              msg='Checking contents of projection {0}'.format(rerun_vcf_proj_path))
             self.assertEqual(expected_bed, test_r_bed_file,
                              msg='Checking contents of projection {0}'.format(rerun_bed_proj_path))
-
-        # Terminating Projector process
-        fs_proj.terminate()
-        # Unmounting mnt dir
-        subprocess.Popen(['fusermount', '-u', MOUNT_POINT])
-
