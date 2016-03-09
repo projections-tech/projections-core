@@ -1,10 +1,14 @@
+import getpass
 import logging
 import logging.config
 import os
-from unittest import TestCase, skip
-from projections import PrototypeDeserializer, Projector
+from unittest import TestCase
+
+import psycopg2
 
 import fs_projection
+from db_projector import DBProjector
+from projections import PrototypeDeserializer
 
 MOUNT_POINT = 'tests/mnt'
 DATA_FOLDER = 'tests/data'
@@ -16,18 +20,43 @@ logger = logging.getLogger('miseq_test')
 
 
 class TestMiseqProjection(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # Initializing database connection which will be used during tests
+        cls.db_connection = psycopg2.connect(
+            "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
+        # Creating cursor, which will be used to interact with database
+        cls.cursor = cls.db_connection.cursor()
+
+    @classmethod
+    def tearDownClass(cls):
+        # Removing test projection entries from projections db
+        cls.cursor.execute(" DELETE FROM tree_table WHERE projection_name='test_miseq_projection' ")
+        cls.db_connection.commit()
+        # Closing cursor and connection
+        cls.cursor.close()
+        cls.db_connection.close()
 
     def setUp(self):
         driver = fs_projection.FSDriver()
         projection_configuration = PrototypeDeserializer(CONFIG_PATH)
-        self.miseq_projector = Projector(driver, projection_configuration.root_projection_uri,
-                                      projection_configuration.prototype_tree)
+
+        self.miseq_projector = DBProjector('test_miseq_projection', driver,
+                                           projection_configuration.prototype_tree,
+                                           projection_configuration.root_projection_uri)
+
+    def tearDown(self):
+        # Clean up previous test entries
+        self.cursor.execute(" DELETE FROM tree_table WHERE projection_name='test_miseq_projection' ")
+        self.db_connection.commit()
 
     def test_create_projections(self):
         """
         Tests if MiSeq projector creates projections
         """
-        created_projections = [n.get_path() for n in self.miseq_projector.projection_tree.get_tree_nodes()]
+        self.cursor.execute(" SELECT path FROM tree_table WHERE projection_name='test_miseq_projection' ")
+
+        created_projections = [os.path.join(*r[0]) for r in self.cursor]
 
         # Test if number of created projections equals to expected number of projections
         self.assertEqual(38, len(created_projections),
@@ -97,7 +126,7 @@ class TestMiseqProjection(TestCase):
                 sample_sheet_contents = ssc.read()
 
             proj_sample_sheet_path = os.path.join(proj_run_dir_path, 'SampleSheetUsed.csv')
-            proj_sample_sheet_contents = self.miseq_projector.projection_tree.open_resource(proj_sample_sheet_path)[1].getvalue()
+            proj_sample_sheet_contents = self.miseq_projector.open_resource(proj_sample_sheet_path)[1].getvalue()
 
             self.assertEqual(sample_sheet_contents,
                              proj_sample_sheet_contents,
@@ -109,12 +138,12 @@ class TestMiseqProjection(TestCase):
                 bai_file_path = os.path.join(proj_run_dir_path, '{0}-{1}-{1}_S{1}.bam.bai'.format(sample_name, i))
 
                 # Checking if ProjectionTree gets correct BAM and BAI files contents on path
-                proj_bam_contents = self.miseq_projector.projection_tree.open_resource(bam_file_path)[1].getvalue()
+                proj_bam_contents = self.miseq_projector.open_resource(bam_file_path)[1].getvalue()
                 self.assertEqual(proj_bam_contents,
                                  b'Mock bam here!\n',
                                  msg='Checking BAM file contents.')
 
-                proj_bai_contents = self.miseq_projector.projection_tree.open_resource(bai_file_path)[1].getvalue()
+                proj_bai_contents = self.miseq_projector.open_resource(bai_file_path)[1].getvalue()
                 self.assertEqual(proj_bai_contents,
                                  b'Mock bai here!\n',
                                  msg='Checking BAM file contents.')

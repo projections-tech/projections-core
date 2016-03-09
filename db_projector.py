@@ -231,13 +231,18 @@ class DBProjector:
                 if isinstance(name, types.GeneratorType):
                     name = [el for el in name]
 
-                if prototype.type != 'metadata':
-                    set_parent_id = parent_id
-                    current_projection_path.append(name)
-                else:
+                if prototype.type == 'metadata':
                     current_projection_path = current_projection_path[:-1]
                     current_projection_path.append(name)
-                    set_parent_id = prototype.meta_parent_id
+                    current_parent_id = prototype.meta_parent_id
+                elif prototype.type == 'transparent':
+                    self.db_build_tree(prototype.children, parent_id, current_projection_path,
+                                       root_projection_uri=uri, parent_id_for_meta=parent_id)
+                    continue
+                else:
+                    current_parent_id = parent_id
+                    current_projection_path.append(name)
+
 
                 tree_table_insertion_command = "INSERT INTO {0} (projection_name, parent_id, name, uri, type, path) " \
                                                "SELECT %(proj_name)s, %(p_id)s, %(name)s, " \
@@ -248,7 +253,7 @@ class DBProjector:
                                                "RETURNING node_id".format(self.tree_table_name)
 
                 self.cursor.execute(tree_table_insertion_command, {'proj_name': self.projection_name,
-                                                                   'p_id': set_parent_id,
+                                                                   'p_id': current_parent_id,
                                                                    'name': name,
                                                                    'type': prototype.type,
                                                                    'path': current_projection_path,
@@ -274,9 +279,9 @@ class DBProjector:
                     has_meta = False
                     for key, child in prototype.children.items():
                         if child.type == 'metadata':
-                            child.meta_parent_id = set_parent_id
+                            child.meta_parent_id = current_parent_id
                             has_meta = True
-
+                    ##TODO rewrite metadata bit to be more readable
                     if prototype.type == 'metadata':
                         meta_table_insertion_command = "INSERT INTO {0} (node_id, parent_node_id, meta_contents) " \
                                                        "VALUES (%(node_id)s, %(parent_node_id)s, %(meta_contents)s)".format(
@@ -298,7 +303,7 @@ class DBProjector:
 
                     self.db_connection.commit()
 
-    def db_update_node_descendants_paths(self, new_parent_node_id):
+    def update_node_descendants_paths(self, new_parent_node_id):
         """
         This method updates node descendants paths
         :param new_parent_node_id: node_id of new parent node in tree_table which descendants we update
@@ -360,7 +365,7 @@ class DBProjector:
         self.cursor.execute(paths_request_command, (path,))
         return [row[0] for row in self.cursor]
 
-    def db_move_projection(self, node_to_move_path, new_node_root_path):
+    def move_projection(self, node_to_move_path, new_node_root_path):
         """
         This methods moves node in a tree to a new parent node, and updates node paths accordingly
         :param node_to_move_path: path to node which will be moved as list of strings
@@ -401,9 +406,9 @@ class DBProjector:
         self.cursor.execute(move_command)
         self.db_connection.commit()
 
-        self.db_update_node_descendants_paths(new_parent_id)
+        self.update_node_descendants_paths(new_parent_id)
 
-    def db_remove_projection(self, node_path):
+    def remove_projection(self, node_path):
         """
         This method removes node from tree_table and all of it`s descendants
         :param node_path: path to node list of strings
