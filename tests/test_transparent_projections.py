@@ -1,11 +1,14 @@
-import os
-import shutil
-import time
-import subprocess
+import getpass
 import logging
 import logging.config
+import os
+import shutil
+import subprocess
 import sys
-from unittest import TestCase, skip
+import time
+from unittest import TestCase
+
+import psycopg2
 
 MOUNT_POINT = 'tests/mnt'
 DATA_FOLDER = 'tests/data'
@@ -15,7 +18,24 @@ logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('transparent_projections_test')
 
 
-class TestTransparentProjection(TestCase):
+class TestTransparentIontorrentProjection(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # Initializing database connection which will be used during tests
+        cls.db_connection = psycopg2.connect(
+            "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
+        # Creating cursor, which will be used to interact with database
+        cls.cursor = cls.db_connection.cursor()
+
+    @classmethod
+    def tearDownClass(cls):
+        # Removing test projection entries from projections db
+        cls.cursor.execute(" DELETE FROM tree_table WHERE projection_name='test_iontorrent_projection' ")
+        cls.db_connection.commit()
+        # Closing cursor and connection
+        cls.cursor.close()
+        cls.db_connection.close()
+
     def setUp(self):
         # Clean data folder before tests
         for path in os.listdir(DATA_FOLDER):
@@ -26,22 +46,32 @@ class TestTransparentProjection(TestCase):
                 else:
                     shutil.rmtree(path)
 
+        self.iontorrent_projection = subprocess.Popen([sys.executable,
+                                                       'iontorrent.py',
+                                                       '-p', 'test_iontorrent_projection',
+                                                       '-m', 'tests/mnt',
+                                                       '-d', 'tests/data',
+                                                       '-c', 'tests/test_ts_transparent_proj.yaml'],
+                                                      stdout=subprocess.DEVNULL)
+
+        # Wait to initialize Projector
+        time.sleep(0.7)
+
+    def tearDown(self):
+        # Shutting down genbank projection
+        self.iontorrent_projection.terminate()
+        logger.debug('Unmounting mount dir!')
+        # Unmounting projection dir
+        subprocess.Popen(['fusermount', '-u', 'tests/mnt'])
+
+        # Clean up previous test entries in db
+        self.cursor.execute(" DELETE FROM tree_table WHERE projection_name='test_iontorrent_projection' ")
+        self.db_connection.commit()
+
     def test_flat_iontorrent_projection(self):
         """
         Test transparent projection creation using Torrent Suite
         """
-        subprocess.Popen(['fusermount', '-u', MOUNT_POINT])
-        # Starting iontorrent projection
-        ts_proj = subprocess.Popen([sys.executable,
-                                    'iontorrent.py',
-                                    '-m', MOUNT_POINT,
-                                    '-d', DATA_FOLDER,
-                                    '-c', 'tests/test_ts_transparent_proj.yaml'],
-                                   stdout=subprocess.DEVNULL)
-
-        # Time to initialize projector properly
-        time.sleep(0.5)
-
         root_dir_contents = ['IAD66589_181_SNP-HID-p2-L_Target_regions.bed', 'file', 'folder',
                              'test_experiment_1_metadata.json', 'test_experiment_1_plannedexperiment.json',
                              'test_experiment_1_sample_1_TSVC_variants.vcf',
@@ -60,35 +90,63 @@ class TestTransparentProjection(TestCase):
         self.assertSetEqual(set(root_dir_contents), set(os.listdir('tests/mnt')),
                             msg='Checking flat iontorrent projection.')
 
-        # Terminating Projector process
-        ts_proj.terminate()
 
-        # Unmounting mnt dir
-        subprocess.Popen(['fusermount', '-u', MOUNT_POINT])
+class TestTransparentSRAProjection(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # Initializing database connection which will be used during tests
+        cls.db_connection = psycopg2.connect(
+            "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
+        # Creating cursor, which will be used to interact with database
+        cls.cursor = cls.db_connection.cursor()
 
-    def test_flat_sra_projection(self):
+    @classmethod
+    def tearDownClass(cls):
+        # Removing test projection entries from projections db
+        cls.cursor.execute(" DELETE FROM tree_table WHERE projection_name='test_iontorrent_projection' ")
+        cls.db_connection.commit()
+        # Closing cursor and connection
+        cls.cursor.close()
+        cls.db_connection.close()
+
+    def setUp(self):
+        # Clean data folder before tests
+        for path in os.listdir(DATA_FOLDER):
+            if path not in ['folder', 'file']:
+                path = os.path.join(DATA_FOLDER, path)
+                if os.path.isfile(path):
+                    os.remove(path)
+                else:
+                    shutil.rmtree(path)
+
+        self.sra_projection = subprocess.Popen([sys.executable,
+                                                'sra.py',
+                                                '-p', 'test_iontorrent_projection',
+                                                '-m', 'tests/mnt',
+                                                '-d', 'tests/data',
+                                                '-c', 'tests/test_sra_transparent_proj.yaml'],
+                                               stdout=subprocess.DEVNULL)
+
+        # Wait to initialize Projector
+        time.sleep(0.7)
+
+    def tearDown(self):
+        # Shutting down genbank projection
+        self.sra_projection.terminate()
+
+        logger.debug('Unmounting mount dir!')
+        # Unmounting projection dir
+        subprocess.Popen(['fusermount', '-u', 'tests/mnt'])
+
+        # Clean up previous test entries in db
+        self.cursor.execute(" DELETE FROM tree_table WHERE projection_name='test_iontorrent_projection' ")
+        self.db_connection.commit()
+
+    def flat_sra_projection(self):
         """
         Test transparent projection creation using SRA
         """
-        subprocess.Popen(['fusermount', '-u', MOUNT_POINT])
-        # Starting iontorrent projection
-        sra_proj = subprocess.Popen(['./sra.py',
-                                    '-m', MOUNT_POINT,
-                                    '-d', DATA_FOLDER,
-                                    '-c', 'tests/test_sra_transparent_proj.yaml'],
-                                   stdout=subprocess.DEVNULL)
-
-        # Time to initialize projector properly
-        time.sleep(1)
 
         root_dir_contents = ['file', 'folder', 'metadata.json', 'SRR2062160.sam']
 
         self.assertSetEqual(set(root_dir_contents), set(os.listdir('tests/mnt')), msg='Checking flat SRA projection.')
-
-        # Terminating Projector process
-        sra_proj.terminate()
-
-        # Unmounting mnt dir
-        subprocess.Popen(['fusermount', '-u', MOUNT_POINT])
-
-
