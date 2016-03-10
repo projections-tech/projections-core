@@ -139,8 +139,8 @@ def main(cfg_path, mountpoint, data_folder, projection_name, foreground=True):
     fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
     return fuse
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     script_dir = os.path.dirname(os.path.realpath(__file__))
     logging.config.fileConfig(os.path.join(script_dir, 'logging.cfg'))
 
@@ -152,7 +152,3 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     main(args.config_path, args.mount_point, args.data_directory, args.projection_name)
-
-
-
-

@@ -9,7 +9,7 @@ from unittest import TestCase
 
 import psycopg2
 
-import genbank
+import drivers.genbank as genbank
 from db_projector import DBProjector
 from projections import PrototypeDeserializer
 from tests.mock import MockResource
@@ -104,7 +104,7 @@ class TestGenbankProjectionContents(TestCase):
 
     def setUp(self):
         self.gbk_proj = subprocess.Popen([sys.executable,
-                                          'genbank.py',
+                                          'drivers/genbank.py',
                                           '-p', 'test_genbank_projection',
                                           '-m', 'tests/mnt',
                                           '-d', 'tests/data',

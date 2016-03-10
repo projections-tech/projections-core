@@ -47,7 +47,7 @@ class TestTransparentIontorrentProjection(TestCase):
                     shutil.rmtree(path)
 
         self.iontorrent_projection = subprocess.Popen([sys.executable,
-                                                       'iontorrent.py',
+                                                       'drivers/iontorrent.py',
                                                        '-p', 'test_iontorrent_projection',
                                                        '-m', 'tests/mnt',
                                                        '-d', 'tests/data',
@@ -120,7 +120,7 @@ class TestTransparentSRAProjection(TestCase):
                     shutil.rmtree(path)
 
         self.sra_projection = subprocess.Popen([sys.executable,
-                                                'sra.py',
+                                                'drivers/sra.py',
                                                 '-p', 'test_sra_projection',
                                                 '-m', 'tests/mnt',
                                                 '-d', 'tests/data',

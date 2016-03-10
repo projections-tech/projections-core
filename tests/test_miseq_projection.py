@@ -6,7 +6,7 @@ from unittest import TestCase
 
 import psycopg2
 
-import fs_projection
+import drivers.fs_projection as fs_projection
 from db_projector import DBProjector
 from projections import PrototypeDeserializer
 
