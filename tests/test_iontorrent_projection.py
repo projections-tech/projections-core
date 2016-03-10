@@ -145,7 +145,6 @@ class TestTorrentSuiteProjector(TestCase):
 
         projection_paths_list = [os.path.join(*r[0]) for r in self.cursor]
 
-
         logger.debug('Full projection path list: %s', projection_paths_list)
         # Checking number of created projections,
         self.assertEqual(len(projection_paths_list), 32,

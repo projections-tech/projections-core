@@ -1,12 +1,12 @@
 import argparse
+
+import boto3
+from moto import mock_s3
+
 from aws_s3 import S3Driver
-import logging
-import logging.config
+from filesystem import ProjectionFilesystem
 from fuse import FUSE
 from projections import PrototypeDeserializer, Projector
-from moto import mock_s3
-import boto3
-from filesystem import ProjectionFilesystem
 
 
 def main(cfg_path, mountpoint, data_folder, foreground=True):
@@ -31,7 +31,7 @@ def main(cfg_path, mountpoint, data_folder, foreground=True):
     s3.Object('parseq', 'projects/ensembl.txt').put(Body=b'Test ensembl here!',
                                                     Metadata={'madefor': 'testing', 'quality': 'good'})
     # Setting 'quality' metadata field of files in subdir projections and adding files to mock resource
-    for i in range(1,5):
+    for i in range(1, 5):
         if i == 1:
             quality = 'good'
         else:

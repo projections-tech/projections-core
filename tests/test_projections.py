@@ -1,14 +1,16 @@
 __author__ = 'abragin'
 
+import getpass
+import json
 import logging
 import logging.config
 import re
-import stat
-import json
+from unittest import TestCase
 
-from unittest import TestCase, skip
+import psycopg2
 
-from projections import Node, ProjectionPrototype, Projector, Projection, ProjectionTree, ProjectionDriver, PrototypeDeserializer
+from db_projector import DBProjector
+from projections import Node, ProjectionPrototype, ProjectionDriver, PrototypeDeserializer
 
 # Import logging configuration from the file provided
 logging.config.fileConfig('logging.cfg')
@@ -53,64 +55,12 @@ class TestDriver(ProjectionDriver):
         if match:
             id = match.groups()[0]
             logger.info('Requesting result data with id: %s', id)
-            return {'meta':"This is BAM file"}
+            return {'meta': "This is BAM file"}
 
         assert False is True, 'Test driver can\'t handle resource request, aborting!'
 
 
-class TestProjector(TestCase):
-
-    def test_create_projection_tree(self):
-        """
-        Testing projection tree creation with projection prototypes.
-
-        """
-        experiment_prototype = ProjectionPrototype('directory')
-        experiment_prototype.name = " replace($.displayName, ' ', '_') "
-        experiment_prototype.uri = ' $.objects.uri '
-
-        result_prototype = ProjectionPrototype('directory')
-        result_prototype.name = " split($.filesystempath, '/')[-1] "
-        result_prototype.uri = " $.results "
-
-        bam_prototype = ProjectionPrototype('file')
-        bam_prototype.name = " split($.environment.data, '/')[-1] "
-        bam_prototype.uri = " $.data "
-
-        result_prototype.parent = experiment_prototype
-        experiment_prototype.children[result_prototype.name] = result_prototype
-        bam_prototype.parent = result_prototype
-        result_prototype.children[bam_prototype.name] = bam_prototype
-
-        projector = Projector(TestDriver(), 'experiments', experiment_prototype)
-
-        dir_paths = ['/', '/experiment_0', '/experiment_1', '/experiment_2',
-                 '/experiment_1/result_1', '/experiment_1/result_2',
-                 '/experiment_2/result_3', '/experiment_2/result_4', '/experiment_2/result_5']
-
-        created_projections = [n.get_path() for n in projector.projection_tree.get_tree_nodes()]
-        logger.info('Created projections: %s', created_projections)
-        for dir_path in dir_paths:
-            logger.info('Checking projection on path: %s', dir_path)
-
-            self.assertTrue(dir_path in created_projections, 'Check that projection exists')
-
-            projection = projector.projection_tree.get_projection(dir_path)
-
-            self.assertTrue(projection.type == stat.S_IFDIR, 'Check that this is a directory projection')
-
-        file_paths = ['/experiment_1/result_1/1.bam', '/experiment_1/result_2/2.bam',
-                      '/experiment_2/result_3/3.bam', '/experiment_2/result_4/4.bam', '/experiment_2/result_5/5.bam']
-
-        for file_path in file_paths:
-            logger.info('Checking file projection on path: %s', file_path)
-            self.assertTrue(file_path in created_projections, 'Check that projection exists')
-            projection = projector.projection_tree.get_projection(file_path)
-            self.assertTrue(projection.type == stat.S_IFREG, 'Check that this is a file projection')
-
-
 class TestNode(TestCase):
-
     def setUp(self):
         self.tree = Node(name='/')
 
@@ -148,13 +98,13 @@ class TestNode(TestCase):
 
             for second_level_child in first_level_child.get_children():
                 self.assertListEqual(['/', first_level_child.name],
-                                 [n.name for n in second_level_child.get_parent_nodes()],
-                                 msg='Checking path to second level nodes of a tree')
+                                     [n.name for n in second_level_child.get_parent_nodes()],
+                                     msg='Checking path to second level nodes of a tree')
 
                 for third_level_child in second_level_child.get_children():
                     self.assertListEqual(['/', first_level_child.name, second_level_child.name],
-                                     [n.name for n in third_level_child.get_parent_nodes()],
-                                     msg='Checking path to third level nodes of a tree')
+                                         [n.name for n in third_level_child.get_parent_nodes()],
+                                         msg='Checking path to third level nodes of a tree')
 
     def test_get_path(self):
         """
@@ -256,7 +206,6 @@ class TestNode(TestCase):
 
 
 class TestPrototypeDeserializer(TestCase):
-
     def setUp(self):
         self.deserializer = PrototypeDeserializer('tests/test_projection_config.yaml')
 
@@ -269,7 +218,8 @@ class TestPrototypeDeserializer(TestCase):
         test_nodes_list = [n for n in root_prototype.get_tree_nodes()]
         for n in test_nodes_list:
             self.assertIsInstance(n, ProjectionPrototype,
-                                  msg='Checking if object: {0} is instance of ProjectionPrototype'.format(root_prototype))
+                                  msg='Checking if object: {0} is instance of ProjectionPrototype'.format(
+                                      root_prototype))
         # Test correctness of "name" fields of nodes
         expected_names = ['root_dir', 'results_dir', 'test_bam.bam', 'test_vcf.vcf']
         test_names = [n.name for n in root_prototype.get_tree_nodes()]
@@ -287,3 +237,137 @@ class TestPrototypeDeserializer(TestCase):
         expected_types = ['directory', 'directory', 'file', 'file']
         test_pre_order_uri = [n.type for n in root_prototype.get_tree_nodes()]
         self.assertListEqual(expected_types, test_pre_order_uri, msg='Checking if prototypes types are correct.')
+
+
+class TestProjector(TestCase):
+    """
+    Tests DBProjector projection tree building
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        # Initializing database connection which will be used during tests
+        cls.db_connection = psycopg2.connect(
+            "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
+        # Creating cursor, which will be used to interact with database
+        cls.cursor = cls.db_connection.cursor()
+
+        cls.projection_driver = TestDriver()
+
+        cls.experiment_prototype = ProjectionPrototype('directory')
+        cls.experiment_prototype.name = " replace($.displayName, ' ', '_') "
+        cls.experiment_prototype.uri = ' $.objects.uri '
+
+        result_prototype = ProjectionPrototype('directory')
+        result_prototype.name = " split($.filesystempath, '/')[-1] "
+        result_prototype.uri = " $.results "
+
+        bam_prototype = ProjectionPrototype('file')
+        bam_prototype.name = " split($.environment.data, '/')[-1] "
+        bam_prototype.uri = " $.data "
+
+        result_prototype.parent = cls.experiment_prototype
+        cls.experiment_prototype.children[result_prototype.name] = result_prototype
+        bam_prototype.parent = result_prototype
+        result_prototype.children[bam_prototype.name] = bam_prototype
+
+    @classmethod
+    def tearDownClass(cls):
+        # Removing test projection entries from projections db
+        cls.cursor.execute(" DELETE FROM tree_table WHERE projection_name='test_projection' ")
+        cls.db_connection.commit()
+        # Closing cursor and connection
+        cls.cursor.close()
+        cls.db_connection.close()
+
+    def setUp(self):
+        self.projector = DBProjector('test_projection',
+                                     self.projection_driver,
+                                     self.experiment_prototype,
+                                     'experiments')
+
+    def tearDown(self):
+        # Clean up previous test entries in db
+        self.cursor.execute(" DELETE FROM tree_table WHERE projection_name='test_projection' ")
+        self.db_connection.commit()
+
+    def test_create_projection_tree(self):
+        """
+        Testing projection tree creation with projection prototypes.
+        """
+
+        dir_paths = ['/', '/experiment_0', '/experiment_1', '/experiment_2',
+                     '/experiment_1/result_1', '/experiment_1/result_2',
+                     '/experiment_2/result_3', '/experiment_2/result_4', '/experiment_2/result_5']
+
+        created_projections = self.projector.list_projections()
+
+        logger.info('Created projections: %s', created_projections)
+        for dir_path in dir_paths:
+            logger.info('Checking projection on path: %s', dir_path)
+
+            self.assertIn(dir_path, created_projections, 'Check that projection exists')
+
+            projection_stats = self.projector.get_attributes(dir_path)
+
+            self.assertTrue(projection_stats['st_mode'] == 16895, 'Check that this is a directory projection')
+
+        file_paths = ['/experiment_1/result_1/1.bam', '/experiment_1/result_2/2.bam',
+                      '/experiment_2/result_3/3.bam', '/experiment_2/result_4/4.bam', '/experiment_2/result_5/5.bam']
+
+        for file_path in file_paths:
+            logger.info('Checking file projection on path: %s', file_path)
+            self.assertIn(file_path, created_projections, 'Check that projection exists')
+
+            projection_stats = self.projector.get_attributes(file_path)
+
+            self.assertTrue(projection_stats['st_mode'] == 33279, 'Check that this is a file projection')
+
+    def test_projection_deletion(self):
+        """
+        Tests projection deletion correctness
+        """
+
+        created_projections = self.projector.list_projections()
+
+        # Removing entire directory
+        self.projector.remove_projection('/experiment_1')
+
+        current_projections = self.projector.list_projections()
+
+        removed_projections = ['/experiment_1', '/experiment_1/result_1',
+                               '/experiment_1/result_1/1.bam', '/experiment_1/result_2',
+                               '/experiment_1/result_2/2.bam']
+
+        # Checking if projections where removed properly
+        for removed_projection in removed_projections:
+            self.assertNotIn(removed_projection, current_projections, 'Checking directory deletion')
+
+        # Testing leaf projections removal
+        projections_to_remove = ['/experiment_2/result_4/4.bam', '/experiment_2/result_5/5.bam']
+        # Removing leaf projections
+        for path in projections_to_remove:
+            self.projector.remove_projection(path)
+
+        current_projections = self.projector.list_projections()
+
+        for path in projections_to_remove:
+            self.assertNotIn(path, current_projections, 'Checking file deletion')
+
+    def test_projections_move(self):
+        """
+        Tests projections move correctness
+        """
+        created_projections = self.projector.list_projections()
+
+        # Moving dir experiment_1 into dir experiment_2
+        self.projector.move_projection('/experiment_1', '/experiment_2')
+
+        current_projections = self.projector.list_projections()
+
+        moved_dir_paths = ['/experiment_2/experiment_1', '/experiment_2/experiment_1/result_2',
+                           '/experiment_2/experiment_1/result_1',
+                           '/experiment_2/experiment_1/result_2/2.bam',
+                           '/experiment_2/experiment_1/result_1/1.bam']
+        for path in moved_dir_paths:
+            self.assertIn(path, current_projections, 'Checing node move')

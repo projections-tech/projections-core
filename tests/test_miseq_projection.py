@@ -99,7 +99,7 @@ class TestMiseqProjection(TestCase):
 
             # Checking bam and bai projection creation
             sample_name = run_dir_name.split('-')[-1]
-            for i in range(1,6):
+            for i in range(1, 6):
                 bam_file_path = os.path.join(run_dir_path, '{0}-{1}-{1}_S{1}.bam'.format(sample_name, i))
                 bai_file_path = os.path.join(run_dir_path, '{0}-{1}-{1}_S{1}.bam.bai'.format(sample_name, i))
 
@@ -133,7 +133,7 @@ class TestMiseqProjection(TestCase):
                              msg='Checking sample sheet contents correctness.')
 
             sample_name = run_dir_name.split('-')[-1]
-            for i in range(1,6):
+            for i in range(1, 6):
                 bam_file_path = os.path.join(proj_run_dir_path, '{0}-{1}-{1}_S{1}.bam'.format(sample_name, i))
                 bai_file_path = os.path.join(proj_run_dir_path, '{0}-{1}-{1}_S{1}.bam.bai'.format(sample_name, i))
 

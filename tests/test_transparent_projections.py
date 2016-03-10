@@ -55,7 +55,7 @@ class TestTransparentIontorrentProjection(TestCase):
                                                       stdout=subprocess.DEVNULL)
 
         # Wait to initialize Projector
-        time.sleep(0.7)
+        time.sleep(1)
 
     def tearDown(self):
         # Shutting down genbank projection
@@ -128,7 +128,7 @@ class TestTransparentSRAProjection(TestCase):
                                                stdout=subprocess.DEVNULL)
 
         # Wait to initialize Projector
-        time.sleep(0.7)
+        time.sleep(1)
 
     def tearDown(self):
         # Shutting down genbank projection

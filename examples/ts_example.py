@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 
-import logging
-import logging.config
 import argparse
-from fuse import FUSE
-from projections import Projector, PrototypeDeserializer
-from iontorrent import TorrentSuiteDriver
+
 from filesystem import ProjectionFilesystem
+from fuse import FUSE
+from iontorrent import TorrentSuiteDriver
+from projections import Projector, PrototypeDeserializer
 
 LOGIN = 'ionadmin'
 PASSWORD = '0ECu1lW'
+
 
 def main(cfg_path, mountpoint, data_folder, foreground=True):
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)

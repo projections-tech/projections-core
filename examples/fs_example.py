@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
 import argparse
-import logging
-import logging.config
-from fuse import FUSE
+
 from filesystem import ProjectionFilesystem
-from projections import Projector, PrototypeDeserializer
 from fs_projection import FSDriver
+from fuse import FUSE
+from projections import Projector, PrototypeDeserializer
+
 
 def main(cfg_path, mountpoint, data_folder, foreground=True):
     projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)

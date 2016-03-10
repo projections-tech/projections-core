@@ -101,7 +101,7 @@ class TestS3Projector(TestCase):
         s3.Object('parseq', 'projects/ensembl.txt').put(Body=b'Test ensembl here!',
                                                     Metadata={'madefor': 'testing', 'quality': 'good'})
         # Setting 'quality' metadata field of files in subdir projections and adding files to mock resource
-        for i in range(1,5):
+        for i in range(1, 5):
             if i == 1:
                 quality = 'good'
             else:
@@ -114,7 +114,6 @@ class TestS3Projector(TestCase):
             "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
         # Creating cursor, which will be used to interact with database
         cls.cursor = cls.db_connection.cursor()
-
 
         projection_configuration = PrototypeDeserializer('tests/test_s3.yaml')
         s3_driver = S3Driver('test_id', 'test_key', 'us-west-2', projection_configuration.root_projection_uri)

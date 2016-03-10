@@ -71,18 +71,18 @@ class TestFSProjection(TestCase):
                       msg='Checking creation of root projection')
 
         # Checking if FASTA files not present in config are not projected
-        for i in range(1,5):
+        for i in range(1, 5):
             fasta_proj_path = '/test_dir/fasta_file_{0}.fasta'.format(i)
             self.assertNotIn(fasta_proj_path, created_projections,
                           msg='Checking if {0} not in projections'.format(fasta_proj_path))
 
         # Check BAM files projections creation
-        for i in range(1,6):
+        for i in range(1, 6):
             bam_proj_path = '/test_dir/bam_file_{0}.bam'.format(i)
             self.assertIn(bam_proj_path, created_projections,
                           msg='Checking creation of {0} projection'.format(bam_proj_path))
 
-        for i in range(1,6):
+        for i in range(1, 6):
             # Check sample dir projection creation
             sample_dir_path = '/test_dir/sample_{0}'.format(i)
             self.assertIn(sample_dir_path, created_projections,
@@ -159,7 +159,7 @@ class TestFSProjectionContents(TestCase):
         expected_bam = 'Mock bam here!\n'
         expected_vcf = 'Mock vcf here!\n'
         expected_bed = 'Mock bed here!\n'
-        for i in range(1,6):
+        for i in range(1, 6):
             # Paths to projections
             vcf_proj_path = 'tests/mnt/test_dir/sample_{}/vcf_file.vcf'.format(i)
             bam_proj_path = 'tests/mnt/test_dir/bam_file_{0}.bam'.format(i)
