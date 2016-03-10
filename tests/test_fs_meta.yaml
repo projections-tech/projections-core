@@ -1,0 +1,33 @@
+---
+dialect: python
+resource_uri: None
+
+root_projection_uri: 'tests/test_dir'
+
+
+bam_metadata: &bam_metadata
+  type: file
+  children: None
+  name: " $.name "
+  uri: " $.resource_uri "
+
+bam_projection: &bam_projection
+  type: file
+  children: None
+  name: " $.name "
+  uri: " $.dir_path + $.context[0].file_metadata.result "
+
+bam_projection_meta: &bam_projection_meta
+  type: metadata
+  children:
+    bam_projection: *bam_projection
+    bam_metadata: *bam_metadata
+  name: " $.environment.file_metadata[@.quality is 'good'].quality "
+  uri: " $.children[@.extension is '.json' and 'bam' in @.name].resource_uri "
+
+root:
+  type: directory
+  children:
+    bam_projection_meta: *bam_projection_meta
+  name: " $.name "
+  uri: " 'tests/test_dir' "

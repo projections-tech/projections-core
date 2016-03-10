@@ -1,6 +1,7 @@
 __author__ = 'abragin'
 
 import io
+import json
 import logging
 import os
 import stat
@@ -11,6 +12,7 @@ import pprint
 import objectpath
 import types
 import copy
+import itertools
 
 # Import logging configuration from the file provided
 logging.config.fileConfig('logging.cfg')
@@ -177,6 +179,7 @@ class Projection(object):
         self.type = type
         # Should be nonzero to trigger projection object reading
         self.size = size
+        self.metadata_uri = None
 
     def __str__(self):
         return 'Projection from {} to {}'.format(self.uri, self.name)
@@ -408,12 +411,16 @@ class Projector:
         # file prototypes, while content for directory prototypes only
         environment = None
         content = None
+
+        metadata_uri = projection_tree.data.uri
+
         path = os.path
 
         # This is environment in which projections are created (parent_projection content)
         # TODO: in many cases it means double request to parent projection resource so it should be optimized
         # We don`t want to change driver contents, hence we made deep copy of dict
         environment = copy.deepcopy(self.driver.get_uri_contents_as_dict(projection_tree.data.uri))
+
         logger.info('Starting prototype creation in the context of resource with uri: %s', projection_tree.data.uri)
 
         # For every prototype in collection try to create corresponding projections
@@ -431,6 +438,7 @@ class Projector:
             # Creating tree of environment contents which will be parsed by ObjectPath
             tree = objectpath.Tree(environment)
             URIs = tree.execute(prototype.uri)
+
             # Object path sometimes returns generator if user uses selectors, for consistency expand it using
             # list comprehension
             if isinstance(URIs, types.GeneratorType):
@@ -443,6 +451,10 @@ class Projector:
             # We get projection URIs based on environment and prototype properties
             # Every URI corresponds to projection object
             for uri in URIs:
+                if prototype.type == 'metadata':
+                    # Metadata must be valid JSON file, in other case do conversion
+                    environment['file_metadata'] = json.loads(self.driver.get_uri_contents_as_bytes(uri).decode())
+
                 # Get content for a projection
                 # We don`t want to change driver contents, hence we made deep copy
                 content = copy.deepcopy(self.driver.get_uri_contents_as_dict(uri))
@@ -455,6 +467,18 @@ class Projector:
                 # Creating tree which will be parsed by ObjectPath
                 tree = objectpath.Tree(content)
                 name = tree.execute(prototype.name)
+                # If prototype is metadata use it`s name as file meta evaluation context
+
+                if prototype.type == 'metadata':
+                    # Object path sometimes returns generator if user uses selectors, for consistency expand it using
+                    # list comprehension
+
+                    if isinstance(name, types.GeneratorType):
+                        name = [el for el in name]
+
+                    # If name is empty list then stop projection tree creation and continue to next prototype
+                    if len(name) == 0:
+                        continue
 
                 # Object path sometimes returns generator if user uses selectors, for consistency expand it using
                 # list comprehension
@@ -462,9 +486,11 @@ class Projector:
                     name = [el for el in name]
 
                 child_tree = ProjectionTree(p_name=name, p_uri=uri)
+                # Setting projection metadata URI
+                child_tree.data.metadata_uri = metadata_uri
 
-                # Add newly created projection to projection tree if prototype is not transparent
-                if not prototype.type == 'transparent':
+                # Add newly created projection to projection tree if prototype is not transparent or metadata
+                if prototype.type != 'transparent' and prototype.type != 'metadata':
                     projection_tree.add_child(child_tree)
                     logger.info('Projection created: %s', child_tree)
 
@@ -475,10 +501,10 @@ class Projector:
                                     prototype, prototype.children)
                         self.create_projection_tree(prototype.children, child_tree)
 
-                elif prototype.type == 'transparent':
-                    # If projection is transparent, continue prototype tree building passing parent projection tree
-                    # and evaluated uri of prototype to it. This behaviour allows to build flat projections there
-                    # all prototypes are on one level due to passed common parent projection
+                elif prototype.type == 'transparent' or prototype.type == 'metadata':
+                    # If projection is transparent or metadata, continue prototype tree building passing parent
+                    # projection tree and evaluated uri of prototype to it. This behaviour allows to build flat
+                    # projections there all prototypes are on one level due to passed common parent projection
                     if prototype.children:
                         projection_tree.data.uri = child_tree.data.uri
                         self.create_projection_tree(prototype.children, projection_tree)

@@ -8,6 +8,7 @@ from projections import PrototypeDeserializer, Projector
 import genbank
 import subprocess
 import time
+import sys
 
 MOUNT_POINT = 'tests/mnt'
 DATA_FOLDER = 'tests/data'
@@ -62,9 +63,7 @@ class TestGenbankProjector(TestCase):
         Tests if file projections contents
         """
         # Starting Genbank projector process
-
-        gbk_proj = subprocess.Popen([ sys.executable,
-                                      'genbank.py',
+        gbk_proj = subprocess.Popen([sys.executable, 'genbank.py',
                                      '-m', 'tests/mnt',
                                      '-d', 'tests/data',
                                      '-c', 'tests/test_genbank_config.yaml'],
