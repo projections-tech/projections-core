@@ -109,7 +109,7 @@ class DBProjector:
         if not bool(is_tree_table_exist):
             self.cursor.execute("CREATE TABLE {} ("
                                 "node_id serial PRIMARY KEY, "
-                                "projection_name varchar,"
+                                "projection_name varchar REFERENCES projections_table(projection_name) ON DELETE CASCADE,"
                                 "parent_id integer, "
                                 "name varchar, "
                                 "uri varchar, "
