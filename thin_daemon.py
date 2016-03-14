@@ -23,7 +23,6 @@ class ThinDaemon:
         self.drivers = {
             'iontorrent': TorrentSuiteDriver
         }
-        logger.debug(command_line_args)
         if command_line_args.project:
             logger.info('Daemon projecting!')
 
@@ -44,7 +43,9 @@ class ThinDaemon:
 
             self.projection_name = command_line_args.projection_name
 
-            self.perform_search(command_line_args.search_query)
+            self.perform_search(command_line_args.projection_name,
+                                command_line_args.search_path,
+                                command_line_args.search_query)
 
     def run_projection(self):
         # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
@@ -74,11 +75,66 @@ class ThinDaemon:
     def list_projections(self):
         raise NotImplementedError('Projection listing is not implemented yet!')
 
-    def perform_search(self, query):
+    def perform_search(self, projection_name, path, query):
+        """
+        Perform search in projection using SQL as query language
+        :param projection_name: name of projection on which to perform search
+        :param path: path or level on which search is performed string
+        :param query: SQL query which is used to filter projections
+        :return: paths that adhere to search conditions into stdout
+        """
 
-        logger.debug('Searching in %s', self.projection_name)
+        path = path.rstrip('/')
 
-        self.cursor.execute("")
+        if projection_name != 'global':
+            self.cursor.execute("""
+            SELECT node_id
+            FROM tree_table
+            WHERE (
+                concat( '/', array_to_string(path[2:array_upper(path, 1)], '/')) = %s AND projection_name = %s
+                )
+            """, (path, projection_name))
+        else:
+            self.cursor.execute("""
+            SELECT node_id
+            FROM tree_table
+            WHERE (
+                concat( '/', array_to_string(path[2:array_upper(path, 1)], '/')) = %s
+                )
+            """, (path,))
+
+        node_on_path_id = self.cursor.fetchone()[0]
+
+        self.cursor.execute("""
+        WITH descendants_table AS (
+            WITH RECURSIVE
+
+            descendants_ids AS (
+                WITH RECURSIVE tree AS (
+                    SELECT node_id, ARRAY[%(node_id)s]::integer[] AS ancestors
+                    FROM tree_table WHERE parent_id = %(node_id)s
+
+                    UNION ALL
+
+                    SELECT tree_table.node_id, tree.ancestors || tree_table.parent_id
+                    FROM tree_table, tree
+                    WHERE tree_table.parent_id = tree.node_id
+                )
+                SELECT node_id FROM tree WHERE %(node_id)s = ANY(tree.ancestors)
+            )
+
+            SELECT tree_table.* FROM tree_table, descendants_ids WHERE tree_table.node_id = descendants_ids.node_id
+        )
+        SELECT concat( '/', array_to_string(descendants_table.path[2:array_upper(descendants_table.path, 1)], '/')) {query}
+        """.format(query=query), {'node_id': node_on_path_id})
+        # TODO add projections table to database and take mount point name from there
+        for row in self.cursor:
+            print('mount/' + row[0][1:])
+
+
+
+
+
 
 
 def main():
