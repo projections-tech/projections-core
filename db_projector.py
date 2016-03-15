@@ -506,6 +506,7 @@ class DBProjector:
             SELECT * FROM {0} WHERE path=%s::varchar[]
         )
         """.format(self.tree_table_name)
+
         # Run command and return check result as bool
         self.cursor.execute(projection_on_path_existance_check, (path,))
 

@@ -7,7 +7,9 @@ import logging.config
 import os
 import signal
 import sys
+import types
 
+import objectpath
 import psycopg2
 
 from db_projector import DBProjector
@@ -18,6 +20,7 @@ from projections import PrototypeDeserializer
 from tests.mock import MockResource
 
 logger = logging.getLogger('projection_daemon')
+
 
 class ThinDaemon:
     def __init__(self, command_line_args, script_dir=None):
@@ -66,9 +69,13 @@ class ThinDaemon:
         elif command_line_args.search:
             self.projection_name = command_line_args.projection_name
 
-            self.perform_search(command_line_args.projection_name,
-                                command_line_args.search_path,
-                                command_line_args.search_query)
+            # self.perform_search(command_line_args.projection_name,
+            #                     command_line_args.search_path,
+            #                     command_line_args.search_query)
+
+            self.perform_search_objectpath(command_line_args.projection_name,
+                                           command_line_args.search_path,
+                                           command_line_args.search_query)
 
         elif command_line_args.stop_projection:
             self.stop_projection(command_line_args.stop_projection)
@@ -164,7 +171,7 @@ class ThinDaemon:
 
         if is_projection_running:
             logger.info('Attempting do delete running projection!')
-            status = input('Continue? y/n')
+            status = input('Continue? y/n ')
             if status == 'y':
                 self.stop_projection(projection_name)
                 self.cursor.execute("""
@@ -183,7 +190,6 @@ class ThinDaemon:
     def list_projections(self):
         """
         Lists projections in projections database
-        :return:
         """
         self.cursor.execute("""
         SELECT * FROM projections_table
@@ -200,8 +206,8 @@ class ThinDaemon:
         :param query: SQL query which is used to filter projections
         :return: paths that adhere to search conditions into stdout
         """
-
-        path = path.rstrip('/')
+        if not path == '/':
+            path = path.rstrip('/')
 
         if projection_name != 'global':
             self.cursor.execute("""
@@ -250,6 +256,93 @@ class ThinDaemon:
         )
         SELECT concat( '/', array_to_string(descendants_table.path[2:array_upper(descendants_table.path, 1)], '/')) {query}
         """.format(query=query), {'node_id': node_on_path_id})
+
+        for row in self.cursor:
+            print(os.path.join(mount_path, row[0].lstrip('/')))
+
+    def perform_search_objectpath(self, projection_name, path, query):
+        """
+        Perform search in projection using SQL as query language
+        :param projection_name: name of projection on which to perform search
+        :param path: path or level on which search is performed string
+        :param query: SQL query which is used to filter projections
+        :return: paths that adhere to search conditions into stdout
+        """
+        if not path == '/':
+            path = path.rstrip('/')
+
+        if projection_name != 'global':
+            self.cursor.execute("""
+            SELECT node_id
+            FROM tree_table
+            WHERE (
+                concat( '/', array_to_string(path[2:array_upper(path, 1)], '/')) = %s AND projection_name = %s
+                )
+            """, (path, projection_name))
+        else:
+            self.cursor.execute("""
+            SELECT node_id
+            FROM tree_table
+            WHERE (
+                concat( '/', array_to_string(path[2:array_upper(path, 1)], '/')) = %s
+                )
+            """, (path,))
+
+        node_on_path_id = self.cursor.fetchone()[0]
+
+        node_children_metadata = {'projections': []}
+
+        def recursive_descendants_query(node_id, json_dict):
+            self.cursor.execute(" SELECT ARRAY(SELECT node_id FROM tree_table WHERE parent_id=%s) ", (node_id,))
+            children = self.cursor.fetchone()[0]
+
+            self.cursor.execute(" SELECT name FROM tree_table WHERE node_id=%s", (node_id,))
+
+            node_name = self.cursor.fetchone()[0]
+            if node_name == '/':
+                node_name = 'root'
+
+            self.cursor.execute("""
+            WITH node_metadata AS (
+                SELECT node_id, meta_contents FROM metadata_table WHERE parent_node_id=%s
+                )
+            SELECT tree_table.name, node_metadata.meta_contents
+            FROM tree_table, node_metadata
+            WHERE node_metadata.node_id = tree_table.node_id
+            """, (node_id,))
+
+            node_metadata = dict()
+            for row in self.cursor:
+                node_metadata = row[1]
+
+            json_dict['projections'].append({'name': node_name, 'node_id': node_id, 'metadata': node_metadata})
+            for child in children:
+                recursive_descendants_query(child, json_dict)
+
+        recursive_descendants_query(node_on_path_id, node_children_metadata)
+
+        tree = objectpath.Tree(node_children_metadata)
+        # $.projections[@.metadata.status is "complete"]
+        query = tree.execute(query)
+
+        # Object path sometimes returns generator if user uses selectors, for consistency expand it using
+        # list comprehension
+        if isinstance(query, types.GeneratorType):
+            query = [el for el in query]
+
+        res_nodes_ids = [el['node_id'] for el in query]
+
+        self.cursor.execute("""
+        SELECT mount_path FROM projections_table WHERE projection_name=%s
+        """, (self.projection_name,))
+
+        mount_path = self.cursor.fetchone()[0]
+
+        self.cursor.execute("""
+        SELECT concat( '/', array_to_string(path[2:array_upper(path, 1)], '/'))
+        FROM tree_table
+        WHERE node_id = ANY(%s)
+        """, (res_nodes_ids,))
 
         for row in self.cursor:
             print(os.path.join(mount_path, row[0].lstrip('/')))
