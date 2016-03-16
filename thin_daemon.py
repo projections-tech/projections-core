@@ -51,7 +51,7 @@ class ThinDaemon:
 
         if command_line_args.project and script_dir is not None:
             logger.info('Daemon projecting!')
-            logging.disable(logging.CRITICAL)
+            # logging.disable(logging.CRITICAL)
             self.projection_type = command_line_args.projection_type
             self.projection_config_path = os.path.join(script_dir, command_line_args.config_path)
             self.projection_mount_point = os.path.join(script_dir, command_line_args.mount_point)
@@ -161,7 +161,6 @@ class ThinDaemon:
         """
         This method performs deletion of projection
         :param projection_name:
-        :return:
         """
         self.cursor.execute("""
         SELECT projector_pid FROM projections_table WHERE projection_name = %s
@@ -196,7 +195,7 @@ class ThinDaemon:
         """)
 
         for row in self.cursor:
-            logger.info('Projection name: {0}\tMount point: {1}\t'.format(*row[:2]))
+            logger.info('Projection name: {0}\tMount point: {1}\tProjector pid: {2}'.format(*row))
 
     def perform_search(self, projection_name, path, query):
         """
@@ -262,12 +261,13 @@ class ThinDaemon:
 
     def perform_search_objectpath(self, projection_name, path, query):
         """
-        Perform search in projection using SQL as query language
+        Perform search in projection using ObjectPath as query language
         :param projection_name: name of projection on which to perform search
         :param path: path or level on which search is performed string
-        :param query: SQL query which is used to filter projections
+        :param query: ObjectPath query which is used to filter projections
         :return: paths that adhere to search conditions into stdout
         """
+
         if not path == '/':
             path = path.rstrip('/')
 
@@ -287,7 +287,7 @@ class ThinDaemon:
                 concat( '/', array_to_string(path[2:array_upper(path, 1)], '/')) = %s
                 )
             """, (path,))
-
+        # Setting root node on which to perform search
         node_on_path_id = self.cursor.fetchone()[0]
 
         node_children_metadata = {'projections': []}
@@ -322,7 +322,7 @@ class ThinDaemon:
         recursive_descendants_query(node_on_path_id, node_children_metadata)
 
         tree = objectpath.Tree(node_children_metadata)
-        # $.projections[@.metadata.status is "complete"]
+        # Query example: $.projections[@.metadata.status is "complete"]
         query = tree.execute(query)
 
         # Object path sometimes returns generator if user uses selectors, for consistency expand it using
@@ -378,7 +378,7 @@ def main():
         parser.error("search action requires --projection-name.")
 
     # Daemon creation code
-    if args.project:
+    if args.project == 'skip':
         try:
             pid = os.fork()
             if pid > 0:
@@ -402,7 +402,7 @@ def main():
             sys.exit(1)
 
         daemon = ThinDaemon(args, script_dir)
-    daemon = ThinDaemon(args)
+    daemon = ThinDaemon(args, script_dir)
 
 if __name__ == '__main__':
     main()

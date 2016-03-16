@@ -1,16 +1,17 @@
 __author__ = 'abragin'
 
+import copy
 import io
 import logging
 import os
-import stat
-import time
-import threading
-import yaml
 import pprint
-import objectpath
+import stat
+import threading
+import time
 import types
-import copy
+
+import objectpath
+import yaml
 
 # Import logging configuration from the file provided
 logging.config.fileConfig('logging.cfg')
@@ -290,7 +291,7 @@ class ProjectionPrototype(Node):
         self.parent = parent
         self.meta_parent_id = None
         self.type = type
-        self.level = None
+        self.meta_link = [None]
         # TODO: consider logical synchronization of name and uri
         # Dialect specific description that is used as a generator for projection uri's
         self.uri = None
@@ -332,6 +333,8 @@ class PrototypeDeserializer(object):
         pp.name = yaml_dict['name']
         pp.uri = yaml_dict['uri']
         pp.parent = parent
+        if 'meta_link' in yaml_dict:
+            pp.meta_link = yaml_dict['meta_link']
 
         if isinstance(yaml_dict['children'], dict):
             pp.children = {x[0]: self.get_prototypes_tree(x[1], parent=pp) for x in yaml_dict['children'].items()}
