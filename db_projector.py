@@ -425,7 +425,7 @@ class DBProjector:
         new_root_node AS (
             SELECT node_id AS new_root_node_id FROM {0} WHERE path=%s::varchar[]
         )
-        SELECT * FROM old_root_node, new_root_node;
+        SELECT * FROM old_root_node, new_root_node
 
         """.format(self.tree_table_name)
 
