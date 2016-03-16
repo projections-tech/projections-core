@@ -158,8 +158,7 @@ class ProjectionFilesystem(Operations):
         logging.info('Removing node on path: %s', path)
 
         if self.projection_manager.is_managing_path(path):
-            logging.debug('Path is projection, do nothing')
-            return None
+            return self.projection_manager.remove_projection(path)
 
         full_path = self._extend_data_path(path)
         return os.rmdir(full_path)
@@ -174,10 +173,10 @@ class ProjectionFilesystem(Operations):
             return os.unlink(data_path)
 
 
-def main(mountpoint, data_folder, foregrount=True):
+def main(mountpoint, data_folder, foreground=True):
     # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
     # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
-    fuse = FUSE(ProjectionFilesystem(mountpoint, data_folder), mountpoint, foreground=foregrount)
+    fuse = FUSE(ProjectionFilesystem(mountpoint, data_folder), mountpoint, foreground=foreground)
     return fuse
 
 

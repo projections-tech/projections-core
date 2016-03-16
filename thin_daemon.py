@@ -133,10 +133,11 @@ class ThinDaemon:
         self.cursor.execute("""
         SELECT projector_pid FROM projections_table WHERE projection_name=%s
         """, (self.projection_name,))
-        is_projection_managed = bool(self.cursor.fetchone()[0])
+        is_projection_managed = self.cursor.fetchone()
 
-        if is_projection_managed:
-            sys.exit('Error: projection "{}" is already running!'.format(self.projection_name))
+        if is_projection_managed is not None:
+            if bool(is_projection_managed[0]):
+                sys.exit('Error: projection "{}" is already running!'.format(self.projection_name))
 
         if not is_projection_exists:
             # Add projection if it doesnt exists
