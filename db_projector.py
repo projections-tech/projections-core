@@ -176,8 +176,7 @@ class DBProjector:
                            root_projection_uri=self.root_uri, parent_id=new_parent_id)
         self.bind_metadata_to_data()
 
-    def db_build_tree(self, prototypes, parent_id=None, projection_path=None, root_projection_uri=None,
-                      parent_id_for_meta=None):
+    def db_build_tree(self, prototypes, parent_id=None, projection_path=None, root_projection_uri=None):
         """
         This method recursively builds projections file structure in tree_table from prototype tree
         :param prototypes: Prototype Tree object
@@ -186,8 +185,6 @@ class DBProjector:
         :param root_projection_uri: root projection uri string
         :param parent_id_for_meta: id of parent node for projections with metadata
         """
-        # TODO: solve Metadata-Projection binding!
-
         environment = None
         content = None
         path = os.path
@@ -241,17 +238,10 @@ class DBProjector:
                 if isinstance(name, types.GeneratorType):
                     name = [el for el in name]
 
-                if prototype.type == 'metadata':
-                    # Currently metadata projections are placed on one level with binded data, this behaviour is
-                    # achieved by passing parent node upper level id with prototype.
-                    # This implementation is subject to change.
-                    current_projection_path = current_projection_path[:-1]
-                    current_projection_path.append(name)
-                    current_parent_id = prototype.meta_parent_id
-                elif prototype.type == 'transparent':
+                if prototype.type == 'transparent':
                     # If prototype is transparent skip projection building and pass parent node id as current level id
                     self.db_build_tree(prototype.children, parent_id, current_projection_path,
-                                       root_projection_uri=uri, parent_id_for_meta=parent_id)
+                                       root_projection_uri=uri)
                     continue
                 else:
                     current_parent_id = parent_id
@@ -293,46 +283,28 @@ class DBProjector:
                                          'nlink': 0,
                                          'ino': 1
                                          })
-                    # If prototype has metadata prototypes, set prototype parent node as current node parent node
-                    has_meta = False
-                    for _, child in prototype.children.items():
-                        if child.type == 'metadata':
-                            child.meta_parent_id = current_parent_id
-                            has_meta = True
 
-                    # TODO: rewrite metadata bit to be more readable
-                    if prototype.type == 'metadata':
-                        # Insert metadata-data binding into table
-                        meta_table_insertion_command = "INSERT INTO {0} (node_id, parent_node_id, meta_contents) " \
-                                                       "VALUES (%(node_id)s, %(parent_node_id)s, %(meta_contents)s)".format(
-                            self.metadata_table_name)
-                        # Load metadata contents, psycopg2 will automatically decode this as jsonb
-                        metadata_contents = self.projection_driver.get_uri_contents_as_dict(uri)
-
-                        self.cursor.execute(meta_table_insertion_command, {'node_id': new_parent_id,
-                                                                           'parent_node_id': parent_id_for_meta,
-                                                                           'meta_contents': psycopg2.extras.Json(
-                                                                               metadata_contents)})
-
-                    if has_meta:
-                        self.db_build_tree(prototype.children, new_parent_id, current_projection_path,
-                                           root_projection_uri=uri, parent_id_for_meta=new_parent_id)
-                    else:
-                        self.db_build_tree(prototype.children, new_parent_id, current_projection_path,
-                                           root_projection_uri=uri)
+                    self.db_build_tree(prototype.children, new_parent_id, current_projection_path,
+                                       root_projection_uri=uri)
                     # Commit all changes
                     self.db_connection.commit()
 
     def bind_metadata_to_data(self):
+        """
+        Performs data-metadata binding according to meta_link
+        """
+        # List all projections, getting their id`s and lists of meta links
         self.cursor.execute("""
-        SELECT node_id, meta_links FROM tree_table
-        """)
+        SELECT node_id, meta_links FROM tree_table WHERE projection_name = %s
+        """, (self.projection_name,))
 
         projections_list = [row for row in self.cursor]
 
+        # Perform metadata binding for each projection according to commands in meta_links
         for node_id, meta_links in projections_list:
             for meta_link in meta_links:
                 if meta_link is not None:
+
                     self.cursor.execute("""
                     WITH meta_id AS (
                         WITH current_node AS (
@@ -351,6 +323,7 @@ class DBProjector:
                     """.format(meta_link=meta_link), {'current_node_id': node_id})
 
                     meta_node_id = self.cursor.fetchone()
+                    # Adding meta contents jsonb to projection if insertion were performed
                     if meta_node_id is not None:
                         self.cursor.execute("""
                         SELECT uri FROM tree_table WHERE node_id=(SELECT node_id FROM metadata_table WHERE meta_id = %s)

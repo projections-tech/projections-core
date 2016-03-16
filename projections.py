@@ -289,7 +289,6 @@ class ProjectionPrototype(Node):
         # Initialize Node class, passing current object in Node data field
         super().__init__(name, self)
         self.parent = parent
-        self.meta_parent_id = None
         self.type = type
         self.meta_link = [None]
         # TODO: consider logical synchronization of name and uri
