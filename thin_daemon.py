@@ -51,7 +51,7 @@ class ThinDaemon:
 
         if command_line_args.project and script_dir is not None:
             logger.info('Daemon projecting!')
-            # logging.disable(logging.CRITICAL)
+            logging.disable(logging.CRITICAL)
             self.projection_type = command_line_args.projection_type
             self.projection_config_path = os.path.join(script_dir, command_line_args.config_path)
             self.projection_mount_point = os.path.join(script_dir, command_line_args.mount_point)
@@ -96,6 +96,26 @@ class ThinDaemon:
 
         self.cursor.close()
         self.db_connection.close()
+
+    def __split_path(self, path):
+        """
+        Split path string in parts preserving path root
+        :param path: path string
+        :return: list of path parts strings
+        """
+        temp = []
+        while True:
+            head, tail = os.path.split(path)
+            if head == '/' or head == '':
+                if tail == '':
+                    return [head]
+                else:
+                    temp.append(tail)
+                    if not head == '':
+                        temp.append(head)
+                    return temp[::-1]
+            temp.append(tail)
+            path = head
 
     def run_projection(self):
         """
@@ -347,6 +367,32 @@ class ThinDaemon:
         for row in self.cursor:
             print(os.path.join(mount_path, row[0].lstrip('/')))
 
+    def bind_metadata_to_path(self, target_path, metadata_path):
+        """
+        This method binds metadata object on path to target path
+        :param target_path: path to target with which metadata is binded, list of stings
+        :param metadata_path: path to metadata object which will be binded, list of strings
+        """
+
+        target_path = self.__split_path(target_path)
+        metadata_path = self.__split_path(metadata_path)
+
+        binding_command = """
+        WITH
+        target AS (
+            SELECT node_id AS target_id FROM tree_table WHERE path=%s::varchar[]
+        ),
+        metadata AS (
+            SELECT node_id AS metadata_id FROM tree_table WHERE path=%s::varchar[]
+        )
+        INSERT INTO metadata_table (parent_node_id, node_id) SELECT target.target_id, metadata.metadata_id FROM target, metadata
+        WHERE NOT EXISTS (SELECT * FROM target, metadata, metadata_table
+        WHERE metadata_table.node_id = metadata.metadata_id AND metadata_table.parent_node_id = target.target_id)
+        """
+        self.cursor.execute(binding_command, (target_path, metadata_path))
+
+        self.db_connection.commit()
+
 
 def main():
     script_dir = os.path.dirname(os.path.realpath(__file__))
@@ -378,7 +424,7 @@ def main():
         parser.error("search action requires --projection-name.")
 
     # Daemon creation code
-    if args.project == 'skip':
+    if args.project:
         try:
             pid = os.fork()
             if pid > 0:
@@ -402,7 +448,7 @@ def main():
             sys.exit(1)
 
         daemon = ThinDaemon(args, script_dir)
-    daemon = ThinDaemon(args, script_dir)
+    daemon = ThinDaemon(args)
 
 if __name__ == '__main__':
     main()

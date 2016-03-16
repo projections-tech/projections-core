@@ -488,32 +488,6 @@ class DBProjector:
         self.cursor.execute(node_removal_command)
         self.db_connection.commit()
 
-    def bind_metadata_to_path(self, target_path, metadata_path):
-        """
-        This method binds metadata object on path to target path
-        :param target_path: path to target with which metadata is binded, list of stings
-        :param metadata_path: path to metadata object which will be binded, list of strings
-        """
-
-        target_path = self.__split_path(target_path)
-        metadata_path = self.__split_path(metadata_path)
-
-        binding_command = """
-        WITH
-        target AS (
-            SELECT node_id AS target_id FROM {0} WHERE path=%s::varchar[]
-        ),
-        metadata AS (
-            SELECT node_id AS metadata_id FROM {0} WHERE path=%s::varchar[]
-        )
-        INSERT INTO {1} (parent_node_id, node_id) SELECT target.target_id, metadata.metadata_id FROM target, metadata
-        WHERE NOT EXISTS (SELECT * FROM target, metadata, metadata_table
-        WHERE metadata_table.node_id = metadata.metadata_id AND metadata_table.parent_node_id = target.target_id)
-        """.format(self.tree_table_name, self.metadata_table_name)
-        self.cursor.execute(binding_command, (target_path, metadata_path))
-
-        self.db_connection.commit()
-
     def is_managing_path(self, path):
         """
         Check if projector is managing path
@@ -612,13 +586,3 @@ class DBProjector:
         self.db_connection.commit()
 
         return file_header, resource_io
-
-    def list_projections(self):
-        """
-        Returns list of projections in database
-        :return: projections list of strings
-        """
-
-        self.cursor.execute(" SELECT path FROM tree_table WHERE projection_name=%s ", (self.projection_name,))
-
-        return [os.path.join(*r[0]) for r in self.cursor]
