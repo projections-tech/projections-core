@@ -395,12 +395,12 @@ class DBProjector:
         assert isinstance(path, list), 'Path is not a list!'
         paths_request_command = """
         WITH node_on_path AS (
-            SELECT node_id AS node_on_path_id FROM {0} WHERE path=%s::varchar[]
+            SELECT node_id AS node_on_path_id FROM {0} WHERE path=%s::varchar[] AND projection_name=%s
         )
         SELECT {0}.name FROM {0}, node_on_path WHERE {0}.parent_id=node_on_path.node_on_path_id
         """.format(self.tree_table_name)
 
-        self.cursor.execute(paths_request_command, (path,))
+        self.cursor.execute(paths_request_command, (path, self.projection_name))
         return [row[0] for row in self.cursor]
 
     def move_projection(self, node_to_move_path, new_node_root_path):
@@ -508,7 +508,7 @@ class DBProjector:
         try:
             result = bool(self.cursor.fetchone()[0])
         except:
-            raise RuntimeError(self.cursor.statusmessage())
+            raise RuntimeError(self.cursor.statusmessage)
         return result
 
     def get_attributes(self, path):

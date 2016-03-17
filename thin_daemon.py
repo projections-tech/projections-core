@@ -202,7 +202,8 @@ class ThinDaemon:
                 logger.info('Projection "%s" is not running!', projection_name)
             else:
                 logger.info('Stopping projection "%s"!', projection_name)
-                os.kill(projector_pid, signal.SIGTERM)
+                logger.debug('Projector pid:%s', projector_pid)
+                os.kill(projector_pid[0], signal.SIGTERM)
         else:
             logger.info('Projection "{}" does not exist!'.format(projection_name))
 
