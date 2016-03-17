@@ -15,6 +15,9 @@ logger = logging.getLogger('filesystem_projection')
 
 
 class FSDriver(ProjectionDriver):
+    def __init__(self, uri, driver_config):
+        self.uri = uri
+        self.driver_config = driver_config
 
     def get_uri_contents_as_dict(self, uri):
         """
@@ -60,7 +63,7 @@ def main(cfg_path, mountpoint, data_folder, projection_name, foreground=True):
 
     projection_configuration = PrototypeDeserializer(cfg_path)
 
-    fs_driver = FSDriver()
+    fs_driver = FSDriver('')
 
     projection_filesystem.projection_manager = DBProjector(projection_name, fs_driver,
                                                            projection_configuration.prototype_tree,

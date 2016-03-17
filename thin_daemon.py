@@ -13,11 +13,19 @@ import objectpath
 import psycopg2
 
 from db_projector import DBProjector
+# TODO consider driver addition from config file
+from drivers.aws_s3 import S3Driver
+from drivers.fs_projection import FSDriver
+from drivers.genbank import GenbankDriver
 from drivers.iontorrent import TorrentSuiteDriver
+from drivers.sra import SRADriver
+
 from filesystem import ProjectionFilesystem
 from fuse import FUSE
 from projections import PrototypeDeserializer
 from tests.mock import MockResource
+
+import yaml
 
 logger = logging.getLogger('projection_daemon')
 
@@ -26,9 +34,14 @@ class ThinDaemon:
     def __init__(self, command_line_args, script_dir=None):
 
         self.daemon_pid = os.getpid()
+        self.script_dir = script_dir
 
         self.drivers = {
-            'iontorrent': TorrentSuiteDriver
+            'iontorrent': TorrentSuiteDriver,
+            'fs_projection': FSDriver,
+            'genbank': GenbankDriver,
+            'sra_projection': SRADriver,
+            'aws_s3_driver': S3Driver
         }
         # Opening connection with database
         self.db_connection = psycopg2.connect(
@@ -158,17 +171,20 @@ class ThinDaemon:
 
         projection_filesystem = ProjectionFilesystem(self.projection_mount_point, self.projection_data_directory)
 
+        # Loading projection prototype and driver config
         projection_configuration = PrototypeDeserializer(self.projection_config_path)
+        # Opening driver configuration
+        with open(os.path.join(self.script_dir, projection_configuration.driver_config_path)) as yaml_stream:
+            projection_driver_config = yaml.safe_load(yaml_stream)
 
-        # For testing purposes use iontorrent config
-        # TODO: implement driver configuration (PROJ-9)
         projection_driver = self.drivers[self.projection_type](projection_configuration.resource_uri,
-                                                               'ionadmin', '0ECu1lW')
-
+                                                               projection_driver_config)
+        # Initializing db projector
         projector = DBProjector(self.projection_name, projection_driver,
                                 projection_configuration.prototype_tree,
                                 projection_configuration.root_projection_uri)
         projection_filesystem.projection_manager = projector
+
         fuse = FUSE(projection_filesystem, self.projection_mount_point, foreground=True, nonempty=True)
 
     def stop_projection(self, projection_name):

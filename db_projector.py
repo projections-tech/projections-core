@@ -247,7 +247,7 @@ class DBProjector:
                     current_parent_id = parent_id
                     current_projection_path.append(name)
                 # Forming tree table projection insertion command, on completion this command returns inserted node id
-                # which will be passed to lover level nodes
+                # which will be passed to lower level nodes
                 tree_table_insertion_command = "INSERT INTO {0} (projection_name, parent_id, name, uri, type, path, meta_links) " \
                                                "SELECT %(proj_name)s, %(p_id)s, %(name)s, " \
                                                "%(uri)s, %(type)s, %(path)s, %(meta_links)s" \
@@ -505,7 +505,11 @@ class DBProjector:
 
         # Run command and return check result as bool
         self.cursor.execute(projection_on_path_existance_check, (path,))
-        return bool(self.cursor.fetchone()[0])
+        try:
+            result = bool(self.cursor.fetchone()[0])
+        except:
+            raise RuntimeError(self.cursor.statusmessage())
+        return result
 
     def get_attributes(self, path):
         """

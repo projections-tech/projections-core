@@ -16,12 +16,15 @@ logger = logging.getLogger('s3_projection')
 
 
 class S3Driver(ProjectionDriver):
-
-    def __init__(self, aws_access_key_id, aws_secret_access_key, region_name, bucket_name):
+    def __init__(self, bucket_name, driver_config):
         """
         Initialize driver which will be used to interact with host.
         :param bucket_name: name of projected S3 bucket
         """
+
+        aws_access_key_id, aws_secret_access_key, region_name = driver_config['aws_access_key_id'], \
+                                                                driver_config['aws_secret_access_key'], \
+                                                                driver_config['region_name']
 
         session = boto3.session.Session(aws_access_key_id=aws_access_key_id,
                                         aws_secret_access_key=aws_secret_access_key,
