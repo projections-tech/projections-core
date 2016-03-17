@@ -494,22 +494,13 @@ class DBProjector:
         :param path: projection path string
         :return: bool
         """
-        path = self.__split_path(path)
-
         # This command checks existance of projection row in tree_table by path
-        projection_on_path_existance_check = """
-        SELECT EXISTS(
-            SELECT * FROM {0} WHERE path=%s::varchar[]
-        )
-        """.format(self.tree_table_name)
-
         # Run command and return check result as bool
-        self.cursor.execute(projection_on_path_existance_check, (path,))
-        try:
-            result = bool(self.cursor.fetchone()[0])
-        except:
-            raise RuntimeError(self.cursor.statusmessage)
-        return result
+        self.cursor.execute("""
+        SELECT path FROM tree_table WHERE join_path(path)=%s;
+        """, (path,))
+
+        return self.cursor.fetchone() is not None
 
     def get_attributes(self, path):
         """

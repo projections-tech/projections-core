@@ -27,11 +27,11 @@ from tests.mock import MockResource
 
 import yaml
 
-logger = logging.getLogger('projection_daemon')
-
 
 class ThinDaemon:
     def __init__(self, command_line_args, script_dir=None):
+
+        self.logger = logging.getLogger('projection_daemon')
 
         self.daemon_pid = os.getpid()
         self.script_dir = script_dir
@@ -62,9 +62,13 @@ class ThinDaemon:
             );""")
             self.db_connection.commit()
 
-        if command_line_args.project and script_dir is not None:
-            logger.info('Daemon projecting!')
-            logging.disable(logging.CRITICAL)
+        if command_line_args.project and script_dir is not None and os.path.dirname(os.path.realpath(__file__)) == '/':
+            self.logger.info('Daemon projecting!')
+
+            handlers = logging.root.handlers
+            # Setting StreamHandler log level to critical in order to suppress console output
+            handlers[0].setLevel(logging.CRITICAL)
+
             self.projection_type = command_line_args.projection_type
             self.projection_config_path = os.path.join(script_dir, command_line_args.config_path)
             self.projection_mount_point = os.path.join(script_dir, command_line_args.mount_point)
@@ -185,7 +189,7 @@ class ThinDaemon:
                                 projection_configuration.root_projection_uri)
         projection_filesystem.projection_manager = projector
 
-        fuse = FUSE(projection_filesystem, self.projection_mount_point, foreground=True, nonempty=True)
+        fuse = FUSE(projection_filesystem, self.projection_mount_point, foreground=True, nonempty=True, nothreads=True)
 
     def stop_projection(self, projection_name):
         """
@@ -199,13 +203,13 @@ class ThinDaemon:
         projector_pid = self.cursor.fetchone()
         if projector_pid is not None:
             if projector_pid[0] is None:
-                logger.info('Projection "%s" is not running!', projection_name)
+                self.logger.info('Projection "%s" is not running!', projection_name)
             else:
-                logger.info('Stopping projection "%s"!', projection_name)
-                logger.debug('Projector pid:%s', projector_pid)
+                self.logger.info('Stopping projection "%s"!', projection_name)
+                self.logger.debug('Projector pid:%s', projector_pid)
                 os.kill(projector_pid[0], signal.SIGTERM)
         else:
-            logger.info('Projection "{}" does not exist!'.format(projection_name))
+            self.logger.info('Projection "{}" does not exist!'.format(projection_name))
 
     def delete_projection(self, projection_name):
         """
@@ -219,7 +223,7 @@ class ThinDaemon:
         is_projection_running = bool(self.cursor.fetchone()[0])
 
         if is_projection_running:
-            logger.info('Attempting do delete running projection!')
+            self.logger.info('Attempting do delete running projection!')
             status = input('Continue? y/n ')
             if status == 'y':
                 self.stop_projection(projection_name)
@@ -234,7 +238,7 @@ class ThinDaemon:
             DELETE FROM projections_table WHERE projection_name = %s
             """, (projection_name,))
             self.db_connection.commit()
-        logger.info('Removing projection "%s"!', projection_name)
+        self.logger.info('Removing projection "%s"!', projection_name)
 
     def list_projections(self):
         """
@@ -245,7 +249,7 @@ class ThinDaemon:
         """)
 
         for row in self.cursor:
-            logger.info('Projection name: {0}\tMount point: {1}\tProjector pid: {2}'.format(*row))
+            self.logger.info('Projection name: {0}\tMount point: {1}\tProjector pid: {2}'.format(*row))
 
     def perform_search(self, projection_name, path, query):
         """
