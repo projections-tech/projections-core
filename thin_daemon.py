@@ -102,7 +102,7 @@ class ThinDaemon:
     def __del__(self):
         # Remove current pid from projections table on deconstruction
         self.cursor.execute("""
-        UPDATE projections_table SET projector_pid=Null WHERE projector_pid = %s
+        UPDATE projections_table SET projector_pid=Null, mount_path=Null WHERE projector_pid = %s
         """, (self.daemon_pid,))
 
         self.db_connection.commit()
@@ -161,8 +161,8 @@ class ThinDaemon:
         else:
             # If projection is in projections_database update it`s projector_pid
             self.cursor.execute("""
-            UPDATE projections_table SET projector_pid=%s WHERE projection_name = %s
-            """, (self.daemon_pid, self.projection_name))
+            UPDATE projections_table SET projector_pid=%s, mount_path=%s WHERE projection_name = %s
+            """, (self.daemon_pid, self.projection_mount_point, self.projection_name))
 
         self.db_connection.commit()
 
@@ -178,7 +178,7 @@ class ThinDaemon:
             projection_driver_config = yaml.safe_load(yaml_stream)
 
         projection_driver = self.drivers[self.projection_type](projection_configuration.resource_uri,
-                                                               projection_driver_config)
+                                                               projection_driver_config, self.script_dir)
         # Initializing db projector
         projector = DBProjector(self.projection_name, projection_driver,
                                 projection_configuration.prototype_tree,
@@ -196,12 +196,15 @@ class ThinDaemon:
         self.cursor.execute("""
         SELECT projector_pid FROM projections_table WHERE projection_name = %s
         """, (projection_name,))
-        projector_pid = self.cursor.fetchone()[0]
-        if projector_pid is None:
-            logger.info('Projection "%s" is not running!', projection_name)
+        projector_pid = self.cursor.fetchone()
+        if projector_pid is not None:
+            if projector_pid[0] is None:
+                logger.info('Projection "%s" is not running!', projection_name)
+            else:
+                logger.info('Stopping projection "%s"!', projection_name)
+                os.kill(projector_pid, signal.SIGTERM)
         else:
-            logger.info('Stopping projection "%s"!', projection_name)
-            os.kill(projector_pid, signal.SIGTERM)
+            logger.info('Projection "{}" does not exist!'.format(projection_name))
 
     def delete_projection(self, projection_name):
         """

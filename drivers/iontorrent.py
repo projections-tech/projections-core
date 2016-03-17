@@ -14,7 +14,7 @@ logger = logging.getLogger('iontorrent_projection')
 
 
 class TorrentSuiteDriver(ProjectionDriver):
-    def __init__(self, host_url, configuration_file):
+    def __init__(self, host_url, configuration_file, script_dir):
         """
         Initialize driver which will be used to interact with host.
         :param host_url: URL of host string

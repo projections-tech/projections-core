@@ -16,7 +16,7 @@ logger = logging.getLogger('s3_projection')
 
 
 class S3Driver(ProjectionDriver):
-    def __init__(self, bucket_name, driver_config):
+    def __init__(self, bucket_name, driver_config, script_dir):
         """
         Initialize driver which will be used to interact with host.
         :param bucket_name: name of projected S3 bucket
