@@ -43,9 +43,6 @@ class DBProjector:
         # Initializing projection driver
         self.projection_driver = projection_driver
 
-        # Initializing psycopg JSONB support
-        psycopg2.extras.register_json(oid=3802, array_oid=3807)
-
         try:
             # Opening connection with database
             self.db_connection = psycopg2.connect(
