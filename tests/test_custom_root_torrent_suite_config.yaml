@@ -1,8 +1,7 @@
 ---
 dialect: python
 resource_uri: mockiontorrent.com
-user: ionadmin
-password: ionadmin
+driver_config_path: "drivers/driver_configurations/iontorrent_config.yaml"
 
 root_projection_uri: '/rundb/api/v1/results/1/'
 

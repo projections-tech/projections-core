@@ -1,8 +1,7 @@
 ---
 dialect: ObjectPath
 resource_uri: mockiontorrent.com
-user: ionadmin
-password: ionadmin
+driver_config_path: "drivers/driver_configurations/iontorrent_config.yaml"
 
 root_projection_uri: 'experiment?status=run&limit=1&order_by=-id'
 

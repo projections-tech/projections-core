@@ -1,5 +1,3 @@
-__author__ = 'abragin'
-
 import getpass
 import logging
 import logging.config
@@ -7,6 +5,7 @@ import os
 from unittest import TestCase
 
 import psycopg2
+import yaml
 
 import drivers.iontorrent as iontorrent
 from db_projector import DBProjector
@@ -34,19 +33,29 @@ class TestTorrentSuiteProjector(TestCase):
         # Creating cursor, which will be used to interact with database
         cls.cursor = cls.db_connection.cursor()
 
+        cls.base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+
     @classmethod
     def tearDownClass(cls):
         cls.mock_resource.deactivate()
         # Removing test projection entries from projections db
-        cls.cursor.execute(" DELETE FROM tree_table WHERE projection_name='test_iontorrent_projection' ")
+        cls.cursor.execute(" DELETE FROM projections_table WHERE projection_name='test_iontorrent_projection' ")
         cls.db_connection.commit()
         # Closing cursor and connection
         cls.cursor.close()
         cls.db_connection.close()
 
+    def setUp(self):
+        self.cursor.execute("""
+        INSERT INTO projections_table (projection_name)
+        SELECT %(proj_name)s WHERE NOT EXISTS (SELECT projection_name FROM projections_table WHERE projection_name=%(proj_name)s)
+        """, {'proj_name': 'test_iontorrent_projection'})
+
+        self.db_connection.commit()
+
     def tearDown(self):
         # Clean up previous test entries
-        self.cursor.execute(" DELETE FROM tree_table WHERE projection_name='test_iontorrent_projection' ")
+        self.cursor.execute(" DELETE FROM projections_table WHERE projection_name='test_iontorrent_projection' ")
         self.db_connection.commit()
 
     def test_full_projection(self):
@@ -54,7 +63,13 @@ class TestTorrentSuiteProjector(TestCase):
         Tests projections correctness of full projection from root creation.
         """
         projection_configuration = PrototypeDeserializer('tests/test_full_torrent_suite_config.yaml')
-        projection_driver = iontorrent.TorrentSuiteDriver(projection_configuration.resource_uri, USER, PASSWORD)
+
+        # Opening driver configuration
+        with open(os.path.join(self.base_dir, projection_configuration.driver_config_path)) as yaml_stream:
+            projection_driver_config = yaml.safe_load(yaml_stream)
+
+        projection_driver = iontorrent.TorrentSuiteDriver(projection_configuration.resource_uri,
+                                                          projection_driver_config, self.base_dir)
 
         ion_torrent_projection = DBProjector('test_iontorrent_projection', projection_driver,
                                              projection_configuration.prototype_tree,
@@ -135,7 +150,12 @@ class TestTorrentSuiteProjector(TestCase):
         # Loading configuration where '/rundb/api/v1/results/1/' is root projection
         projection_configuration = PrototypeDeserializer('tests/test_custom_root_torrent_suite_config.yaml')
 
-        projection_driver = iontorrent.TorrentSuiteDriver(projection_configuration.resource_uri, USER, PASSWORD)
+        # Opening driver configuration
+        with open(os.path.join(self.base_dir, projection_configuration.driver_config_path)) as yaml_stream:
+            projection_driver_config = yaml.safe_load(yaml_stream)
+
+        projection_driver = iontorrent.TorrentSuiteDriver(projection_configuration.resource_uri,
+                                                          projection_driver_config, self.base_dir)
 
         ion_torrent_projection = DBProjector('test_iontorrent_projection', projection_driver,
                                              projection_configuration.prototype_tree,
@@ -198,7 +218,12 @@ class TestTorrentSuiteProjector(TestCase):
         # run name, and only TSVC VCF file for variant calling
         projection_configuration = PrototypeDeserializer('tests/test_torrent_suite_projection_filtering_config.yaml')
 
-        projection_driver = iontorrent.TorrentSuiteDriver(projection_configuration.resource_uri, USER, PASSWORD)
+        # Opening driver configuration
+        with open(os.path.join(self.base_dir, projection_configuration.driver_config_path)) as yaml_stream:
+            projection_driver_config = yaml.safe_load(yaml_stream)
+
+        projection_driver = iontorrent.TorrentSuiteDriver(projection_configuration.resource_uri,
+                                                          projection_driver_config, self.base_dir)
 
         ion_torrent_projection = DBProjector('test_iontorrent_projection', projection_driver,
                                              projection_configuration.prototype_tree,

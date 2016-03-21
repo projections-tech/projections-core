@@ -8,14 +8,11 @@ import time
 from unittest import TestCase
 
 import psycopg2
+import yaml
 
 from db_projector import DBProjector
 from drivers.fs_projection import FSDriver
 from projections import PrototypeDeserializer
-
-MOUNT_POINT = 'tests/mnt'
-DATA_FOLDER = 'tests/data'
-CONFIG_PATH = 'tests/test_fs_proj_config.yaml'
 
 # Import logging configuration from the file provided
 logging.config.fileConfig('logging.cfg')
@@ -31,18 +28,32 @@ class TestFSProjection(TestCase):
         # Creating cursor, which will be used to interact with database
         cls.cursor = cls.db_connection.cursor()
 
+        cls.base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+
     @classmethod
     def tearDownClass(cls):
         # Removing test projection entries from projections db
-        cls.cursor.execute(" DELETE FROM tree_table WHERE projection_name='test_fs_projection' ")
+        cls.cursor.execute(" DELETE FROM projections_table WHERE projection_name='test_fs_projection' ")
         cls.db_connection.commit()
         # Closing cursor and connection
         cls.cursor.close()
         cls.db_connection.close()
 
     def setUp(self):
-        driver = FSDriver()
-        projection_configuration = PrototypeDeserializer(CONFIG_PATH)
+        self.cursor.execute("""
+        INSERT INTO projections_table (projection_name)
+        SELECT %(proj_name)s WHERE NOT EXISTS (SELECT projection_name FROM projections_table WHERE projection_name=%(proj_name)s)
+        """, {'proj_name': 'test_fs_projection'})
+
+        self.db_connection.commit()
+
+        projection_configuration = PrototypeDeserializer('tests/test_fs_proj_config.yaml')
+
+        # Opening driver configuration
+        with open(os.path.join(self.base_dir, projection_configuration.driver_config_path)) as yaml_stream:
+            projection_driver_config = yaml.safe_load(yaml_stream)
+
+        driver = FSDriver(projection_configuration.resource_uri, projection_driver_config, self.base_dir)
 
         self.fs_projector = DBProjector('test_fs_projection', driver,
                                         projection_configuration.prototype_tree,
@@ -50,7 +61,7 @@ class TestFSProjection(TestCase):
 
     def tearDown(self):
         # Clean up previous test entries
-        self.cursor.execute(" DELETE FROM tree_table WHERE projection_name='test_fs_projection' ")
+        self.cursor.execute(" DELETE FROM projections_table WHERE projection_name='test_fs_projection' ")
         self.db_connection.commit()
 
     def test_create_projections(self):
@@ -122,39 +133,38 @@ class TestFSProjectionContents(TestCase):
     @classmethod
     def tearDownClass(cls):
         # Removing test projection entries from projections db
-        cls.cursor.execute(" DELETE FROM tree_table WHERE projection_name='test_fs_projection' ")
+        cls.cursor.execute(" DELETE FROM projections_table WHERE projection_name='test_fs_projection' ")
         cls.db_connection.commit()
         # Closing cursor and connection
         cls.cursor.close()
         cls.db_connection.close()
 
     def setUp(self):
-        self.fs_proj = subprocess.Popen([sys.executable,
-                                         'fs_projection.py',
-                                         '-p', 'test_fs_projection',
-                                         '-m', 'tests/mnt',
-                                         '-d', 'tests/data',
-                                         '-c', 'tests/test_fs_proj_config.yaml'],
-                                        stdout=subprocess.DEVNULL)
+        subprocess.call([sys.executable,
+                         'thin_daemon.py',
+                         '--project',
+                         '-p_t', 'fs_projection',
+                         '-p_n', 'test_fs_projection',
+                         '-m', 'tests/mnt',
+                         '-d', 'tests/data',
+                         '-c', 'tests/test_fs_proj_config.yaml'])
 
         # Wait to initialize Projector
-        time.sleep(0.5)
+        time.sleep(0.3)
 
     def tearDown(self):
-        # Shutting down genbank projection
-        self.fs_proj.terminate()
+        subprocess.call([sys.executable,
+                         'thin_daemon.py',
+                         '-stop', 'test_fs_projection'])
 
         # Unmounting projection dir
-        subprocess.Popen(['fusermount', '-u', 'tests/mnt'])
+        subprocess.call(['fusermount', '-u', 'tests/mnt'])
 
         # Clean up previous test entries in db
-        self.cursor.execute(" DELETE FROM tree_table WHERE projection_name='test_fs_projection' ")
+        self.cursor.execute(" DELETE FROM projections_table WHERE projection_name='test_fs_projection' ")
         self.db_connection.commit()
 
     def test_projections_contents(self):
-        # Unmount any previous tests
-        subprocess.Popen(['fusermount', '-u', MOUNT_POINT])
-
         # Expected mock files contents
         expected_bam = 'Mock bam here!\n'
         expected_vcf = 'Mock vcf here!\n'

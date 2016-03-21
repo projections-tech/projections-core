@@ -1,6 +1,7 @@
 ---
 dialect: ObjectPath
 resource_uri: "parseq"
+driver_config_path: "drivers/driver_configurations/iontorrent_config.yaml"
 
 # Name of the bucket
 root_projection_uri: "parseq"

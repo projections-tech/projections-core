@@ -1,6 +1,7 @@
 ---
 dialect: ObjectPath
 resource_uri: None
+driver_config_path: "drivers/driver_configurations/iontorrent_config.yaml"
 
 root_projection_uri: 'tests/mock_resource/miseq_mock_data'
 

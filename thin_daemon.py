@@ -23,7 +23,6 @@ from drivers.sra import SRADriver
 from filesystem import ProjectionFilesystem
 from fuse import FUSE
 from projections import PrototypeDeserializer
-from tests.mock import MockResource
 
 import yaml
 
@@ -432,8 +431,6 @@ def main():
     script_dir = os.path.dirname(os.path.realpath(__file__))
     logging.config.fileConfig(os.path.join(script_dir, 'logging.cfg'))
 
-    mock_torrent_suite = MockResource('tests/torrent_suite_mock.json')
-
     parser = argparse.ArgumentParser(description='Projection Daemon')
 
     parser.add_argument('-p', '--project', action='store_true', help='perform search')
@@ -468,7 +465,7 @@ def main():
             sys.exit(1)
 
         # decouple from parent environment
-        os.chdir("/")
+        os.chdir('/')
         os.setsid()
         os.umask(0)
 
