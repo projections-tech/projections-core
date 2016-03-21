@@ -43,24 +43,12 @@ class ThinDaemon:
             'sra_projection': SRADriver,
             'aws_s3_driver': S3Driver
         }
+
         # Opening connection with database
         self.db_connection = psycopg2.connect(
             "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
 
         self.cursor = self.db_connection.cursor()
-
-        self.cursor.execute("SELECT relname FROM pg_class WHERE relname = 'projections_table' ")
-        is_projections_table_exist = self.cursor.fetchone()
-
-        # If no projections table found, create required tables
-        if not bool(is_projections_table_exist):
-            self.cursor.execute("""
-            CREATE TABLE projections_table (
-                projection_name varchar PRIMARY KEY UNIQUE,
-                mount_path varchar UNIQUE,
-                projector_pid int
-            );""")
-            self.db_connection.commit()
 
         if command_line_args.project and script_dir is not None and os.path.dirname(os.path.realpath(__file__)) == '/':
             self.logger.info('Daemon projecting!')
@@ -144,7 +132,7 @@ class ThinDaemon:
         SELECT EXISTS (SELECT 1 FROM projections_table WHERE projection_name=%s)
         """, (self.projection_name,))
 
-        is_projection_exists = bool(self.cursor.fetchone()[0])
+        projection_exists = bool(self.cursor.fetchone()[0])
 
         # Check if projection is managed
         self.cursor.execute("""
@@ -156,7 +144,7 @@ class ThinDaemon:
             if bool(is_projection_managed[0]):
                 sys.exit('Error: projection "{}" is already running!'.format(self.projection_name))
 
-        if not is_projection_exists:
+        if not projection_exists:
             # Add projection if it doesnt exists
             self.cursor.execute("""
             INSERT INTO projections_table (projection_name, mount_path, projector_pid)

@@ -11,7 +11,6 @@ import types
 import objectpath
 import psycopg2
 import psycopg2.extras
-from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('db_test')
@@ -46,22 +45,9 @@ class DBProjector:
         # Initializing psycopg JSONB support
         psycopg2.extras.register_json(oid=3802, array_oid=3807)
 
-        try:
-            # Opening connection with database
-            self.db_connection = psycopg2.connect(
-                "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
-        except Exception as e:
-            logger.debug(e)
-            logger.debug('Database "projections_database" was not found! Creating database.')
-            # Opening temp connection with temp cursor to create database
-            with psycopg2.connect(dbname='postgres', user=getpass.getuser()) as temp_connection:
-                temp_connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-                with temp_connection.cursor() as temp_cursor:
-                    temp_cursor.execute("CREATE DATABASE projections_database")
-
-            # Opening connection with database
-            self.db_connection = psycopg2.connect(
-                "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
+        # Opening connection with database
+        self.db_connection = psycopg2.connect(
+            "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
 
         # Creating cursor, which will be used to interact with database
         self.cursor = self.db_connection.cursor()
@@ -101,44 +87,6 @@ class DBProjector:
         """
         This method creates tables which will be used to store projections structure and associated metadata
         """
-        # Checking if tree_table exists in pg_class table
-        self.cursor.execute("SELECT relname FROM pg_class WHERE relname = '{}';".format(self.tree_table_name))
-        is_tree_table_exist = self.cursor.fetchone()
-
-        # If no tree table found, create required tables
-        if not bool(is_tree_table_exist):
-            self.cursor.execute("CREATE TABLE {} ("
-                                "node_id serial PRIMARY KEY, "
-                                "projection_name varchar REFERENCES projections_table(projection_name) ON DELETE CASCADE,"
-                                "parent_id integer, "
-                                "name varchar, "
-                                "uri varchar, "
-                                "path varchar[][], "
-                                "type varchar, "
-                                "meta_links varchar[][]"
-                                ");".format(self.tree_table_name))
-            # Dropping metadata table to recreate it
-            self.cursor.execute("DROP TABLE IF EXISTS {0}".format(self.metadata_table_name))
-
-            self.cursor.execute("CREATE TABLE {} ("
-                                "meta_id serial PRIMARY KEY,"
-                                "node_id integer REFERENCES tree_table(node_id) ON DELETE CASCADE,"
-                                "parent_node_id integer REFERENCES tree_table(node_id) ON DELETE CASCADE,"
-                                "meta_contents jsonb);".format(self.metadata_table_name))
-            # Dropping attributes table to recreate it
-            self.cursor.execute("DROP TABLE IF EXISTS {0}".format(self.projections_attributes_table_name))
-
-            self.cursor.execute("CREATE TABLE {} ("
-                                "attr_id serial PRIMARY KEY,"
-                                "node_id integer REFERENCES tree_table(node_id) ON DELETE CASCADE, "
-                                "st_atime int, "
-                                "st_mtime int, "
-                                "st_ctime int, "
-                                "st_size int, "
-                                "st_mode varchar, "
-                                "st_nlink int, "
-                                "st_ino int);".format(self.projections_attributes_table_name))
-
         # Add root node to tables
         tree_table_insertion_command = "INSERT INTO {0} (projection_name, parent_id, name, uri, type, path, meta_links) " \
                                        "SELECT %(proj_name)s, %(p_id)s, %(name)s, %(uri)s, %(type)s, %(path)s, %(meta_links)s " \
