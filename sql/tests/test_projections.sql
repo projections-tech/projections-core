@@ -132,6 +132,31 @@ BEGIN
         SELECT '{"", "a"}'::varchar[]
     $$, 'Check second-level node path');
 
+    -- Test list nodes function
+    RETURN NEXT results_eq(
+    $$
+        SELECT COUNT(*)::integer FROM projections.list_nodes('projections.tree_nodes', 0, '{}')
+    $$,
+    ARRAY[1], 'Check root node path');
+
+    RETURN NEXT results_eq(
+    $$
+        SELECT COUNT(*)::integer FROM projections.list_nodes('projections.tree_nodes', 0, '{""}')
+    $$,
+    ARRAY[2], 'Check first-level node path');
+
+    RETURN NEXT results_eq(
+    $$
+        SELECT COUNT(*)::integer FROM projections.list_nodes('projections.tree_nodes', 0, '{"", "a"}')
+    $$,
+    ARRAY[1], 'Check first-level node path');
+
+    RETURN NEXT results_eq(
+    $$
+        SELECT COUNT(*)::integer FROM projections.list_nodes('projections.tree_nodes', 0, '{"", "a", "none"}')
+    $$,
+    ARRAY[0], 'Check inexisting node path');
+
 END;
 $BODY$ LANGUAGE plpgsql;
 

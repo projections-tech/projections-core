@@ -17,7 +17,10 @@ CREATE TABLE projections.tree_nodes (
     parent_id bigint,
     node_name varchar NOT NULL,
     node_path varchar[] NOT NULL,
-    UNIQUE (tree_id, node_path, node_name)
+    UNIQUE (tree_id, node_path, node_name),
+    CHECK (node_name != '' OR parent_id IS NULL),
+    CHECK (node_name = '' OR parent_id IS NOT NULL),
+    FOREIGN KEY (parent_id) REFERENCES projections.tree_nodes (node_id) MATCH SIMPLE
 );
 ALTER TABLE projections.tree_nodes
     OWNER TO projections_admin;
@@ -67,12 +70,10 @@ COMMENT ON COLUMN projections_table.mount_path IS 'Absolute projection mount pat
 COMMENT ON COLUMN projections_table.projector_pid IS 'PID of projection`s projector process.';
 
 CREATE TABLE projections.projection_nodes (
-    LIKE projections.tree_nodes,
-    node_content_uri varchar NOT NULL,
-    node_type projections.node_types NOT NULL DEFAULT 'FILE',
+    LIKE projections.tree_nodes INCLUDING CONSTRAINTS INCLUDING INDEXES,
+    node_content_uri varchar,
+    node_type projections.node_types DEFAULT 'FILE',
     metadata_content jsonb DEFAULT '{}',
-    PRIMARY KEY (node_id),
-    UNIQUE (tree_id, node_name, node_path),
     FOREIGN KEY (tree_id)
         REFERENCES projections.projections (projection_id) MATCH SIMPLE
         ON UPDATE CASCADE ON DELETE CASCADE
@@ -173,6 +174,23 @@ BEGIN
 END;
 $BODY$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION projections.list_nodes(
+    table_name varchar,
+    node_path varchar[]
+) RETURNS SETOF projections.tree_nodes AS
+$BODY$
+DECLARE
+BEGIN
+    RETURN QUERY
+        EXECUTE format($$
+            SELECT node_id, tree_id, parent_id, node_name, node_path
+            FROM %s
+            WHERE node_path = $1
+        $$, table_name)
+        USING node_path;
+END;
+$BODY$ LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION add_projection_node(
     projection_id bigint,
     node_name varchar,
@@ -183,32 +201,26 @@ CREATE OR REPLACE FUNCTION add_projection_node(
     ) RETURNS bigint AS
 $BODY$
 DECLARE
-    _node_path varchar[];
+    _projection_node_id bigint;
 BEGIN
-    -- Create node path from parent node path
-    SELECT COALESCE(array_append(node_path, node_name), ARRAY[])
-    FROM projections.projection_nodes
-    WHERE node_id = parent_node_id
-    INTO _node_path;
+    -- Create node
+    SELECT projections.add_node(
+        'projections.projection_nodes',
+        projection_id,
+        parent_node_id,
+        node_name)
+    INTO _projection_node_id;
 
     -- TODO: consider update node case
-    INSERT INTO projections.projection_nodes (
-        parent_id,
-        node_name,
-        node_path,
-        projection_id,
+    UPDATE projections.projection_nodes SET (
         node_content_uri,
         node_type,
         metadata_content
-    ) VALUES (
-        parent_node_id,
-        node_name,
-        _node_path,
-        projection_id,
+    ) = (
         node_content_uri,
         node_type,
         metadata_content
-    );
+    ) WHERE node_id = _projection_node_id;
 
 END;
 $BODY$ LANGUAGE plpgsql;
