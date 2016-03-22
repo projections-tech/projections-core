@@ -135,6 +135,7 @@ class DBProjector:
                                 "st_mode varchar, "
                                 "st_nlink int, "
                                 "st_ino int);".format(self.projections_attributes_table_name))
+            self.db_connection.commit()
 
         # Add root node to tables
         tree_table_insertion_command = "INSERT INTO {0} (projection_name, parent_id, name, uri, type, path, meta_links) " \
@@ -494,7 +495,7 @@ class DBProjector:
         # This command checks existance of projection row in tree_table by path
         # Run command and return check result as bool
         self.cursor.execute("""
-        SELECT path FROM tree_table WHERE join_path(path)=%s;
+        SELECT path FROM tree_table WHERE concat( '/', array_to_string(path[2:array_upper(path, 1)], '/'))=%s;
         """, (path,))
 
         return self.cursor.fetchone() is not None

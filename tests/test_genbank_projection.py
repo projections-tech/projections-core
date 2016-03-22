@@ -18,6 +18,7 @@ DATA_FOLDER = 'tests/data'
 logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('genbank_test')
 
+
 class TestGenbankProjectionContents(TestCase):
     @classmethod
     def setUpClass(cls):
