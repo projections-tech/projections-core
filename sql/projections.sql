@@ -16,14 +16,20 @@ CREATE TABLE projections.tree_nodes (
     tree_id bigint NOT NULL,
     parent_id bigint,
     node_name varchar NOT NULL,
-    node_path varchar[] NOT NULL,
+    node_path varchar[],
     UNIQUE (tree_id, node_path, node_name),
+    UNIQUE (tree_id, node_id),
     CHECK (node_name != '' OR parent_id IS NULL),
     CHECK (node_name = '' OR parent_id IS NOT NULL),
-    FOREIGN KEY (parent_id) REFERENCES projections.tree_nodes (node_id) MATCH SIMPLE
+    FOREIGN KEY (tree_id, parent_id) 
+        REFERENCES projections.tree_nodes (tree_id, node_id) MATCH SIMPLE
+        ON DELETE CASCADE
 );
 ALTER TABLE projections.tree_nodes
     OWNER TO projections_admin;
+-- This index prevents from having multiply root nodes for one tree
+CREATE UNIQUE INDEX ON projections.tree_nodes (tree_id, node_name) 
+    WHERE node_path IS NULL; 
 
 -- TODO: harmonize with POSIX filesystem object types
 CREATE TYPE projections.node_types AS ENUM (
@@ -141,18 +147,18 @@ DECLARE
 BEGIN
     -- Create node path from parent node path
     EXECUTE format($$
-        SELECT COALESCE(
-        (
-            SELECT array_append(node_path, node_name)
-            FROM %s
-            WHERE node_id = $1
-        )
-        , '{}')
+        SELECT 
+            CASE WHEN node_name IS NULL OR node_name = ''
+                THEN
+                    '{}'
+                ELSE
+                    array_append(node_path, node_name)
+            END
+        FROM %s
+        WHERE node_id = $1
     $$, table_name)
     INTO _node_path
     USING parent_id;
-
-    RAISE NOTICE 'path: %s', _node_path;
 
     EXECUTE format($$
         INSERT INTO %s (
@@ -176,21 +182,145 @@ $BODY$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION projections.list_nodes(
     table_name varchar,
+    tree_id bigint,
     node_path varchar[]
 ) RETURNS SETOF projections.tree_nodes AS
 $BODY$
 DECLARE
 BEGIN
+    CASE WHEN node_path IS NOT NULL THEN
+        RETURN QUERY
+            EXECUTE format($$
+                SELECT node_id, tree_id, parent_id, node_name, node_path
+                FROM %s
+                WHERE tree_id = $1 AND node_path = $2
+            $$, table_name)
+            USING tree_id, node_path;
+    ELSE
+        RETURN QUERY
+            EXECUTE format($$
+                SELECT node_id, tree_id, parent_id, node_name, node_path
+                FROM %s
+                WHERE tree_id = $1 AND node_path IS NULL
+            $$, table_name)
+            USING tree_id;
+    END CASE;
+END;
+$BODY$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION projections.move_node(
+    table_name varchar,
+    tree_id bigint,
+    node_id bigint,
+    new_parent_id bigint
+) RETURNS SETOF projections.tree_nodes AS
+$BODY$
+DECLARE
+    _path varchar[];
+    _path_length integer;
+    _new_path varchar[];
+BEGIN
+    -- Get path and path length of current node
+    EXECUTE format($$
+        SELECT node_path || node_name, cardinality(node_path) + 1 
+        FROM %s
+        WHERE node_id = $1
+    $$, table_name)
+    INTO _path, _path_length
+    USING node_id;
+
+    -- Get path and length of new parent node
+    EXECUTE format($$
+        SELECT 
+            CASE node_name 
+            WHEN '' THEN
+                -- Moving to root
+                '{}'
+            ELSE
+                node_path || node_name
+            END
+        FROM %s
+        WHERE node_id = $1
+    $$, table_name)
+    INTO _new_path
+    USING new_parent_id;
+
+    RAISE NOTICE 'new id: %; new path: %', new_parent_id, _new_path;   
+
+    -- Change parent id and path of current node
+    EXECUTE format($$
+            UPDATE %s SET (
+                parent_id,
+                node_path
+            ) = (
+                $1,
+                $2
+            ) WHERE node_id = $3
+    $$, table_name)
+    USING new_parent_id, _new_path, node_id;
+
+    -- Update descendants paths
+    EXECUTE format($$
+            UPDATE %s SET node_path = $1 || node_path[$3:cardinality(node_path)]
+            WHERE tree_id = $2 AND node_path[1:$3] = $4
+    $$, table_name)
+    USING _new_path, tree_id, _path_length, _path;
+
     RETURN QUERY
         EXECUTE format($$
             SELECT node_id, tree_id, parent_id, node_name, node_path
             FROM %s
-            WHERE node_path = $1
+            WHERE tree_id = $1 AND node_id = $2
         $$, table_name)
-        USING node_path;
+        USING tree_id, node_id;
 END;
 $BODY$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION projections.rename_node(
+    table_name varchar,
+    tree_id bigint,
+    node_id bigint,
+    new_name varchar
+) RETURNS VOID AS
+$BODY$
+DECLARE
+BEGIN
+    -- TODO: add implementation!
+END;
+$BODY$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION projections.remove_node(
+    table_name varchar,
+    tree_id bigint,
+    node_id bigint
+) RETURNS VOID AS
+$BODY$
+DECLARE
+BEGIN
+        EXECUTE format($$
+            DELETE FROM %s
+            WHERE tree_id = $1 AND node_id = $2
+        $$, table_name)
+        USING tree_id, node_id;
+        -- Child nodes should be deleted by cascase
+END;
+$BODY$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION projections.validate_tree(
+    table_name varchar,
+    tree_id bigint
+) RETURNS boolean AS
+$BODY$
+DECLARE
+BEGIN
+    /*
+        TODO: add implementation!
+    */
+END;
+$BODY$ LANGUAGE plpgsql;
+
+
+-- Functions for projection tree operation
 CREATE OR REPLACE FUNCTION add_projection_node(
     projection_id bigint,
     node_name varchar,
@@ -211,7 +341,6 @@ BEGIN
         node_name)
     INTO _projection_node_id;
 
-    -- TODO: consider update node case
     UPDATE projections.projection_nodes SET (
         node_content_uri,
         node_type,
@@ -224,8 +353,4 @@ BEGIN
 
 END;
 $BODY$ LANGUAGE plpgsql;
-
-
-
-
 
