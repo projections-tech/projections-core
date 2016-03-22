@@ -11,8 +11,11 @@ logger = logging.getLogger('genbank_projection')
 
 
 class GenbankDriver(ProjectionDriver):
-    def __init__(self, uri, driver_config, script_dir):
-        Entrez.email = driver_config['email']
+    def __init__(self, uri, driver_config_path, script_dir):
+
+        self.driver_configuration = self.read_config(script_dir, driver_config_path)
+
+        Entrez.email = self.driver_configuration['email']
         Entrez.tool = 'genbank_projection_manager'
         self.driver_cache = {}
 
@@ -22,6 +25,9 @@ class GenbankDriver(ProjectionDriver):
         :param uri: str containing query to SRA
         :return: dict of query contents
         """
+        if uri.startswith('gb:') or uri.startswith('fasta:'):
+            return {}
+
         if uri not in self.driver_cache:
             query = uri.split(':')
             logger.debug('Current query: %s', query)
@@ -57,7 +63,7 @@ class GenbankDriver(ProjectionDriver):
         query = query.split(':')
         query_type = query[0]
         if query_type == 'search_query':
-            return Entrez.esearch(db='nuccore', term=query[1], retmax=query[2])
+            return Entrez.esearch(db='nuccore', term=query[1], retmax=query[2]).read().encode()
         elif query_type == 'gb':
             # Returns query gb file bytes
             gb = Entrez.efetch(db='nuccore', id=query[1], rettype='gb', retmode='text')

@@ -10,6 +10,7 @@ from moto import mock_s3
 
 from drivers.aws_s3_driver import S3Driver
 from drivers.fs_driver import FSDriver
+from drivers.genbank_driver import GenbankDriver
 from drivers.iontorrent_driver import TorrentSuiteDriver
 from tests.mock import MockResource
 
@@ -192,6 +193,10 @@ class TestTorrentSuiteDriver(TestCase):
             for uri in uris_f:
                 cls.resource_uris.append(uri)
 
+    @classmethod
+    def tearDownClass(cls):
+        cls.mock_resource.deactivate()
+
     def test_get_uri_contents_as_dict(self):
         """
         Tests if torrent suite driver returns valid data on uri
@@ -223,3 +228,52 @@ class TestTorrentSuiteDriver(TestCase):
                     with open(path_to_mock_contents_on_uri, 'rb') as m_c:
                         mock_contents_on_uri = m_c.read()
                     self.assertEqual(mock_contents_on_uri, driver_response, msg='Checking contents on uri.')
+
+
+class TestGenbankDriver(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.logger = logging.getLogger('test_torrent_suite_driver')
+
+        cls.mock_resource = MockResource('tests/genbank_mock.json')
+
+        script_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+        cls.driver = GenbankDriver('http://eutils.ncbi.nlm.nih.gov',
+                                   'tests/driver_configurations/genbank_config.yaml',
+                                   script_dir)
+
+        with open('tests/genbank_responses.json') as r_r:
+            cls.reference_genbank_responses = json.load(r_r)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.mock_resource.deactivate()
+
+    def test_get_uri_contents_as_dict(self):
+        """
+        Tests if driver correctly returns dict on uri
+        """
+        for uri in self.reference_genbank_responses:
+            driver_response = self.driver.get_uri_contents_as_dict(uri)
+
+            self.assertIsInstance(driver_response, dict, msg='Checking type of driver response.')
+            self.assertDictEqual(self.reference_genbank_responses[uri],
+                                 driver_response,
+                                 msg='Checking response content.')
+
+    def test_get_uri_contents_as_bytes(self):
+        """
+        Tests if driver correctly returns uri contents
+        """
+        for uri in self.reference_genbank_responses:
+            driver_response = self.driver.get_uri_contents_as_bytes(uri)
+            self.assertIsInstance(driver_response, bytes, msg='Checking response type.')
+
+            if uri.startswith('search_query'):
+                reference_path = 'tests/mock_resource/genbank_mock_data/esearch_response.xml'
+            else:
+                reference_path = 'tests/mock_resource/genbank_mock_data/mock_contents.txt'
+            with open(reference_path, 'rb') as r_f:
+                reference_contents = r_f.read()
+
+            self.assertEqual(reference_contents, driver_response, msg='Checking contents on uri.')
