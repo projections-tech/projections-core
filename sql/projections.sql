@@ -12,10 +12,12 @@ CREATE SCHEMA projections
 
 -- Generic nodes table
 CREATE TABLE projections.tree_nodes (
-    node_id bigserial NOT NULL,
-    parent_id serial NOT NULL,
-    node_name varchar,
-    node_path varchar[]
+    node_id bigserial PRIMARY KEY,
+    tree_id bigint NOT NULL,
+    parent_id bigint,
+    node_name varchar NOT NULL,
+    node_path varchar[] NOT NULL,
+    UNIQUE (tree_id, node_path, node_name)
 );
 ALTER TABLE projections.tree_nodes
     OWNER TO projections_admin;
@@ -36,12 +38,12 @@ ALTER TABLE projections.prototypes
 
 CREATE TABLE projections.prototype_nodes (
     LIKE projections.tree_nodes,
-    prototype_id bigserial PRIMARY KEY,
     prototype_name varchar NOT NULL,
     node_type projections.node_types NOT NULL DEFAULT 'FILE',
     uri varchar,
     -- TODO: consider context retrieval
-    FOREIGN KEY (prototype_id)
+    PRIMARY KEY (node_id),
+    FOREIGN KEY (tree_id)
         REFERENCES projections.prototypes (prototype_id) MATCH SIMPLE
         ON UPDATE CASCADE ON DELETE CASCADE
 );
@@ -66,19 +68,18 @@ COMMENT ON COLUMN projections_table.projector_pid IS 'PID of projection`s projec
 
 CREATE TABLE projections.projection_nodes (
     LIKE projections.tree_nodes,
-    projection_id bigint NOT NULL,
     node_content_uri varchar NOT NULL,
     node_type projections.node_types NOT NULL DEFAULT 'FILE',
     metadata_content jsonb DEFAULT '{}',
     PRIMARY KEY (node_id),
-    UNIQUE (projection_id, node_name, node_path),
-    FOREIGN KEY (projection_id)
+    UNIQUE (tree_id, node_name, node_path),
+    FOREIGN KEY (tree_id)
         REFERENCES projections.projections (projection_id) MATCH SIMPLE
         ON UPDATE CASCADE ON DELETE CASCADE
 );
 ALTER TABLE projections.projection_nodes
     OWNER TO projections_admin;
-CREATE INDEX ON projections.projection_nodes(projection_id);
+CREATE INDEX ON projections.projection_nodes(tree_id);
 -- TODO: Add indexes required for tree operations
 COMMENT ON TABLE tree_table IS 'Holds projection node records each reflecting some data object projected as file or folder.';
 
@@ -123,8 +124,55 @@ COMMENT ON TABLE projections.projection_node_fs_attributes IS 'Holds projection 
 
 -- Generic tree functions
 /*
-    Add node
+    Add node to the table specified and return node_id.
+    It is expected that table LIKE projections.tree_nodes
 */
+CREATE OR REPLACE FUNCTION projections.add_node(
+    table_name varchar,
+    tree_id bigint,
+    parent_id bigint,
+    node_name varchar
+) RETURNS bigint AS
+$BODY$
+DECLARE
+    _node_path varchar[];
+    _node_id bigint;
+BEGIN
+    -- Create node path from parent node path
+    EXECUTE format($$
+        SELECT COALESCE(
+        (
+            SELECT array_append(node_path, node_name)
+            FROM %s
+            WHERE node_id = $1
+        )
+        , '{}')
+    $$, table_name)
+    INTO _node_path
+    USING parent_id;
+
+    RAISE NOTICE 'path: %s', _node_path;
+
+    EXECUTE format($$
+        INSERT INTO %s (
+            tree_id,
+            parent_id,
+            node_name,
+            node_path
+        ) VALUES (
+            $1,
+            $2,
+            $3,
+            $4
+        ) RETURNING node_id
+    $$, table_name)
+    INTO _node_id
+    USING tree_id, parent_id, node_name, _node_path;
+    -- Return id of node created
+    RETURN _node_id;
+END;
+$BODY$ LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION add_projection_node(
     projection_id bigint,
     node_name varchar,
@@ -165,12 +213,7 @@ BEGIN
 END;
 $BODY$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION add_node() RETURNS SETOF projections.tree_nodes AS
-$BODY$
-DECLARE
-BEGIN
-END;
-$BODY$ LANGUAGE plpgsql;
+
 
 
 

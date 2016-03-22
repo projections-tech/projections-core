@@ -13,29 +13,125 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION test_tree_functions() RETURNS SETOF text AS 
 $BODY$
 DECLARE
-    _projection_id bigint;
+    _parent_id bigint;
+    _child_node_id bigint;
+    _grandchild_node_id bigint;
 BEGIN
+    -- Test generic tree functions
     RETURN NEXT lives_ok(
     $$
-        INSERT INTO projections.projections (
-            projection_name,
-            mount_point,
-            driver
-        ) VALUES (
-            'test_projection',
-            '/home/test/',
-            'fs_driver'
+        SELECT projections.add_node(
+            'projections.tree_nodes', 0, NULL, ''
         );
-    $$, 'Create projection');
+    $$, 'Create root tree node');
 
-    -- Get newly created projection ID
-    _projection_id := (
-        SELECT projection_id 
-        FROM projections.projections
-        WHERE projection_name = 'test_projection'
-    );
+    RETURN NEXT throws_ok(
+    $$
+        SELECT projections.add_node(
+            'projections.tree_nodes', 0, NULL, ''
+        );
+    $$, 23505, NULL, 'Create root tree node twice');
 
-	RETURN;
+    RETURN NEXT throws_ok(
+    $$
+        SELECT projections.add_node(
+            'projections.tree_nodes', 0, NULL, 'test'
+        );
+    $$, 23514, NULL, 'Create root node with non-empty name');
+
+    -- Get parent node id
+    SELECT node_id 
+    FROM projections.tree_nodes
+    WHERE tree_id = 0 AND parent_id IS NULL
+    INTO _parent_id;
+
+    -- Attach child nodes to parent
+    RETURN NEXT throws_ok(format(
+    $$
+        SELECT projections.add_node(
+            'projections.tree_nodes', 0, %s, ''
+        );
+    $$, _parent_id), 23514, NULL, 
+    'Block creation of non-root node without name');
+    
+    RETURN NEXT lives_ok(format(
+    $$
+        SELECT projections.add_node(
+            'projections.tree_nodes', 0, %s, 'a'
+        );
+    $$, _parent_id), 'Attach child node to root');
+
+    RETURN NEXT lives_ok(format(
+    $$
+        SELECT projections.add_node(
+            'projections.tree_nodes', 0, %s, 'b'
+        );
+    $$, _parent_id), 'Attach second child node to root');
+
+    RETURN NEXT throws_ok(format(
+    $$
+        SELECT projections.add_node(
+            'projections.tree_nodes', 0, %s, 'a'
+        );
+    $$, _parent_id), 23505, NULL, 
+    'Block creation of non-root node with repetitive name');
+
+    -- Get node id for first-level node
+    SELECT node_id 
+    FROM projections.tree_nodes
+    WHERE tree_id = 0 AND parent_id = _parent_id AND node_name = 'a'
+    INTO _child_node_id;
+
+    RETURN NEXT lives_ok(format(
+    $$
+        SELECT projections.add_node(
+            'projections.tree_nodes', 0, %s, 'a'
+        );
+    $$, _child_node_id), 'Attach second level child node');
+
+    RETURN NEXT throws_ok(format(
+    $$
+        SELECT projections.add_node(
+            'projections.tree_nodes', 0, %s, 'a'
+        );
+    $$, _child_node_id), 23505, NULL, 
+    'Block creation of second-level non-root node with repetitive name');
+
+    RETURN NEXT results_eq(format(
+    $$
+        SELECT node_path 
+        FROM projections.tree_nodes
+        WHERE node_id = %s
+    $$, _parent_id),
+    $$
+        SELECT '{}'::varchar[]
+    $$, 'Check root node path');
+
+    RETURN NEXT results_eq(format(
+    $$
+        SELECT node_path 
+        FROM projections.tree_nodes
+        WHERE node_id = %s
+    $$, _child_node_id),
+    $$
+        SELECT '{""}'::varchar[]
+    $$, 'Check first-level node path');
+
+    SELECT node_id 
+    FROM projections.tree_nodes
+    WHERE tree_id = 0 AND parent_id = _child_node_id AND node_name = 'a'
+    INTO _grandchild_node_id;
+
+    RETURN NEXT results_eq(format(
+    $$
+        SELECT node_path 
+        FROM projections.tree_nodes
+        WHERE node_id = %s
+    $$, _grandchild_node_id),
+    $$
+        SELECT '{"", "a"}'::varchar[]
+    $$, 'Check second-level node path');
+
 END;
 $BODY$ LANGUAGE plpgsql;
 
