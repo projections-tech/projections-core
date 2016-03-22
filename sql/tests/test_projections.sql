@@ -186,6 +186,11 @@ BEGIN
     SELECT projections.add_node('projections.tree_nodes', 0, _child_node_id, 'cb')
         INTO _grandchild_node_id;
 
+    RETURN NEXT results_eq(
+    $$
+        SELECT projections.validate_tree('projections.tree_nodes', 0)
+    $$, ARRAY[TRUE], 'Check tree state');
+
     -- Test move node
     RETURN NEXT lives_ok(
     $$
@@ -288,6 +293,11 @@ BEGIN
         SELECT ARRAY['a', 'ca', 'caa']::varchar[]
     $$, 'Check that node deep children paths updated with one level move');
 
+    RETURN NEXT results_eq(
+    $$
+        SELECT projections.validate_tree('projections.tree_nodes', 0)
+    $$, ARRAY[TRUE], 'Check tree state');
+
     -- Test delete node
     -- Restore original structure
     PERFORM projections.move_node('projections.tree_nodes', 0, (
@@ -311,6 +321,11 @@ BEGIN
         FROM projections.tree_nodes
         WHERE node_name LIKE 'c%'
     $$, ARRAY[0], 'Check that there are no node and its descendants');
+
+    RETURN NEXT results_eq(
+    $$
+        SELECT projections.validate_tree('projections.tree_nodes', 0)
+    $$, ARRAY[TRUE], 'Check tree state');
 
 END;
 $BODY$ LANGUAGE plpgsql;

@@ -306,16 +306,64 @@ BEGIN
 END;
 $BODY$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION projections.validate_tree(
+/*
+    Aggregate node names from root node to all descendants.
+
+    May be used to test whether the tree specified by id is in consistent state.
+
+    node_path - path of node 
+    node_names - aggragate of node names from root to current node
+    level - number of node parents on a way to root
+*/
+CREATE OR REPLACE FUNCTION projections.aggregate_node_names(
     table_name varchar,
     tree_id bigint
-) RETURNS boolean AS
+) RETURNS TABLE (
+    node_id bigint,
+    node_name varchar,
+    node_path varchar[],
+    node_names varchar[],
+    level integer
+) AS
 $BODY$
 DECLARE
 BEGIN
-    /*
-        TODO: add implementation!
-    */
+    RETURN QUERY EXECUTE format($$
+        (WITH RECURSIVE parent AS (
+            SELECT node_id, node_name, node_path, ARRAY[]::varchar[] AS node_names, 0 AS level
+            FROM projections.tree_nodes
+            WHERE tree_id = $1 AND parent_id IS NULL
+        UNION ALL
+            SELECT 
+                tree_nodes.node_id,
+                tree_nodes.node_name,
+                tree_nodes.node_path,
+                parent.node_names || tree_nodes.node_name AS node_names,
+                parent.level + 1 AS level
+            FROM projections.tree_nodes 
+                INNER JOIN parent ON (tree_nodes.parent_id = parent.node_id)
+        ) SELECT * FROM parent)
+    $$, table_name)
+    USING tree_id;
+END;        
+$BODY$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION projections.validate_tree(
+    table_name varchar,
+    tree_id bigint,
+    OUT is_valid boolean
+) AS
+$BODY$
+DECLARE
+BEGIN
+    -- Check path for all nodes except the root 
+    WITH comparison AS (
+        SELECT node_path || node_name = node_names AS path_corresp
+        FROM projections.aggregate_node_names(table_name, tree_id)
+        WHERE node_path IS NOT NULL
+    ) SELECT every(comparison.path_corresp)
+    FROM comparison
+    INTO is_valid;
 END;
 $BODY$ LANGUAGE plpgsql;
 
@@ -353,4 +401,3 @@ BEGIN
 
 END;
 $BODY$ LANGUAGE plpgsql;
-
