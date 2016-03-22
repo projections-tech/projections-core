@@ -1,32 +1,29 @@
 #!/usr/bin/env python3
 
-import argparse
 import json
 import logging
 import logging.config
-import os
 import re
 import subprocess
 
 import xmltodict
 from Bio import Entrez
 
-from filesystem import ProjectionFilesystem
-from fuse import FUSE
-from projections import ProjectionDriver, Projector, PrototypeDeserializer
-from tests.mock import MockResource
+from projections import ProjectionDriver
 
 logger = logging.getLogger('sra_projection')
 
 
 class SRADriver(ProjectionDriver):
-    def __init__(self, uri, driver_config, script_dir):
+    def __init__(self, uri, driver_config_path, script_dir):
         """
         Initialize driver telling NCBI using user email and name of program
         :param driver_config: driver configuration dictionary
         :return:
         """
-        Entrez.email = driver_config['email']
+        self.driver_configuration = self.read_config(script_dir, driver_config_path)
+
+        Entrez.email = self.driver_configuration['email']
         Entrez.tool = 'sra_projection_manager'
         self.driver_cache = {}
 
@@ -36,6 +33,11 @@ class SRADriver(ProjectionDriver):
         :param uri: str containing uri
         :return: dict of query contents
         """
+
+        sam_uri_regex = '(SRR|SRX|ERX|DRX|DRR|ERR)\d+'
+        if re.match(sam_uri_regex, uri):
+            return {}
+
         # Info about Biopython`s eutils: http://biopython.org/DIST/docs/tutorial/Tutorial.html#chapter:entrez
         # Query looks as: 'query:Test_species'
         logger.debug('Current query: %s', uri)
@@ -99,35 +101,3 @@ class SRADriver(ProjectionDriver):
             return subprocess.check_output(['./sratoolkit.2.5.4-1-ubuntu64/bin/sam-dump', uri])
         else:
             return json.dumps(self.driver_cache[uri]).encode()
-
-
-# For smoke testing
-def main(cfg_path, mountpoint, data_folder, foreground=True):
-    # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
-    # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
-    projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
-    mock_resource = MockResource('tests/sra_mock.json')
-
-    projection_configuration = PrototypeDeserializer(cfg_path)
-
-    sra_driver = SRADriver('vsvekolkin@parseq.pro')
-
-    sra_projection_tree = Projector(sra_driver, projection_configuration.root_projection_uri,
-                                    projection_configuration.prototype_tree).projection_tree
-
-    projection_filesystem.projection_manager = sra_projection_tree
-    fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
-    return fuse
-
-if __name__ == '__main__':
-
-    script_dir = os.path.dirname(os.path.realpath(__file__))
-    logging.config.fileConfig(os.path.join(script_dir, 'logging.cfg'))
-
-    parser = argparse.ArgumentParser(description='SRA projection.')
-    parser.add_argument('-m', '--mount-point', required=True, help='specifies mount point path on host')
-    parser.add_argument('-d', '--data-directory', required=True, help='specifies data directory path on host')
-    parser.add_argument('-c', '--config-path', required=True, help='specifies projection configuration YAML file path')
-    args = parser.parse_args()
-
-    main(args.config_path, args.mount_point, args.data_directory)

@@ -12,6 +12,7 @@ from drivers.aws_s3_driver import S3Driver
 from drivers.fs_driver import FSDriver
 from drivers.genbank_driver import GenbankDriver
 from drivers.iontorrent_driver import TorrentSuiteDriver
+from drivers.sra_driver import SRADriver
 from tests.mock import MockResource
 
 logging.config.fileConfig('logging.cfg')
@@ -109,7 +110,7 @@ class TestFsDriver(TestCase):
             # Reading reference file from test_dir
             with open(path, 'rb') as tested_file:
                 file_response_contents = tested_file.read()
-
+            self.assertIsInstance(file_response_contents, bytes, msg='Checking driver response type.')
             self.assertEqual(file_response_contents, self.driver.get_uri_contents_as_bytes(path),
                              msg='Checking file contents.')
 
@@ -150,15 +151,6 @@ class TestS3Driver(TestCase):
         for obj in exp_contents:
             self.assertIn(obj, [o.key for o in self.driver.bucket.objects.all()], msg='Checking objects existence.')
 
-    def test_get_uri_contents_as_stream(self):
-        """
-        Tests driver get_uri_contents_stream method
-        """
-        test_ensembl = b'Test ensembl here!'
-        for key, exp_content in {'projects/': b'', 'projects/ensembl.txt': test_ensembl}.items():
-            self.assertEqual(exp_content, self.driver.get_uri_contents_as_bytes(key),
-                             msg='Checking content of object with URI: {0}'.format(key))
-
     def test_get_uri_contents_as_dict(self):
         """
         Tests driver get_uri_contents_as_dict method
@@ -172,6 +164,17 @@ class TestS3Driver(TestCase):
         for meta in contents_meta:
             self.assertDictEqual(meta, self.driver.get_uri_contents_as_dict(meta['name']),
                                  msg='Checking meta of object with URI: {0}'.format(meta['name']))
+
+    def test_get_uri_contents_as_bytes(self):
+        """
+        Tests driver get_uri_contents_bytes method
+        """
+        test_ensembl = b'Test ensembl here!'
+        for key, exp_content in {'projects/': b'', 'projects/ensembl.txt': test_ensembl}.items():
+            driver_response = self.driver.get_uri_contents_as_bytes(key)
+            self.assertIsInstance(driver_response, bytes, msg='Checking driver response type.')
+            self.assertEqual(exp_content, driver_response,
+                             msg='Checking content of object with URI: {0}'.format(key))
 
 
 class TestTorrentSuiteDriver(TestCase):
@@ -219,6 +222,8 @@ class TestTorrentSuiteDriver(TestCase):
         uri_to_file_mapping = self.mock_structure['mock_responses']
         for uri in self.resource_uris:
             driver_response = self.driver.get_uri_contents_as_bytes(uri)
+            self.assertIsInstance(driver_response, bytes, msg='Checking driver response type.')
+
             for key in uri_to_file_mapping:
                 # Getting corresponding data file for uri from mock structure
                 if re.search(key, uri):
@@ -242,7 +247,7 @@ class TestGenbankDriver(TestCase):
                                    'tests/driver_configurations/genbank_config.yaml',
                                    script_dir)
 
-        with open('tests/genbank_responses.json') as r_r:
+        with open('tests/genbank_driver_responses.json') as r_r:
             cls.reference_genbank_responses = json.load(r_r)
 
     @classmethod
@@ -277,3 +282,35 @@ class TestGenbankDriver(TestCase):
                 reference_contents = r_f.read()
 
             self.assertEqual(reference_contents, driver_response, msg='Checking contents on uri.')
+
+
+class TestSRADriver(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.logger = logging.getLogger('test_torrent_suite_driver')
+
+        cls.mock_resource = MockResource('tests/sra_mock.json')
+
+        script_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+        cls.driver = SRADriver('http://eutils.ncbi.nlm.nih.gov',
+                               'tests/driver_configurations/sra_config.yaml',
+                               script_dir)
+
+        with open('tests/sra_driver_responses.json') as r_r:
+            cls.reference_sra_responses = json.load(r_r)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.mock_resource.deactivate()
+
+    def test_get_uri_contents_as_dict(self):
+        """
+        Tests if driver correctly returns dict on uri
+        """
+        for uri in self.reference_sra_responses:
+            driver_response = self.driver.get_uri_contents_as_dict(uri)
+
+            self.assertIsInstance(driver_response, dict, msg='Checking type of driver response.')
+            self.assertDictEqual(self.reference_sra_responses[uri],
+                                 driver_response,
+                                 msg='Checking response content.')

@@ -10,7 +10,7 @@ from unittest import TestCase
 import psycopg2
 
 from db_projector import DBProjector
-from projections import Node, ProjectionPrototype, ProjectionDriver, PrototypeDeserializer
+from projections import ProjectionPrototype, ProjectionDriver, PrototypeDeserializer
 
 # Import logging configuration from the file provided
 logging.config.fileConfig('logging.cfg')
@@ -19,7 +19,7 @@ logger = logging.getLogger('test_projections')
 
 class TestDriver(ProjectionDriver):
     """
-    This class does not perform actual testing. It's providing test data and may be replaces with mock object.
+    This class does not perform actual testing. It's providing test data and may be replaced with mock object.
     """
 
     def get_uri_contents_as_dict(self, uri):
@@ -58,151 +58,6 @@ class TestDriver(ProjectionDriver):
             return {'meta': "This is BAM file"}
 
         assert False is True, 'Test driver can\'t handle resource request, aborting!'
-
-
-class TestNode(TestCase):
-    def setUp(self):
-        self.tree = Node(name='/')
-
-        self.first_level_names = []
-        self.second_level_names = []
-        self.third_level_names = []
-
-        for i in range(3):
-            f_name = '{0}'.format(i)
-            self.first_level_names.append(f_name)
-            first_level = Node(name=f_name)
-            self.tree.add_child(first_level)
-            for j in range(3):
-                s_name = '{0}.{1}'.format(i, j)
-                self.second_level_names.append(s_name)
-                second_level = Node(s_name)
-                first_level.add_child(second_level)
-                for k in range(3):
-                    t_name = '{0}.{1}.{2}'.format(i, j, k)
-                    self.third_level_names.append(t_name)
-                    third_level = Node(name=t_name)
-                    second_level.add_child(third_level)
-
-    def test_get_parent_nodes(self):
-        """
-        Tests Tree get_parent_nodes
-        """
-        # Checking get_parent_nodes for root node which is empty list
-        self.assertListEqual([], self.tree.get_parent_nodes())
-
-        for first_level_child in self.tree.get_children():
-            self.assertListEqual(['/'],
-                                 [n.name for n in first_level_child.get_parent_nodes()],
-                                 msg='Checking path to first level nodes of a tree')
-
-            for second_level_child in first_level_child.get_children():
-                self.assertListEqual(['/', first_level_child.name],
-                                     [n.name for n in second_level_child.get_parent_nodes()],
-                                     msg='Checking path to second level nodes of a tree')
-
-                for third_level_child in second_level_child.get_children():
-                    self.assertListEqual(['/', first_level_child.name, second_level_child.name],
-                                         [n.name for n in third_level_child.get_parent_nodes()],
-                                         msg='Checking path to third level nodes of a tree')
-
-    def test_get_path(self):
-        """
-        Tests correctness of path returned by get path method
-        """
-        expected_node_paths = ['/', '/0', '/0/0.0', '/0/0.0/0.0.0', '/0/0.0/0.0.1', '/0/0.0/0.0.2',
-                               '/0/0.1', '/0/0.1/0.1.0', '/0/0.1/0.1.1', '/0/0.1/0.1.2', '/0/0.2',
-                               '/0/0.2/0.2.0', '/0/0.2/0.2.1', '/0/0.2/0.2.2', '/1', '/1/1.0', '/1/1.0/1.0.0',
-                               '/1/1.0/1.0.1', '/1/1.0/1.0.2', '/1/1.1', '/1/1.1/1.1.0', '/1/1.1/1.1.1',
-                               '/1/1.1/1.1.2', '/1/1.2', '/1/1.2/1.2.0', '/1/1.2/1.2.1', '/1/1.2/1.2.2',
-                               '/2', '/2/2.0', '/2/2.0/2.0.0', '/2/2.0/2.0.1', '/2/2.0/2.0.2', '/2/2.1',
-                               '/2/2.1/2.1.0', '/2/2.1/2.1.1', '/2/2.1/2.1.2', '/2/2.2', '/2/2.2/2.2.0',
-                               '/2/2.2/2.2.1', '/2/2.2/2.2.2']
-
-        for n in self.tree.get_tree_nodes():
-            self.assertIn(n.get_path(), expected_node_paths, msg='Checking node path: {0}'.format(n.get_path()))
-
-    def test_get_children(self):
-        """
-        Checks get_children method of Tree
-        """
-        for first_level_child in self.tree.get_children():
-            self.assertIn(first_level_child.name, self.first_level_names,
-                          msg='Checking name to first level nodes of a tree')
-
-            for j, second_level_child in enumerate(first_level_child.get_children()):
-                self.assertIn(second_level_child.name, self.second_level_names,
-                              msg='Checking name to second level nodes of a tree')
-
-                for k, third_level_child in enumerate(second_level_child.get_children()):
-                    self.assertIn(third_level_child.name, self.third_level_names,
-                                  msg='Checking name to third level nodes of a tree')
-
-    def test_find_node_by_path(self):
-        """
-        Checks if node is on path using Tree find_node_by_path method
-        """
-        tree = Node(name='/')
-        node_1 = Node(name='experiments')
-        node_1_1 = Node(name='a')
-        node_1_2 = Node(name='b')
-        node_2 = Node(name='results')
-        node_2_1 = Node(name='a')
-        node_2_2 = Node(name='b')
-
-        tree.add_child(node_1)
-        node_1.add_child(node_2)
-        node_1.add_child(node_1_1)
-        node_1.add_child(node_1_2)
-        node_2.add_child(node_2_1)
-        node_2.add_child(node_2_2)
-
-        path_to_node_name_dict = {'/': '/', '/experiments': 'experiments', '/experiments/results': 'results',
-                                  '/experiments/a': 'a', '/experiments/b': 'b', '/experiments/results/a': 'a',
-                                  '/experiments/results/b': 'b'}
-
-        for path, node_name in path_to_node_name_dict.items():
-            node_by_path = tree.find_node_by_path(path)
-            self.assertTrue(node_by_path.name == node_name,
-                            msg='Checking if node is on path: {0}'.format(path))
-
-        # Test find node by path starting not from root node
-        path = '/experiments/results'
-        node_by_path = node_1.find_node_by_path(path)
-        self.assertTrue(node_by_path.name == 'results',
-                        msg='Checking if node: {0} is on path: {1}'.format(node_by_path.name, path))
-
-        path = '/results/a'
-        node_by_path = node_2.find_node_by_path(path)
-        self.assertTrue(node_by_path.name == 'a',
-                        msg='Checking if node: {0} is on path: {1}'.format(node_by_path.name, path))
-
-    def test_node_removal_by_path(self):
-        """
-        Checks node removal from tree by node path
-        """
-        tree = Node(name='/')
-        node_1 = Node(name='experiments')
-        node_1_1 = Node(name='a')
-        node_1_2 = Node(name='b')
-        node_2 = Node(name='results')
-        node_2_1 = Node(name='a')
-        node_2_2 = Node(name='b')
-
-        tree.add_child(node_1)
-        node_1.add_child(node_2)
-        node_1.add_child(node_1_1)
-        node_1.add_child(node_1_2)
-        node_2.add_child(node_2_1)
-        node_2.add_child(node_2_2)
-
-        all_paths = ['/experiments', '/experiments/a', '/experiments/b',
-                     '/experiments/results', '/experiments/results/a', '/experiments/results/b']
-
-        for node_path in all_paths:
-            tree.remove_node_by_path(node_path)
-            self.assertNotIn(node_path, [n.get_path() for n in tree.get_tree_nodes()],
-                             msg='Checking if node {0} is no in tree nodes list.')
 
 
 class TestPrototypeDeserializer(TestCase):
@@ -327,7 +182,6 @@ class TestProjector(TestCase):
         """
         Tests projection deletion correctness
         """
-
         created_projections = self.projector.list_projections()
 
         # Removing entire directory

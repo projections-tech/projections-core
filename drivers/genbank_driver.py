@@ -12,7 +12,6 @@ logger = logging.getLogger('genbank_projection')
 
 class GenbankDriver(ProjectionDriver):
     def __init__(self, uri, driver_config_path, script_dir):
-
         self.driver_configuration = self.read_config(script_dir, driver_config_path)
 
         Entrez.email = self.driver_configuration['email']
