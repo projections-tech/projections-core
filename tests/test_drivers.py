@@ -3,6 +3,7 @@ import logging
 import logging.config
 import os
 import re
+import time
 from unittest import TestCase
 
 import boto3
@@ -191,10 +192,9 @@ class TestTorrentSuiteDriver(TestCase):
         with open('tests/torrent_suite_mock.json') as m_f:
             cls.mock_structure = json.load(m_f)
 
-        cls.resource_uris = []
-        with open('tests/torrent_suite_resource_uris.txt') as uris_f:
-            for uri in uris_f:
-                cls.resource_uris.append(uri)
+        # Opening reference driver responses
+        with open('tests/ts_driver_responses.json') as ts_dr_res:
+            cls.reference_driver_responses = json.load(ts_dr_res)
 
     @classmethod
     def tearDownClass(cls):
@@ -204,15 +204,11 @@ class TestTorrentSuiteDriver(TestCase):
         """
         Tests if torrent suite driver returns valid data on uri
         """
-        # Opening reference driver responses
-        with open('tests/ts_driver_responses.json') as ts_dr_res:
-            reference_driver_responses = json.load(ts_dr_res)
-
-        for uri in self.resource_uris:
+        for uri in self.reference_driver_responses:
             driver_response = self.driver.get_uri_contents_as_dict(uri)
             self.assertIsInstance(driver_response, dict, msg='Checking response object type.')
 
-            self.assertDictEqual(reference_driver_responses[uri], driver_response,
+            self.assertDictEqual(self.reference_driver_responses[uri], driver_response,
                                  msg='Checking if current response is equal to example response')
 
     def test_get_uri_contents_as_bytes(self):
@@ -220,7 +216,7 @@ class TestTorrentSuiteDriver(TestCase):
         Tests if torrent suite driver gets contents of uri properly
         """
         uri_to_file_mapping = self.mock_structure['mock_responses']
-        for uri in self.resource_uris:
+        for uri in self.reference_driver_responses:
             driver_response = self.driver.get_uri_contents_as_bytes(uri)
             self.assertIsInstance(driver_response, bytes, msg='Checking driver response type.')
 
@@ -285,11 +281,14 @@ class TestGenbankDriver(TestCase):
 
 
 class TestSRADriver(TestCase):
+
     @classmethod
     def setUpClass(cls):
         cls.logger = logging.getLogger('test_torrent_suite_driver')
 
         cls.mock_resource = MockResource('tests/sra_mock.json')
+
+        time.sleep(0.5)
 
         script_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
         cls.driver = SRADriver('http://eutils.ncbi.nlm.nih.gov',

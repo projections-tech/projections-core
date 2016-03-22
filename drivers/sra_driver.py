@@ -11,7 +11,7 @@ from Bio import Entrez
 
 from projections import ProjectionDriver
 
-logger = logging.getLogger('sra_projection')
+logger = logging.getLogger('sra_driver')
 
 
 class SRADriver(ProjectionDriver):
@@ -41,10 +41,10 @@ class SRADriver(ProjectionDriver):
         # Info about Biopython`s eutils: http://biopython.org/DIST/docs/tutorial/Tutorial.html#chapter:entrez
         # Query looks as: 'query:Test_species'
         logger.debug('Current query: %s', uri)
-
-        if uri not in self.driver_cache:
-            uri_parts = uri.split(':')
+        uri_parts = uri.split(':')
+        if uri not in self.driver_cache and uri_parts[0] == 'search_query':
             # Returns esearch response dict for SRA database.
+            logger.debug('Cureent uri parts: %s', uri_parts)
             esearch_handle = Entrez.esearch(db='sra', term=uri_parts[1], retmax=uri_parts[2])
             search_result = Entrez.read(esearch_handle)
             # Id`s of experiment resources
@@ -83,6 +83,31 @@ class SRADriver(ProjectionDriver):
             # Adding results of search to driver cache
             self.driver_cache[uri] = search_result
             return search_result
+        elif uri_parts[0] == 'sra_id':
+            # Driver accesses experiments using id`s like sra_id:1214564
+            res_uri = 'sra_id:{0}'.format(uri_parts[1])
+            # Handler to fetch SRA database by experiment id
+            fetch_handler = Entrez.efetch(db='sra', id=uri_parts[1])
+
+            # Converts nested ordered dicts to default dicts required by ObjectPath
+            experiment = json.loads(json.dumps(xmltodict.parse(fetch_handler.read())))
+            # Setting resource uri for experiment on driver
+            experiment['resource_uri'] = res_uri
+
+            # Experiment resource contains data about runs, which contain id`s of SAM files in database
+            # Run set is most times dict, but sometimes list, treating dict as list to resolve inconsistency
+            run_set = experiment['EXPERIMENT_PACKAGE_SET']['EXPERIMENT_PACKAGE']['RUN_SET']['RUN']
+            if not isinstance(run_set, list):
+                run_set = [run_set]
+            # Setting corrected run set field for experiment
+            experiment['EXPERIMENT_PACKAGE_SET']['EXPERIMENT_PACKAGE']['RUN_SET']['RUN'] = run_set
+            # Adding experiment resource in driver cache by uri
+            self.driver_cache[res_uri] = experiment
+
+            # Adding runs to driver cache by their accession
+            for run in run_set:
+                self.driver_cache[run['@accession']] = run
+            return experiment
         else:
             return self.driver_cache[uri]
 

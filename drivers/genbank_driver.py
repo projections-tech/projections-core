@@ -7,7 +7,7 @@ from Bio import Entrez
 
 from projections import ProjectionDriver
 
-logger = logging.getLogger('genbank_projection')
+logger = logging.getLogger('genbank_driver')
 
 
 class GenbankDriver(ProjectionDriver):
