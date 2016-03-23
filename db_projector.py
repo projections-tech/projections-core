@@ -1,3 +1,20 @@
+#    Copyright 2016  Anton Bragin, Victor Svekolkin
+#
+#    This file is part of Projections.
+#
+#    Projections is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Projections is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with Projections.  If not, see <http://www.gnu.org/licenses/>.
+
 import copy
 import getpass
 import io
@@ -14,7 +31,7 @@ import psycopg2.extras
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 logging.config.fileConfig('logging.cfg')
-logger = logging.getLogger('db_test')
+logger = logging.getLogger('db_projector')
 
 
 class DBProjector:
@@ -96,6 +113,8 @@ class DBProjector:
 
     def db_create_tables(self):
         """
+        THIS METHOD IS DEPRECATED!
+        Table creation is now part of another module
         This method creates tables which will be used to store projections structure and associated metadata
         """
         # Checking if tree_table exists in pg_class table

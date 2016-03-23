@@ -1,13 +1,25 @@
-#!/usr/bin/env python3
-
-__author__ = 'abragin'
+#    Copyright 2016  Anton Bragin, Victor Svekolkin
+#
+#    This file is part of Projections.
+#
+#    Projections is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Projections is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with Projections.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
 import logging.config
 import os
-import sys
 
-from fuse import FUSE, Operations
+from fuse import Operations
 
 logger = logging.getLogger('projection_filesystem')
 
@@ -171,24 +183,3 @@ class ProjectionFilesystem(Operations):
                 self.projection_manager.remove_resource(path)
 
             return os.unlink(data_path)
-
-
-def main(mountpoint, data_folder, foreground=True):
-    # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
-    # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
-    fuse = FUSE(ProjectionFilesystem(mountpoint, data_folder), mountpoint, foreground=foreground)
-    return fuse
-
-
-if __name__ == '__main__':
-
-    script_dir = os.path.dirname(os.path.realpath(__file__))
-    logging.config.fileConfig(os.path.join(script_dir, 'logging.cfg'))
-
-    # TODO: replace with argparse
-    # Get mount point from args
-    if len(sys.argv) != 3:
-        print('usage: %s <mountpoint> <data folder>' % sys.argv[0])
-        exit(1)
-
-    main(sys.argv[1], sys.argv[2])
