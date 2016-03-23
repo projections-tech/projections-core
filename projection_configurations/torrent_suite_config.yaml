@@ -1,8 +1,7 @@
 ---
 dialect: ObjectPath
 resource_uri: mockiontorrent.com
-user: ionadmin
-password: ionadmin
+driver_config_path: "drivers/driver_configurations/iontorrent_config.yaml"
 
 root_projection_uri: "experiment?status=run&limit=1&order_by=-id"
 
@@ -96,9 +95,9 @@ bam_prototype: &bam_prototype
   uri: "join(['/auth/output/Home/', split($.context[0].filesystempath, '/')[-1], '/', $.context[1].plan.barcodedSamples[$.name].barcodes[0], '_rawlib.bam'])"
 
 sample_metadata_prototype: &sample_metadata_prototype
-  type: file
+  type: metadata
   children: None
-  name:  " 'metadata.json' "
+  name:  " $.name + '.meta' "
   uri: '$.resource_uri'
 
 sample_prototype: &sample_prototype

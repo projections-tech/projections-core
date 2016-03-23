@@ -8,8 +8,8 @@ import boto3
 import psycopg2
 from moto import mock_s3
 
-from aws_s3 import S3Driver
 from db_projector import DBProjector
+from drivers.aws_s3 import S3Driver
 from projections import PrototypeDeserializer
 
 # Import logging configuration from the file provided

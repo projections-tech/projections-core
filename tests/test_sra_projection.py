@@ -6,7 +6,7 @@ from unittest import TestCase
 
 import psycopg2
 
-import sra
+import drivers.sra as sra
 from db_projector import DBProjector
 from projections import PrototypeDeserializer
 from tests.mock import MockResource

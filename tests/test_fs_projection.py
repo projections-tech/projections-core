@@ -10,7 +10,7 @@ from unittest import TestCase
 import psycopg2
 
 from db_projector import DBProjector
-from fs_projection import FSDriver
+from drivers.fs_projection import FSDriver
 from projections import PrototypeDeserializer
 
 MOUNT_POINT = 'tests/mnt'

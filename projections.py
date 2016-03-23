@@ -1,16 +1,17 @@
 __author__ = 'abragin'
 
+import copy
 import io
 import logging
 import os
-import stat
-import time
-import threading
-import yaml
 import pprint
-import objectpath
+import stat
+import threading
+import time
 import types
-import copy
+
+import objectpath
+import yaml
 
 # Import logging configuration from the file provided
 logging.config.fileConfig('logging.cfg')
@@ -288,9 +289,8 @@ class ProjectionPrototype(Node):
         # Initialize Node class, passing current object in Node data field
         super().__init__(name, self)
         self.parent = parent
-        self.meta_parent_id = None
         self.type = type
-        self.level = None
+        self.meta_link = [None]
         # TODO: consider logical synchronization of name and uri
         # Dialect specific description that is used as a generator for projection uri's
         self.uri = None
@@ -319,7 +319,8 @@ class PrototypeDeserializer(object):
         Initialize class, passing path to YAML configuration file
         """
         yaml_stream = self.read_yaml_file(data_path)
-        self.prototype_tree, self.resource_uri, self.root_projection_uri = self.read_projections(yaml_stream)
+        self.prototype_tree, self.resource_uri, self.root_projection_uri, self.driver_config_path = self.read_projections(
+            yaml_stream)
 
     def get_prototypes_tree(self, yaml_dict, parent=None):
         """
@@ -332,6 +333,8 @@ class PrototypeDeserializer(object):
         pp.name = yaml_dict['name']
         pp.uri = yaml_dict['uri']
         pp.parent = parent
+        if 'meta_link' in yaml_dict:
+            pp.meta_link = yaml_dict['meta_link']
 
         if isinstance(yaml_dict['children'], dict):
             pp.children = {x[0]: self.get_prototypes_tree(x[1], parent=pp) for x in yaml_dict['children'].items()}
@@ -355,7 +358,12 @@ class PrototypeDeserializer(object):
         """
         with yaml_stream:
             yaml_dict = yaml.safe_load(yaml_stream)
-        return self.get_prototypes_tree(yaml_dict['root']), yaml_dict['resource_uri'], yaml_dict['root_projection_uri']
+
+        resource_uri = yaml_dict['resource_uri']
+        root_projection_uri = yaml_dict['root_projection_uri']
+        driver_config_path = yaml_dict['driver_config_path']
+
+        return self.get_prototypes_tree(yaml_dict['root']), resource_uri, root_projection_uri, driver_config_path
 
 
 class ProjectionDriver(object):

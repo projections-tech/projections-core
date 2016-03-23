@@ -10,5 +10,5 @@
     "name": "sample_1",
     "resource_uri": "/rundb/api/v1/sample/1/",
     "sampleSets": [],
-    "status": "planned"
+    "status": "complete"
 }

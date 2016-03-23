@@ -8,7 +8,7 @@ from unittest import TestCase
 
 import psycopg2
 
-import iontorrent
+import drivers.iontorrent as iontorrent
 from db_projector import DBProjector
 from projections import PrototypeDeserializer
 from tests.mock import MockResource

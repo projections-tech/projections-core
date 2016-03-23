@@ -11,7 +11,6 @@ import types
 import objectpath
 import psycopg2
 import psycopg2.extras
-from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('db_test')
@@ -46,22 +45,9 @@ class DBProjector:
         # Initializing psycopg JSONB support
         psycopg2.extras.register_json(oid=3802, array_oid=3807)
 
-        try:
-            # Opening connection with database
-            self.db_connection = psycopg2.connect(
-                "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
-        except Exception as e:
-            logger.debug(e)
-            logger.debug('Database "projections_database" was not found! Creating database.')
-            # Opening temp connection with temp cursor to create database
-            with psycopg2.connect(dbname='postgres', user=getpass.getuser()) as temp_connection:
-                temp_connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-                with temp_connection.cursor() as temp_cursor:
-                    temp_cursor.execute("CREATE DATABASE projections_database")
-
-            # Opening connection with database
-            self.db_connection = psycopg2.connect(
-                "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
+        # Opening connection with database
+        self.db_connection = psycopg2.connect(
+            "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
 
         # Creating cursor, which will be used to interact with database
         self.cursor = self.db_connection.cursor()
@@ -101,46 +87,9 @@ class DBProjector:
         """
         This method creates tables which will be used to store projections structure and associated metadata
         """
-        # Checking if tree_table exists in pg_class table
-        self.cursor.execute("SELECT relname FROM pg_class WHERE relname = '{}';".format(self.tree_table_name))
-        is_tree_table_exist = self.cursor.fetchone()
-
-        # If no tree table found, create required tables
-        if not bool(is_tree_table_exist):
-            self.cursor.execute("CREATE TABLE {} ("
-                                "node_id serial PRIMARY KEY, "
-                                "projection_name varchar,"
-                                "parent_id integer, "
-                                "name varchar, "
-                                "uri varchar, "
-                                "path varchar[][], "
-                                "type varchar"
-                                ");".format(self.tree_table_name))
-            # Dropping metadata table to recreate it
-            self.cursor.execute("DROP TABLE IF EXISTS {0}".format(self.metadata_table_name))
-
-            self.cursor.execute("CREATE TABLE {} ("
-                                "meta_id serial PRIMARY KEY,"
-                                "node_id integer REFERENCES tree_table(node_id) ON DELETE CASCADE,"
-                                "parent_node_id integer REFERENCES tree_table(node_id) ON DELETE CASCADE,"
-                                "meta_contents jsonb);".format(self.metadata_table_name))
-            # Dropping attributes table to recreate it
-            self.cursor.execute("DROP TABLE IF EXISTS {0}".format(self.projections_attributes_table_name))
-
-            self.cursor.execute("CREATE TABLE {} ("
-                                "attr_id serial PRIMARY KEY,"
-                                "node_id integer REFERENCES tree_table(node_id) ON DELETE CASCADE, "
-                                "st_atime int, "
-                                "st_mtime int, "
-                                "st_ctime int, "
-                                "st_size int, "
-                                "st_mode varchar, "
-                                "st_nlink int, "
-                                "st_ino int);".format(self.projections_attributes_table_name))
-
         # Add root node to tables
-        tree_table_insertion_command = "INSERT INTO {0} (projection_name, parent_id, name, uri, type, path) " \
-                                       "SELECT %(proj_name)s, %(p_id)s, %(name)s, %(uri)s, %(type)s, %(path)s " \
+        tree_table_insertion_command = "INSERT INTO {0} (projection_name, parent_id, name, uri, type, path, meta_links) " \
+                                       "SELECT %(proj_name)s, %(p_id)s, %(name)s, %(uri)s, %(type)s, %(path)s, %(meta_links)s " \
                                        "WHERE NOT EXISTS (" \
                                        "SELECT * FROM {0} " \
                                        "WHERE (path=%(path)s::varchar[]) AND projection_name=%(proj_name)s)" \
@@ -151,7 +100,8 @@ class DBProjector:
                                                            'name': '/',
                                                            'type': 'directory',
                                                            'path': ['/'],
-                                                           'uri': self.root_uri})
+                                                           'uri': self.root_uri,
+                                                           'meta_links': [None]})
         # After insertion cursor returns id of root node, which will be used in tree building
         new_parent_id = self.cursor.fetchone()
 
@@ -172,9 +122,9 @@ class DBProjector:
         # Starting projections tree construction
         self.db_build_tree({'/': self.prototypes_tree}, projection_path=['/'],
                            root_projection_uri=self.root_uri, parent_id=new_parent_id)
+        self.bind_metadata_to_data()
 
-    def db_build_tree(self, prototypes, parent_id=None, projection_path=None, root_projection_uri=None,
-                      parent_id_for_meta=None):
+    def db_build_tree(self, prototypes, parent_id=None, projection_path=None, root_projection_uri=None):
         """
         This method recursively builds projections file structure in tree_table from prototype tree
         :param prototypes: Prototype Tree object
@@ -183,8 +133,6 @@ class DBProjector:
         :param root_projection_uri: root projection uri string
         :param parent_id_for_meta: id of parent node for projections with metadata
         """
-        # TODO: solve Metadata-Projection binding!
-
         environment = None
         content = None
         path = os.path
@@ -238,26 +186,19 @@ class DBProjector:
                 if isinstance(name, types.GeneratorType):
                     name = [el for el in name]
 
-                if prototype.type == 'metadata':
-                    # Currently metadata projections are placed on one level with binded data, this behaviour is
-                    # achieved by passing parent node upper level id with prototype.
-                    # This implementation is subject to change.
-                    current_projection_path = current_projection_path[:-1]
-                    current_projection_path.append(name)
-                    current_parent_id = prototype.meta_parent_id
-                elif prototype.type == 'transparent':
+                if prototype.type == 'transparent':
                     # If prototype is transparent skip projection building and pass parent node id as current level id
                     self.db_build_tree(prototype.children, parent_id, current_projection_path,
-                                       root_projection_uri=uri, parent_id_for_meta=parent_id)
+                                       root_projection_uri=uri)
                     continue
                 else:
                     current_parent_id = parent_id
                     current_projection_path.append(name)
                 # Forming tree table projection insertion command, on completion this command returns inserted node id
-                # which will be passed to lover level nodes
-                tree_table_insertion_command = "INSERT INTO {0} (projection_name, parent_id, name, uri, type, path) " \
+                # which will be passed to lower level nodes
+                tree_table_insertion_command = "INSERT INTO {0} (projection_name, parent_id, name, uri, type, path, meta_links) " \
                                                "SELECT %(proj_name)s, %(p_id)s, %(name)s, " \
-                                               "%(uri)s, %(type)s, %(path)s" \
+                                               "%(uri)s, %(type)s, %(path)s, %(meta_links)s" \
                                                "WHERE NOT EXISTS (" \
                                                "SELECT * FROM {0} " \
                                                "WHERE (path=%(path)s::varchar[] AND projection_name=%(proj_name)s))" \
@@ -268,7 +209,8 @@ class DBProjector:
                                                                    'name': name,
                                                                    'type': prototype.type,
                                                                    'path': current_projection_path,
-                                                                   'uri': uri})
+                                                                   'uri': uri,
+                                                                   'meta_links': prototype.meta_link})
                 # Fetching inserted projection id which will be parent id for lower level projections
                 new_parent_id = self.cursor.fetchone()
 
@@ -289,34 +231,62 @@ class DBProjector:
                                          'nlink': 0,
                                          'ino': 1
                                          })
-                    # If prototype has metadata prototypes, set prototype parent node as current node parent node
-                    has_meta = False
-                    for _, child in prototype.children.items():
-                        if child.type == 'metadata':
-                            child.meta_parent_id = current_parent_id
-                            has_meta = True
 
-                    # TODO: rewrite metadata bit to be more readable
-                    if prototype.type == 'metadata':
-                        # Insert metadata-data binding into table
-                        meta_table_insertion_command = "INSERT INTO {0} (node_id, parent_node_id, meta_contents) " \
-                                                       "VALUES (%(node_id)s, %(parent_node_id)s, %(meta_contents)s)".format(
-                            self.metadata_table_name)
-                        # Load metadata contents, psycopg2 will automatically decode this as jsonb
-                        metadata_contents = self.projection_driver.get_uri_contents_as_dict(uri)
-
-                        self.cursor.execute(meta_table_insertion_command, {'node_id': new_parent_id,
-                                                                           'parent_node_id': parent_id_for_meta,
-                                                                           'meta_contents': psycopg2.extras.Json(
-                                                                               metadata_contents)})
-
-                    if has_meta:
-                        self.db_build_tree(prototype.children, new_parent_id, current_projection_path,
-                                           root_projection_uri=uri, parent_id_for_meta=new_parent_id)
-                    else:
-                        self.db_build_tree(prototype.children, new_parent_id, current_projection_path,
-                                           root_projection_uri=uri)
+                    self.db_build_tree(prototype.children, new_parent_id, current_projection_path,
+                                       root_projection_uri=uri)
                     # Commit all changes
+                    self.db_connection.commit()
+
+    def bind_metadata_to_data(self):
+        """
+        Performs data-metadata binding according to meta_link
+        """
+        # List all projections, getting their id`s and lists of meta links
+        self.cursor.execute("""
+        SELECT node_id, meta_links FROM tree_table WHERE projection_name = %s
+        """, (self.projection_name,))
+
+        projections_list = [row for row in self.cursor]
+
+        # Perform metadata binding for each projection according to commands in meta_links
+        for node_id, meta_links in projections_list:
+            for meta_link in meta_links:
+                if meta_link is not None:
+
+                    self.cursor.execute("""
+                    WITH meta_id AS (
+                        WITH current_node AS (
+                            SELECT * FROM tree_table WHERE node_id=%(current_node_id)s
+                        )
+
+                        SELECT tree_table.node_id
+                        FROM tree_table, current_node
+                        WHERE {meta_link}
+                    )
+                    INSERT INTO metadata_table (parent_node_id, node_id) SELECT %(current_node_id)s, meta_id.node_id
+                    FROM meta_id
+                    WHERE NOT EXISTS (SELECT 1 FROM metadata_table, meta_id
+                    WHERE metadata_table.node_id = meta_id.node_id AND metadata_table.parent_node_id = %(current_node_id)s)
+                    RETURNING meta_id
+                    """.format(meta_link=meta_link), {'current_node_id': node_id})
+
+                    meta_node_id = self.cursor.fetchone()
+                    # Adding meta contents jsonb to projection if insertion were performed
+                    if meta_node_id is not None:
+                        self.cursor.execute("""
+                        SELECT uri FROM tree_table WHERE node_id=(SELECT node_id FROM metadata_table WHERE meta_id = %s)
+                        """, (meta_node_id,))
+
+                        meta_node_uri = self.cursor.fetchone()[0]
+
+                        metadata_contents = self.projection_driver.get_uri_contents_as_dict(meta_node_uri)
+
+                        logger.debug(metadata_contents)
+
+                        self.cursor.execute("""
+                        UPDATE metadata_table SET meta_contents = %s WHERE meta_id = %s
+                        """, (psycopg2.extras.Json(metadata_contents), meta_node_id))
+
                     self.db_connection.commit()
 
     def update_node_descendants_paths(self, new_parent_node_id):
@@ -373,12 +343,12 @@ class DBProjector:
         assert isinstance(path, list), 'Path is not a list!'
         paths_request_command = """
         WITH node_on_path AS (
-            SELECT node_id AS node_on_path_id FROM {0} WHERE path=%s::varchar[]
+            SELECT node_id AS node_on_path_id FROM {0} WHERE path=%s::varchar[] AND projection_name=%s
         )
         SELECT {0}.name FROM {0}, node_on_path WHERE {0}.parent_id=node_on_path.node_on_path_id
         """.format(self.tree_table_name)
 
-        self.cursor.execute(paths_request_command, (path,))
+        self.cursor.execute(paths_request_command, (path, self.projection_name))
         return [row[0] for row in self.cursor]
 
     def move_projection(self, node_to_move_path, new_node_root_path):
@@ -403,7 +373,7 @@ class DBProjector:
         new_root_node AS (
             SELECT node_id AS new_root_node_id FROM {0} WHERE path=%s::varchar[]
         )
-        SELECT * FROM old_root_node, new_root_node;
+        SELECT * FROM old_root_node, new_root_node
 
         """.format(self.tree_table_name)
 
@@ -466,50 +436,19 @@ class DBProjector:
         self.cursor.execute(node_removal_command)
         self.db_connection.commit()
 
-    def bind_metadata_to_path(self, target_path, metadata_path):
-        """
-        This method binds metadata object on path to target path
-        :param target_path: path to target with which metadata is binded, list of stings
-        :param metadata_path: path to metadata object which will be binded, list of strings
-        """
-
-        target_path = self.__split_path(target_path)
-        metadata_path = self.__split_path(metadata_path)
-
-        binding_command = """
-        WITH
-        target AS (
-            SELECT node_id AS target_id FROM {0} WHERE path=%s::varchar[]
-        ),
-        metadata AS (
-            SELECT node_id AS metadata_id FROM {0} WHERE path=%s::varchar[]
-        )
-        INSERT INTO {1} (parent_node_id, node_id) SELECT target.target_id, metadata.metadata_id FROM target, metadata
-        WHERE NOT EXISTS (SELECT * FROM target, metadata, metadata_table
-        WHERE metadata_table.node_id = metadata.metadata_id AND metadata_table.parent_node_id = target.target_id)
-        """.format(self.tree_table_name, self.metadata_table_name)
-        self.cursor.execute(binding_command, (target_path, metadata_path))
-
-        self.db_connection.commit()
-
     def is_managing_path(self, path):
         """
         Check if projector is managing path
         :param path: projection path string
         :return: bool
         """
-        path = self.__split_path(path)
-
         # This command checks existance of projection row in tree_table by path
-        projection_on_path_existance_check = """
-        SELECT EXISTS(
-            SELECT * FROM {0} WHERE path=%s::varchar[]
-        )
-        """.format(self.tree_table_name)
         # Run command and return check result as bool
-        self.cursor.execute(projection_on_path_existance_check, (path,))
+        self.cursor.execute("""
+        SELECT path FROM tree_table WHERE join_path(path)=%s;
+        """, (path,))
 
-        return bool(self.cursor.fetchone()[0])
+        return self.cursor.fetchone() is not None
 
     def get_attributes(self, path):
         """
@@ -590,13 +529,3 @@ class DBProjector:
         self.db_connection.commit()
 
         return file_header, resource_io
-
-    def list_projections(self):
-        """
-        Returns list of projections in database
-        :return: projections list of strings
-        """
-
-        self.cursor.execute(" SELECT path FROM tree_table WHERE projection_name=%s ", (self.projection_name,))
-
-        return [os.path.join(*r[0]) for r in self.cursor]
