@@ -286,17 +286,17 @@ BEGIN
     RETURN QUERY EXECUTE format($$
         (WITH RECURSIVE parent AS (
             SELECT node_id, node_name, node_path, ARRAY[]::varchar[] AS node_names, 0 AS level
-            FROM projections.tree_nodes
+            FROM %1$s
             WHERE tree_id = $1 AND parent_id IS NULL
         UNION ALL
             SELECT 
-                tree_nodes.node_id,
-                tree_nodes.node_name,
-                tree_nodes.node_path,
-                parent.node_names || tree_nodes.node_name AS node_names,
+                target.node_id,
+                target.node_name,
+                target.node_path,
+                parent.node_names || target.node_name AS node_names,
                 parent.level + 1 AS level
-            FROM projections.tree_nodes 
-                INNER JOIN parent ON (tree_nodes.parent_id = parent.node_id)
+            FROM %1$s AS target
+                INNER JOIN parent ON (target.parent_id = parent.node_id)
         ) SELECT * FROM parent)
     $$, table_name)
     USING tree_id;
@@ -451,7 +451,11 @@ ALTER TABLE projections.projection_links
 COMMENT ON TABLE projections.projection_links IS 'Holds named and directed links between different projection objects (such as metadata links).';
 
 -- Functions for projection tree operation
-CREATE OR REPLACE FUNCTION add_projection_node(
+/*
+    This function is just a synthetic sugar.
+    projections.add_node may be used for tree operations while fields setup may be performed via updates.
+*/
+CREATE OR REPLACE FUNCTION projections.add_projection_node(
     projection_id bigint,
     node_name varchar,
     parent_node_id bigint,

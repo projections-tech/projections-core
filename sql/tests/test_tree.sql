@@ -28,7 +28,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Setup function that can be used to initialize table records before running tests
+-- Main test function
 CREATE OR REPLACE FUNCTION test_tree_functions() RETURNS SETOF text AS 
 $BODY$
 DECLARE
