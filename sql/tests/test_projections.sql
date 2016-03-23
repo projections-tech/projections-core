@@ -350,4 +350,4 @@ END;
 $BODY$ LANGUAGE plpgsql;
 
 -- Start testing and return the result
-SELECT * FROM runtests();
+SELECT * FROM runtests('tree_functions');
