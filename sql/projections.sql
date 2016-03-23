@@ -48,6 +48,7 @@ CREATE TABLE projections.tree_nodes (
     UNIQUE (tree_id, node_id),
     CHECK (node_name != '' OR parent_id IS NULL),
     CHECK (node_name = '' OR parent_id IS NOT NULL),
+    CHECK (node_id != parent_id),
     FOREIGN KEY (tree_id, parent_id) 
         REFERENCES projections.tree_nodes (tree_id, node_id) MATCH SIMPLE
         ON DELETE CASCADE
@@ -58,15 +59,19 @@ ALTER TABLE projections.tree_nodes
 CREATE UNIQUE INDEX ON projections.tree_nodes (tree_id, node_name) 
     WHERE node_path IS NULL;
 
+CREATE INDEX ON projections.tree_nodes (tree_id);
+
 COMMENT ON TABLE projections.tree_nodes IS 
     $$Generic table describing tree nodes. 
 
         Designed as 'abstract' node class for extending by prototype and projection nodes.
         Records of this type are used by generic tree functions.
 
-        LIKE projections.tree_nodes INCLUDING CONSTRAINTS INCLUDING INDEXES are expected to be used
+        LIKE projections.tree_nodes INCLUDING CONSTRAINTS INCLUDING INDEXES INCLUDING DEFAULTS are expected to be used
         when inheriting from the table.
     $$;
+
+-- TODO: add links and linking / search operations
     
 -- Generic tree functions
 CREATE OR REPLACE FUNCTION projections.add_node(
@@ -330,17 +335,38 @@ BEGIN
 END;
 $BODY$ LANGUAGE plpgsql;
 
+COMMENT ON FUNCTION projections.validate_tree(table_name varchar, tree_id bigint) IS 
+    $$Check whether node paths comsistent with tree hierarchy for the tree provided.
+    
+        Tests whether the tree specified by id is in consistent state.
+
+        @param: table_name - represents string name of the table LIKE projections.tree_nodes to perform operation on.
+        @param: tree_id - id of the tree to insert node to.
+        @returns: boolean - true if tree is valid, false otherwise.
+    $$;
+
 /*
     Tables and functions for projection-specific tables and functions definitions.
 */
 
--- TODO: harmonize with POSIX filesystem object types
+/*
+    Filesystem node types. See: 
+        http://man7.org/linux/man-pages/man2/stat.2.html 
+    for additional details.
+    Only 'REG' and 'DIR' are supported at the moment.
+*/ 
 CREATE TYPE projections.node_types AS ENUM (
-    'FILE',
-    'FOLDER'
+    'SOCK',
+    'LNK',
+    'REG',
+    'BLK',
+    'DIR',
+    'CHR',
+    'FIFO'
 );
 
 -- Tables for prototypes data storage
+-- TODO: do prototype tables revision
 CREATE TABLE projections.prototypes (
     prototype_id bigserial PRIMARY KEY,
     prototype_name varchar NOT NULL
@@ -351,7 +377,7 @@ ALTER TABLE projections.prototypes
 CREATE TABLE projections.prototype_nodes (
     LIKE projections.tree_nodes,
     prototype_name varchar NOT NULL,
-    node_type projections.node_types NOT NULL DEFAULT 'FILE',
+    node_type projections.node_types NOT NULL DEFAULT 'REG',
     uri varchar,
     -- TODO: consider context retrieval
     PRIMARY KEY (node_id),
@@ -361,6 +387,7 @@ CREATE TABLE projections.prototype_nodes (
 );
 ALTER TABLE projections.prototype_nodes
     OWNER TO projections_admin;  
+
 
 -- Projection tables
 CREATE TABLE projections.projections (
@@ -378,20 +405,31 @@ COMMENT ON COLUMN projections_table.projection_name IS 'Human-readable name used
 COMMENT ON COLUMN projections_table.mount_path IS 'Absolute projection mount path.';
 COMMENT ON COLUMN projections_table.projector_pid IS 'PID of projection`s projector process.';
 
+
 CREATE TABLE projections.projection_nodes (
-    LIKE projections.tree_nodes INCLUDING CONSTRAINTS INCLUDING INDEXES,
+    LIKE projections.tree_nodes INCLUDING CONSTRAINTS INCLUDING INDEXES INCLUDING DEFAULTS,
     node_content_uri varchar,
-    node_type projections.node_types DEFAULT 'FILE',
+    node_type projections.node_types DEFAULT 'REG',
+    st_atime int,
+    st_mtime int,
+    st_ctime int,
+    st_size int DEFAULT 1,
+    st_mode varchar,
+    st_nlink int,
+    st_ino int,
     metadata_content jsonb DEFAULT '{}',
     FOREIGN KEY (tree_id)
         REFERENCES projections.projections (projection_id) MATCH SIMPLE
-        ON UPDATE CASCADE ON DELETE CASCADE
+        ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (tree_id, parent_id) 
+        REFERENCES projections.projection_nodes (tree_id, node_id) MATCH SIMPLE
+        ON DELETE CASCADE
 );
 ALTER TABLE projections.projection_nodes
     OWNER TO projections_admin;
-CREATE INDEX ON projections.projection_nodes(tree_id);
--- TODO: Add indexes required for tree operations
+
 COMMENT ON TABLE tree_table IS 'Holds projection node records each reflecting some data object projected as file or folder.';
+
 
 CREATE TABLE projections.projection_links (
     projection_link_id bigserial PRIMARY KEY,
@@ -411,26 +449,6 @@ CREATE TABLE projections.projection_links (
 ALTER TABLE projections.projection_links
     OWNER TO projections_admin;
 COMMENT ON TABLE projections.projection_links IS 'Holds named and directed links between different projection objects (such as metadata links).';
-
--- Consider merging this data with projection_nodes since the tables are connected with one-to-one relationship 
-CREATE TABLE projections.projection_node_fs_attributes (
-    projection_node_fs_properties_id bigserial PRIMARY KEY,
-    node_id integer NOT NULL UNIQUE,
-    st_atime int NOT NULL,
-    st_mtime int NOT NULL,
-    st_ctime int NOT NULL,
-    st_size int DEFAULT 1 NOT NULL,
-    st_mode varchar NOT NULL,
-    st_nlink int NOT NULL,
-    st_ino int NOT NULL,
-    FOREIGN KEY (node_id)
-        REFERENCES projections.projection_nodes (node_id) MATCH SIMPLE
-        ON UPDATE CASCADE ON DELETE CASCADE
-);
-ALTER TABLE projections.projection_node_fs_attributes
-    OWNER TO projections_admin;
-
-COMMENT ON TABLE projections.projection_node_fs_attributes IS 'Holds projection node filesystem attributes.';
 
 -- Functions for projection tree operation
 CREATE OR REPLACE FUNCTION add_projection_node(
@@ -458,10 +476,11 @@ BEGIN
         node_type,
         metadata_content
     ) = (
-        node_content_uri,
-        node_type,
-        metadata_content
+        add_projection_node.node_content_uri,
+        add_projection_node.node_type,
+        add_projection_node.metadata_content
     ) WHERE node_id = _projection_node_id;
 
+    RETURN _projection_node_id;
 END;
 $BODY$ LANGUAGE plpgsql;
