@@ -400,10 +400,10 @@ CREATE TABLE projections.projections (
 ALTER TABLE projections.projections
     OWNER TO projections_admin;
 
-COMMENT ON TABLE projections_table IS 'Identifies Projections of resources mounted to specific path on the host system.';
-COMMENT ON COLUMN projections_table.projection_name IS 'Human-readable name used to uniquely identify projection.';
-COMMENT ON COLUMN projections_table.mount_path IS 'Absolute projection mount path.';
-COMMENT ON COLUMN projections_table.projector_pid IS 'PID of projection`s projector process.';
+COMMENT ON TABLE projections.projections IS 'Identifies Projections of resources mounted to specific path on the host system.';
+COMMENT ON COLUMN projections.projections.projection_name IS 'Human-readable name used to uniquely identify projection.';
+COMMENT ON COLUMN projections.projections.mount_point IS 'Absolute projection mount path.';
+COMMENT ON COLUMN projections.projections.projector_pid IS 'PID of projection`s projector process.';
 
 
 CREATE TABLE projections.projection_nodes (
@@ -427,8 +427,6 @@ CREATE TABLE projections.projection_nodes (
 );
 ALTER TABLE projections.projection_nodes
     OWNER TO projections_admin;
-
-COMMENT ON TABLE tree_table IS 'Holds projection node records each reflecting some data object projected as file or folder.';
 
 
 CREATE TABLE projections.projection_links (
