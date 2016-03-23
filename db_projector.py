@@ -226,6 +226,9 @@ class DBProjector:
             # Creating tree of environment contents which will be parsed by ObjectPath
             tree = objectpath.Tree(environment)
             URIs = tree.execute(prototype.uri)
+
+            logger.debug('Projection uri: %s', URIs)
+
             # Object path sometimes returns generator if user uses selectors, for consistency expand it using
             # list comprehension
             if isinstance(URIs, types.GeneratorType):
@@ -249,6 +252,9 @@ class DBProjector:
                 # Creating tree which will be parsed by ObjectPath
                 tree = objectpath.Tree(content)
                 name = tree.execute(prototype.name)
+                logger.debug('Projection name: %s', name)
+
+
 
                 # Object path sometimes returns generator if user uses selectors, for consistency expand it using
                 # list comprehension

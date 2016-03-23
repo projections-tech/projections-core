@@ -226,8 +226,6 @@ class TestProjector(TestCase):
         """
         Tests projection deletion correctness
         """
-        created_projections = self._list_projections()
-
         # Removing entire directory
         self.projector.remove_projection('/experiment_1')
 
@@ -256,8 +254,6 @@ class TestProjector(TestCase):
         """
         Tests projections move correctness
         """
-        created_projections = self._list_projections()
-
         # Moving dir experiment_1 into dir experiment_2
         self.projector.move_projection('/experiment_1', '/experiment_2')
 
@@ -361,8 +357,66 @@ class TestProjector(TestCase):
             self.assertIsInstance(header, int, msg='Check header type.')
             self.assertEqual(3, header, msg='Check header value.')
 
-    def test_transparent_projection(self):
-        """
 
-        :return:
+class TestProjectionVariants(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.logger = logging.getLogger('test_projector')
+
+        # Initializing database connection which will be used during tests
+        cls.db_connection = psycopg2.connect(
+            "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
+        # Creating cursor, which will be used to interact with database
+        cls.cursor = cls.db_connection.cursor()
+
+        cls.projection_driver = TestDriver()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.cursor.execute(" DELETE FROM projections_table WHERE projection_name='test_projection' ")
+        cls.db_connection.commit()
+
+        # Closing cursor and connection
+        cls.cursor.close()
+        cls.db_connection.close()
+
+    def setUp(self):
+        self.cursor.execute("""
+        INSERT INTO projections_table (projection_name, mount_path, projector_pid)
+        VALUES ('test_projection', Null, Null)
+        """)
+
+        self.db_connection.commit()
+
+    def tearDown(self):
+        # Clean up previous test entries in db
+        self.cursor.execute(" DELETE FROM projections_table WHERE projection_name='test_projection' ")
+        self.db_connection.commit()
+
+    def _list_projections(self):
         """
+        This function is used to return list of projections paths from tree table
+        :returns: list of strings
+        """
+        self.cursor.execute("""
+        SELECT concat( '/', array_to_string(path[2:array_upper(path, 1)], '/'))
+        FROM tree_table
+        WHERE projection_name='test_projection'
+        """)
+
+        return [row[0] for row in self.cursor]
+
+    def test_transparent_projection_creation(self):
+        projection_settings = PrototypeDeserializer('tests/projections_configs/test_transaprent_projection_config.yaml')
+
+        projector = DBProjector('test_projection',
+                                self.projection_driver,
+                                projection_settings.prototype_tree,
+                                projection_settings.root_projection_uri)
+        expected_projections = ['/', '/result_1_1.bam', '/result_2_2.bam',
+                                '/result_3_3.bam', '/result_4_4.bam', '/result_5_5.bam']
+
+        created_projections = self._list_projections()
+
+        self.assertListEqual(expected_projections, created_projections,
+                             msg='Checking transparent projections creation.')

@@ -1,0 +1,26 @@
+---
+dialect: python
+resource_uri: test.com
+driver_config_path: "drivers/driver_configurations/test_config.yaml"
+
+root_projection_uri: 'experiments'
+
+result: &bam_file
+  type: file
+  children: None
+  name: "join( [ split($.environment.filesystempath, '/')[-1], '_', split($.environment.data, '/')[-1] ] )"
+  uri: " $.data "
+
+result: &result
+  type: transparent
+  children:
+    bam_file: *bam_file
+  name: "split($.filesystempath, '/')[-1]"
+  uri: "$.results"
+
+root:
+  type: transparent
+  children:
+    result: *result
+  name: "replace($.displayName, ' ', '_')"
+  uri: "$.objects.uri"
