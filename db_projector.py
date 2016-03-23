@@ -212,7 +212,6 @@ class DBProjector:
         environment = copy.deepcopy(self.projection_driver.get_uri_contents_as_dict(root_projection_uri))
 
         # For every prototype in collection try to create corresponding projections
-
         for key, prototype in prototypes.items():
             # Set current prototype context to current environment for children node to use
             prototype.context = environment
@@ -225,9 +224,11 @@ class DBProjector:
 
             # Creating tree of environment contents which will be parsed by ObjectPath
             tree = objectpath.Tree(environment)
+
+            logger.debug('Prototype environment: %s', environment)
             URIs = tree.execute(prototype.uri)
 
-            logger.debug('Projection uri: %s', URIs)
+            logger.debug('URI resolution passed!')
 
             # Object path sometimes returns generator if user uses selectors, for consistency expand it using
             # list comprehension
@@ -236,7 +237,7 @@ class DBProjector:
             # Treating URIs as list for consistency
             if not isinstance(URIs, list):
                 URIs = [URIs]
-
+            logger.debug('Projection uri: %s', URIs)
             # We get projection URIs based on environment and prototype properties
             # Every URI corresponds to projection object
             for uri in URIs:
@@ -253,8 +254,6 @@ class DBProjector:
                 tree = objectpath.Tree(content)
                 name = tree.execute(prototype.name)
                 logger.debug('Projection name: %s', name)
-
-
 
                 # Object path sometimes returns generator if user uses selectors, for consistency expand it using
                 # list comprehension

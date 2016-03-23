@@ -8,19 +8,20 @@ root_projection_uri: 'experiments'
 bam_file: &bam_file
   type: file
   children: None
-  name: "join( [ split($.environment.filesystempath, '/')[-1], '_', split($.environment.data, '/')[-1] ] )"
+  name: "split($.environment.data, '/')[-1]"
   uri: " $.data "
 
 result: &result
-  type: transparent
+  type: directory
   children:
     bam_file: *bam_file
   name: "split($.filesystempath, '/')[-1]"
   uri: "$.results"
 
 root:
-  type: transparent
+  type: directory
   children:
     result: *result
   name: "replace($.displayName, ' ', '_')"
-  uri: "$.objects.uri"
+  # Filters experiments according to their name
+  uri: "$.objects['1' in @.displayName and True].uri"

@@ -407,6 +407,10 @@ class TestProjectionVariants(TestCase):
         return [row[0] for row in self.cursor]
 
     def test_transparent_projection_creation(self):
+        """
+        Tests use of transparent projections
+        """
+
         projection_settings = PrototypeDeserializer('tests/projections_configs/test_transaprent_projection_config.yaml')
 
         projector = DBProjector('test_projection',
@@ -420,3 +424,41 @@ class TestProjectionVariants(TestCase):
 
         self.assertListEqual(expected_projections, created_projections,
                              msg='Checking transparent projections creation.')
+
+    def test_projection_filtration(self):
+        """
+        Tests projection filtration on prototype microcode level
+        """
+
+        projection_settings = PrototypeDeserializer('tests/projections_configs/test_projection_filtration_config.yaml')
+
+        projector = DBProjector('test_projection',
+                                self.projection_driver,
+                                projection_settings.prototype_tree,
+                                projection_settings.root_projection_uri)
+
+        expected_projections = ['/', '/experiment_1', '/experiment_1/result_1', '/experiment_1/result_1/1.bam',
+                                '/experiment_1/result_2', '/experiment_1/result_2/2.bam']
+
+        created_projections = self._list_projections()
+
+        self.assertListEqual(expected_projections, created_projections,
+                             msg='Checking projection filtration.')
+
+    def test_non_root_resource_projection(self):
+        """
+        Tests non root resource projection creation
+        """
+        projection_settings = PrototypeDeserializer('tests/projections_configs/test_non_root_projection.yaml')
+
+        projector = DBProjector('test_projection',
+                                self.projection_driver,
+                                projection_settings.prototype_tree,
+                                projection_settings.root_projection_uri)
+
+        expected_projections = ['/', '/result_1', '/result_1/1.bam', '/result_2', '/result_2/2.bam']
+
+        created_projections = self._list_projections()
+
+        self.assertListEqual(expected_projections, created_projections,
+                             msg='Checking non root resource projection creation.')
