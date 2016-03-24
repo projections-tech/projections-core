@@ -6,11 +6,13 @@ Any modern Linux machine with steady internet connection will suffice.
 ##Installation
 
 In order to run tests create database named 'projections_database' using following command:
+
 '''
 $ createdb projections_database
 '''
 
 Then run tables setup script:
+
 '''
 ./temp_database_setup.py
 '''

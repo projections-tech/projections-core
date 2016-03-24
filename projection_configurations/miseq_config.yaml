@@ -2,7 +2,7 @@
 dialect: ObjectPath
 resource_uri: None
 
-root_projection_uri: 'tests/mock_resource/miseq_mock_data'
+root_projection_uri: 'tests/mock_resources/miseq_mock_data'
 
 sample_sheet_projection: &sample_sheet_projection
   type: file

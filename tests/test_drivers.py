@@ -51,58 +51,38 @@ class TestFsDriver(TestCase):
         """
 
         # Checking driver response for directories uri`s
-        dirs_paths = [os.path.join('tests/test_dir', path)
-                      for path in os.listdir('tests/test_dir')
-                      if os.path.isdir(os.path.join('tests/test_dir', path))]
+        objects_paths = [os.path.join('tests/test_dir', path)
+                         for path in os.listdir('tests/test_dir')]
 
-        for path in dirs_paths:
-            dir_name = os.path.basename(path)
+        for path in objects_paths:
+            object_name = os.path.basename(path)
             resource_uri = os.path.abspath(path)
-            dir_size = os.path.getsize(resource_uri)
-            num_children = len(os.listdir(resource_uri))
+            object_size = os.path.getsize(resource_uri)
 
             driver_response = self.driver.get_uri_contents_as_dict(path)
 
-            self.assertIsInstance(driver_response, dict, msg='Checking response object type.')
-
-            self.assertEqual('dir', driver_response['type'], msg='Checking if response field type is correct.')
-            self.assertEqual(dir_size, driver_response['size'], msg='Checking if dir size is correct.')
-            self.assertEqual(dir_name, driver_response['name'], msg='Checking if dir name is correct.')
-            self.assertEqual(resource_uri, driver_response['resource_uri'], msg='Checking if resource uri is correct.')
-            # Dirs have no extension so checking if it`s extension field holds None
-            self.assertIs(driver_response['extension'], None, msg='Checking if extension is correct.')
-
-            # Checking children field type and children number
-            self.assertIsInstance(driver_response['children'], list,
-                                  msg='Checking if response field "children" is correct.')
-            self.assertEqual(num_children, len(driver_response['children']))
-
-        # Checking driver responses for files uri`s
-        files_paths = [os.path.join('tests/test_dir', path)
-                       for path in os.listdir('tests/test_dir')
-                       if os.path.isfile(os.path.join('tests/test_dir', path))]
-
-        for path in files_paths:
-            file_name = os.path.basename(path)
-            file_extension = os.path.splitext(file_name)[1]
-
-            resource_uri = os.path.abspath(path)
-
-            file_size = os.path.getsize(resource_uri)
-
-            driver_response = self.driver.get_uri_contents_as_dict(path)
+            if os.path.isdir(path):
+                reference_type = 'dir'
+                reference_extension = None
+                num_children = len(os.listdir(resource_uri))
+                # Checking children field type and children number for dir
+                self.assertIsInstance(driver_response['children'], list,
+                                      msg='Checking if response field "children" is correct.')
+                self.assertEqual(num_children, len(driver_response['children']),
+                                 msg='Checking if number of dirs children is correct.')
+            else:
+                reference_type = 'file'
+                reference_extension = os.path.splitext(object_name)[1]
+                # Checking if field "children" is in response, for files it must not be present
+                self.assertNotIn('children', driver_response, msg='Checking if response field "children" is exists.')
 
             self.assertIsInstance(driver_response, dict, msg='Checking response object type.')
-
-            self.assertEqual('file', driver_response['type'], msg='Checking if response field type is correct.')
-            self.assertEqual(file_size, driver_response['size'], msg='Checking if file size is correct.')
-            self.assertEqual(file_name, driver_response['name'], msg='Checking if file name is correct.')
+            self.assertEqual(reference_type, driver_response['type'], msg='Checking if response field type is correct.')
+            self.assertEqual(object_size, driver_response['size'], msg='Checking if dir size is correct.')
+            self.assertEqual(object_name, driver_response['name'], msg='Checking if dir name is correct.')
             self.assertEqual(resource_uri, driver_response['resource_uri'], msg='Checking if resource uri is correct.')
+            self.assertEqual(driver_response['extension'], reference_extension, msg='Checking if extension is correct.')
 
-            self.assertEqual(driver_response['extension'], file_extension, msg='Checking if extension is correct.')
-
-            # Checking if field "children" is in response, for files it must not be present
-            self.assertNotIn('children', driver_response, msg='Checking if response field "children" is exists.')
 
     def test_get_uri_contents_as_bytes(self):
         """
@@ -166,6 +146,10 @@ class TestS3Driver(TestCase):
         Tests if driver gets proper bucket on init
         """
         exp_contents = ['projects/', 'projects/test_file.txt']
+
+        self.assertEqual(len(exp_contents), len([o.key for o in self.driver.bucket.objects.all()]),
+                         msg='Checking if none additional objects reported by driver')
+
         for obj in exp_contents:
             self.assertIn(obj, [o.key for o in self.driver.bucket.objects.all()], msg='Checking objects existence.')
 
@@ -290,9 +274,9 @@ class TestGenbankDriver(TestCase):
             self.assertIsInstance(driver_response, bytes, msg='Checking response type.')
 
             if uri.startswith('search_query'):
-                reference_path = 'tests/mock_resource/genbank_mock_data/esearch_response.xml'
+                reference_path = 'tests/mock_resources/genbank_mock_data/esearch_response.xml'
             else:
-                reference_path = 'tests/mock_resource/genbank_mock_data/mock_contents.txt'
+                reference_path = 'tests/mock_resources/genbank_mock_data/mock_contents.txt'
             with open(reference_path, 'rb') as r_f:
                 reference_contents = r_f.read()
 
