@@ -49,10 +49,10 @@ class ThinDaemon:
         self.cursor = self.db_connection.cursor()
 
         self.cursor.execute("SELECT relname FROM pg_class WHERE relname = 'projections_table' ")
-        is_projections_table_exist = self.cursor.fetchone()
+        projections_table_exists = self.cursor.fetchone()
 
         # If no projections table found, create required tables
-        if not bool(is_projections_table_exist):
+        if not bool(projections_table_exists):
             self.cursor.execute("""
             CREATE TABLE projections_table (
                 projection_name varchar PRIMARY KEY UNIQUE,

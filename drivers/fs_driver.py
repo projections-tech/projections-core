@@ -17,7 +17,6 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Projections.  If not, see <http://www.gnu.org/licenses/>.
 
-import json
 import logging
 import logging.config
 import os
@@ -70,4 +69,4 @@ class FSDriver(ProjectionDriver):
             with open(uri, 'rb') as f:
                 return f.read()
         elif os.path.isdir(uri):
-            return json.dumps(os.listdir(uri)).encode()
+            return None

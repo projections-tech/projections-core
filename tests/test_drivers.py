@@ -113,7 +113,7 @@ class TestFsDriver(TestCase):
                       for path in os.listdir('tests/test_dir')
                       if os.path.isdir(os.path.join('tests/test_dir', path))]
 
-        dir_response_contents = b'["vcf_file.vcf", "rerun", "bed_file.bed"]'
+        dir_response_contents = None
         for path in dirs_paths:
             self.assertEqual(dir_response_contents, self.driver.get_uri_contents_as_bytes(path),
                              msg='Checking dir contents.')
@@ -146,14 +146,15 @@ class TestS3Driver(TestCase):
 
         script_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
-        cls.driver = S3Driver('parseq', 'tests/driver_configurations/aws_s3_config.yaml', script_dir)
+        cls.driver = S3Driver('tests3', 'tests/driver_configurations/aws_s3_config.yaml', script_dir)
 
         # Add contents to mock S3 resource using boto3
         s3 = boto3.resource('s3')
-        s3.create_bucket(Bucket='parseq', CreateBucketConfiguration={'LocationConstraint': 'us-west-2'})
-        s3.Object('parseq', 'projects/').put(Body=b'')
-        s3.Object('parseq', 'projects/ensembl.txt').put(Body=b'Test ensembl here!',
-                                                        Metadata={'madefor': 'testing', 'quality': 'good'})
+        # Moto does not allow underscores in bucket names
+        s3.create_bucket(Bucket='tests3', CreateBucketConfiguration={'LocationConstraint': 'us-west-2'})
+        s3.Object('tests3', 'projects/').put(Body=b'')
+        s3.Object('tests3', 'projects/test_file.txt').put(Body=b'S3 file projection testing data.',
+                                                          Metadata={'madefor': 'testing', 'quality': 'good'})
 
     @classmethod
     def tearDownClass(cls):
@@ -164,7 +165,7 @@ class TestS3Driver(TestCase):
         """
         Tests if driver gets proper bucket on init
         """
-        exp_contents = ['projects/', 'projects/ensembl.txt']
+        exp_contents = ['projects/', 'projects/test_file.txt']
         for obj in exp_contents:
             self.assertIn(obj, [o.key for o in self.driver.bucket.objects.all()], msg='Checking objects existence.')
 
@@ -174,9 +175,9 @@ class TestS3Driver(TestCase):
         """
         contents_meta = [{'content_encoding': None, 'size': 0, 'name': 'projects/',
                           'content_type': 'text/plain; charset=utf-8', 'metadata': {}, 'resource_uri': 'projects/'},
-                         {'content_encoding': None, 'size': 18, 'name': 'projects/ensembl.txt',
+                         {'content_encoding': None, 'size': 32, 'name': 'projects/test_file.txt',
                           'content_type': 'text/plain; charset=utf-8',
-                          'resource_uri': 'projects/ensembl.txt',
+                          'resource_uri': 'projects/test_file.txt',
                           'metadata': {'madefor': 'testing', 'quality': 'good'}}]
         for meta in contents_meta:
             self.assertDictEqual(meta, self.driver.get_uri_contents_as_dict(meta['name']),
@@ -186,8 +187,8 @@ class TestS3Driver(TestCase):
         """
         Tests driver get_uri_contents_bytes method
         """
-        test_ensembl = b'Test ensembl here!'
-        for key, exp_content in {'projects/': b'', 'projects/ensembl.txt': test_ensembl}.items():
+        test_data_contents = b'S3 file projection testing data.'
+        for key, exp_content in {'projects/': b'', 'projects/test_file.txt': test_data_contents}.items():
             driver_response = self.driver.get_uri_contents_as_bytes(key)
             self.assertIsInstance(driver_response, bytes, msg='Checking driver response type.')
             self.assertEqual(exp_content, driver_response,
@@ -201,6 +202,8 @@ class TestTorrentSuiteDriver(TestCase):
 
         cls.mock_resource = MockResource('tests/torrent_suite_mock.json')
 
+        # Drivers use script directory of object that instantiate them as prefix in path resolution.
+        # This behaviour implemented because they are used by daemon object
         script_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
         cls.driver = TorrentSuiteDriver('mockiontorrent.com',
                                         'tests/driver_configurations/iontorrent_config.yaml',
@@ -297,7 +300,6 @@ class TestGenbankDriver(TestCase):
 
 
 class TestSRADriver(TestCase):
-
     @classmethod
     def setUpClass(cls):
         cls.logger = logging.getLogger('test_torrent_suite_driver')
