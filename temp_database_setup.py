@@ -4,11 +4,9 @@
 # This is temporary script created to init database in order to use tests
 # TODO remove this script
 
-import getpass
-
 import psycopg2
 
-db_connection = psycopg2.connect("dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
+db_connection = psycopg2.connect("dbname=projections_database user=docker password=docker host=localhost port=32678")
 
 cursor = db_connection.cursor()
 

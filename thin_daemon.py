@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-import getpass
 import logging
 import logging.config
 import os
@@ -44,7 +43,7 @@ class ThinDaemon:
         }
         # Opening connection with database
         self.db_connection = psycopg2.connect(
-            "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
+            "dbname=projections_database user=docker password=docker host=localhost port=32678")
 
         self.cursor = self.db_connection.cursor()
 
@@ -73,12 +72,6 @@ class ThinDaemon:
             self.projection_mount_point = os.path.join(script_dir, command_line_args.mount_point)
             self.projection_data_directory = os.path.join(script_dir, command_line_args.data_directory)
             self.projection_name = command_line_args.projection_name
-
-            # Opening connection with database
-            self.db_connection = psycopg2.connect(
-                "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
-
-            self.cursor = self.db_connection.cursor()
 
             self.run_projection()
 
