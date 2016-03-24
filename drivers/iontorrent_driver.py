@@ -1,5 +1,21 @@
 #!/usr/bin/env python3
-__author__ = 'abragin'
+
+#    Copyright 2016  Anton Bragin, Victor Svekolkin
+#
+#    This file is part of Projections.
+#
+#    Projections is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Projections is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with Projections.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
 import logging
@@ -14,14 +30,16 @@ logger = logging.getLogger('iontorrent_projection')
 
 
 class TorrentSuiteDriver(ProjectionDriver):
-    def __init__(self, host_url, configuration_file, script_dir):
+    def __init__(self, host_url, configuration_file_path, script_dir):
         """
         Initialize driver which will be used to interact with host.
         :param host_url: URL of host string
         :param user: user name string
         :param password: password string
         """
-        user, password = configuration_file['user'], configuration_file['password']
+
+        self.driver_configuration = self.read_config(script_dir, configuration_file_path)
+        user, password = self.driver_configuration['user'], self.driver_configuration['password']
         self.host_url = 'http://{}'.format(host_url)
         self.api_url = 'http://{}/rundb/api/v1/'.format(host_url)
         self.files_url = urljoin(self.host_url, '/auth/output/Home/')

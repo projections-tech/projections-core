@@ -1,6 +1,6 @@
 {
     "mock_resource_uri": "mockiontorrent.com",
-    "mock_data_path": "tests/mock_resource/torrent_suite_mock_data",
+    "mock_data_path": "tests/mock_resources/torrent_suite_mock_data",
     "mock_responses": {
         "/rundb/api/v1/experiment\\?status=run\\&limit=(\\d+)\\&order_by=-id": "experiments.json",
         "/rundb/api/v1/experiment/1/": "experiments_1.json",

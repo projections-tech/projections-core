@@ -1,0 +1,499 @@
+{
+  "search_query:Streptococcus:1": {
+    "QueryTranslation": "\"Streptococcus\"[Organism] OR Streptococcus[All Fields]",
+    "TranslationSet": [
+      {
+        "To": "\"Streptococcus\"[Organism] OR Streptococcus[All Fields]",
+        "From": "Streptococcus"
+      }
+    ],
+    "TranslationStack": [
+      {
+        "Count": "33356",
+        "Term": "\"Streptococcus\"[Organism]",
+        "Explode": "Y",
+        "Field": "Organism"
+      },
+      {
+        "Count": "32507",
+        "Term": "Streptococcus[All Fields]",
+        "Explode": "N",
+        "Field": "All Fields"
+      },
+      "OR",
+      "GROUP"
+    ],
+    "RetStart": "0",
+    "IdList": [
+      "sra_id:1535133",
+      "sra_id:1535132"
+    ],
+    "RetMax": "2",
+    "Count": "33970",
+    "resource_uri": "search_query:Streptococcus:1"
+  },
+  "sra_id:1535133": {
+    "resource_uri": "sra_id:1535133",
+    "EXPERIMENT_PACKAGE_SET": {
+      "EXPERIMENT_PACKAGE": {
+        "SUBMISSION": {
+          "@lab_name": "Fittipaldi",
+          "@alias": "SUB978492",
+          "IDENTIFIERS": {
+            "PRIMARY_ID": "SRA272793",
+            "SUBMITTER_ID": {
+              "@namespace": "Public Health Ontario",
+              "#text": "SUB978492"
+            }
+          },
+          "@center_name": "Public Health Ontario",
+          "@accession": "SRA272793"
+        },
+        "RUN_SET": {
+          "RUN": [
+            {
+              "EXPERIMENT_REF": {
+                "IDENTIFIERS": {
+                  "SUBMITTER_ID": {
+                    "@namespace": "SUB978492",
+                    "#text": "NGBS741_lib"
+                  }
+                },
+                "@accession": "SRX1058124"
+              },
+              "@load_done": "true",
+              "@total_bases": "267696460",
+              "RUN_ATTRIBUTES": {
+                "RUN_ATTRIBUTE": {
+                  "VALUE": "ILLUMINA",
+                  "TAG": "platform"
+                }
+              },
+              "@published": "2015-06-19 05:41:19",
+              "QualityCount": {
+                "Quality": [
+                  {
+                    "@count": "5345209",
+                    "@value": "2"
+                  },
+                  {
+                    "@count": "12871",
+                    "@value": "5"
+                  },
+                  {
+                    "@count": "60922",
+                    "@value": "6"
+                  },
+                  {
+                    "@count": "345901",
+                    "@value": "7"
+                  },
+                  {
+                    "@count": "392985",
+                    "@value": "8"
+                  },
+                  {
+                    "@count": "225919",
+                    "@value": "9"
+                  },
+                  {
+                    "@count": "241100",
+                    "@value": "10"
+                  },
+                  {
+                    "@count": "149510",
+                    "@value": "11"
+                  },
+                  {
+                    "@count": "83129",
+                    "@value": "12"
+                  },
+                  {
+                    "@count": "247013",
+                    "@value": "13"
+                  },
+                  {
+                    "@count": "85032",
+                    "@value": "14"
+                  },
+                  {
+                    "@count": "206505",
+                    "@value": "15"
+                  },
+                  {
+                    "@count": "259973",
+                    "@value": "16"
+                  },
+                  {
+                    "@count": "290221",
+                    "@value": "17"
+                  },
+                  {
+                    "@count": "511471",
+                    "@value": "18"
+                  },
+                  {
+                    "@count": "363349",
+                    "@value": "19"
+                  },
+                  {
+                    "@count": "508667",
+                    "@value": "20"
+                  },
+                  {
+                    "@count": "247108",
+                    "@value": "21"
+                  },
+                  {
+                    "@count": "475670",
+                    "@value": "22"
+                  },
+                  {
+                    "@count": "557223",
+                    "@value": "23"
+                  },
+                  {
+                    "@count": "739077",
+                    "@value": "24"
+                  },
+                  {
+                    "@count": "1242395",
+                    "@value": "25"
+                  },
+                  {
+                    "@count": "1800641",
+                    "@value": "26"
+                  },
+                  {
+                    "@count": "1377251",
+                    "@value": "27"
+                  },
+                  {
+                    "@count": "1502843",
+                    "@value": "28"
+                  },
+                  {
+                    "@count": "2707852",
+                    "@value": "29"
+                  },
+                  {
+                    "@count": "3645216",
+                    "@value": "30"
+                  },
+                  {
+                    "@count": "6570166",
+                    "@value": "31"
+                  },
+                  {
+                    "@count": "5233702",
+                    "@value": "32"
+                  },
+                  {
+                    "@count": "7536333",
+                    "@value": "33"
+                  },
+                  {
+                    "@count": "19364475",
+                    "@value": "34"
+                  },
+                  {
+                    "@count": "28936990",
+                    "@value": "35"
+                  },
+                  {
+                    "@count": "14619244",
+                    "@value": "36"
+                  },
+                  {
+                    "@count": "24244310",
+                    "@value": "37"
+                  },
+                  {
+                    "@count": "15558527",
+                    "@value": "38"
+                  },
+                  {
+                    "@count": "31337472",
+                    "@value": "39"
+                  },
+                  {
+                    "@count": "36067775",
+                    "@value": "40"
+                  },
+                  {
+                    "@count": "54602413",
+                    "@value": "41"
+                  }
+                ]
+              },
+              "Bases": {
+                "@cs_native": "false",
+                "@count": "267696460",
+                "Base": [
+                  {
+                    "@count": "83895499",
+                    "@value": "A"
+                  },
+                  {
+                    "@count": "49860017",
+                    "@value": "C"
+                  },
+                  {
+                    "@count": "49704317",
+                    "@value": "G"
+                  },
+                  {
+                    "@count": "84234535",
+                    "@value": "T"
+                  },
+                  {
+                    "@count": "2092",
+                    "@value": "N"
+                  }
+                ]
+              },
+              "@alias": "NGBS741_R2.fastq",
+              "IDENTIFIERS": {
+                "PRIMARY_ID": "SRR2062160",
+                "SUBMITTER_ID": {
+                  "@namespace": "SUB978492",
+                  "#text": "NGBS741_R2.fastq"
+                }
+              },
+              "@accession": "SRR2062160",
+              "@cluster_name": "public",
+              "@is_public": "true",
+              "@size": "179746553",
+              "Statistics": {
+                "@nspots": "1325230",
+                "Read": [
+                  {
+                    "@count": "1325230",
+                    "@average": "101",
+                    "@stdev": "0",
+                    "@index": "0"
+                  },
+                  {
+                    "@count": "1325230",
+                    "@average": "101",
+                    "@stdev": "0",
+                    "@index": "1"
+                  }
+                ],
+                "@nreads": "2"
+              },
+              "Pool": {
+                "Member": {
+                  "@sample_name": "NGBS741",
+                  "@organism": "Streptococcus agalactiae",
+                  "@spots": "1325230",
+                  "IDENTIFIERS": {
+                    "PRIMARY_ID": "SRS960535",
+                    "EXTERNAL_ID": {
+                      "@namespace": "BioSample",
+                      "#text": "SAMN03770730"
+                    },
+                    "SUBMITTER_ID": {
+                      "@namespace": "pda|sarahteatero",
+                      "@label": "Sample name",
+                      "#text": "NGBS741"
+                    }
+                  },
+                  "@tax_id": "1311",
+                  "@member_name": "",
+                  "@bases": "267696460",
+                  "@accession": "SRS960535"
+                }
+              },
+              "@total_spots": "1325230",
+              "@static_data_available": "1"
+            }
+          ]
+        },
+        "Pool": {
+          "Member": {
+            "@sample_name": "NGBS741",
+            "@organism": "Streptococcus agalactiae",
+            "@spots": "1325230",
+            "IDENTIFIERS": {
+              "PRIMARY_ID": "SRS960535",
+              "EXTERNAL_ID": {
+                "@namespace": "BioSample",
+                "#text": "SAMN03770730"
+              },
+              "SUBMITTER_ID": {
+                "@namespace": "pda|sarahteatero",
+                "@label": "Sample name",
+                "#text": "NGBS741"
+              }
+            },
+            "@tax_id": "1311",
+            "@member_name": "",
+            "@bases": "267696460",
+            "@accession": "SRS960535"
+          }
+        },
+        "STUDY": {
+          "DESCRIPTOR": {
+            "CENTER_PROJECT_NAME": "Streptococcus agalactiae",
+            "STUDY_TYPE": {
+              "@existing_study_type": "Other"
+            },
+            "STUDY_ABSTRACT": "Genome sequence reads of Streptococcus agalactiae isolated from adults in the Canadian provinces of Manitoba and Saskatchewan.",
+            "STUDY_TITLE": "Streptococcus agalactiae raw sequence reads"
+          },
+          "@alias": "PRJNA286872",
+          "IDENTIFIERS": {
+            "PRIMARY_ID": "SRP059449",
+            "EXTERNAL_ID": {
+              "@namespace": "BioProject",
+              "#text": "PRJNA286872"
+            }
+          },
+          "@center_name": "BioProject",
+          "@accession": "SRP059449"
+        },
+        "Organization": {
+          "Address": {
+            "Department": "Research",
+            "City": "Toronto",
+            "Sub": "ON",
+            "Institution": "Public Health Ontario",
+            "Country": "Canada",
+            "Street": "661 University Avenue",
+            "@postal_code": "M5G 1M1"
+          },
+          "Name": "Public Health Ontario",
+          "@type": "institute",
+          "Contact": {
+            "@email": "sarah.teatero@oahpp.ca",
+            "Name": {
+              "Last": "Teatero",
+              "First": "Sarah"
+            },
+            "Address": {
+              "Department": "Research",
+              "City": "Toronto",
+              "Sub": "ON",
+              "Institution": "Public Health Ontario",
+              "Country": "Canada",
+              "Street": "661 University Avenue",
+              "@postal_code": "M5G 1M1"
+            }
+          }
+        },
+        "SAMPLE": {
+          "SAMPLE_NAME": {
+            "SCIENTIFIC_NAME": "Streptococcus agalactiae",
+            "TAXON_ID": "1311"
+          },
+          "@alias": "NGBS741",
+          "IDENTIFIERS": {
+            "PRIMARY_ID": "SRS960535",
+            "EXTERNAL_ID": {
+              "@namespace": "BioSample",
+              "#text": "SAMN03770730"
+            },
+            "SUBMITTER_ID": {
+              "@namespace": "pda|sarahteatero",
+              "@label": "Sample name",
+              "#text": "NGBS741"
+            }
+          },
+          "SAMPLE_ATTRIBUTES": {
+            "SAMPLE_ATTRIBUTE": [
+              {
+                "VALUE": "NGBS741",
+                "TAG": "isolate"
+              },
+              {
+                "VALUE": "not applicable",
+                "TAG": "collected_by"
+              },
+              {
+                "VALUE": "2010",
+                "TAG": "collection_date"
+              },
+              {
+                "VALUE": "Canada",
+                "TAG": "geo_loc_name"
+              },
+              {
+                "VALUE": "Homo sapiens",
+                "TAG": "host"
+              },
+              {
+                "VALUE": "not collected",
+                "TAG": "host_disease"
+              },
+              {
+                "VALUE": "Other",
+                "TAG": "isolation_source"
+              },
+              {
+                "VALUE": "not collected",
+                "TAG": "lat_lon"
+              },
+              {
+                "VALUE": "Pathogen.cl",
+                "TAG": "BioSampleModel"
+              }
+            ]
+          },
+          "@accession": "SRS960535"
+        },
+        "EXPERIMENT": {
+          "STUDY_REF": {
+            "IDENTIFIERS": {
+              "PRIMARY_ID": "SRP059449",
+              "EXTERNAL_ID": {
+                "@namespace": "BioProject",
+                "#text": "PRJNA286872"
+              }
+            },
+            "@accession": "SRP059449"
+          },
+          "PLATFORM": {
+            "ILLUMINA": {
+              "INSTRUMENT_MODEL": "Illumina HiSeq 2500"
+            }
+          },
+          "DESIGN": {
+            "SAMPLE_DESCRIPTOR": {
+              "IDENTIFIERS": {
+                "PRIMARY_ID": "SRS960535",
+                "EXTERNAL_ID": {
+                  "@namespace": "BioSample",
+                  "#text": "SAMN03770730"
+                }
+              },
+              "@accession": "SRS960535"
+            },
+            "DESIGN_DESCRIPTION": "Nextera XT",
+            "LIBRARY_DESCRIPTOR": {
+              "LIBRARY_SOURCE": "GENOMIC",
+              "LIBRARY_STRATEGY": "WGS",
+              "LIBRARY_NAME": "NGBS741_lib",
+              "LIBRARY_SELECTION": "RANDOM",
+              "LIBRARY_LAYOUT": {
+                "PAIRED": null
+              }
+            }
+          },
+          "TITLE": null,
+          "@alias": "NGBS741_lib",
+          "IDENTIFIERS": {
+            "PRIMARY_ID": "SRX1058124",
+            "SUBMITTER_ID": {
+              "@namespace": "SUB978492",
+              "@label": "9",
+              "#text": "NGBS741_lib"
+            }
+          },
+          "@accession": "SRX1058124"
+        }
+      }
+    }
+  },
+  "SRR1535133": {}
+}

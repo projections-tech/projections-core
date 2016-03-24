@@ -1,23 +1,37 @@
 #!/usr/bin/env python3
 
-import argparse
+#    Copyright 2016  Anton Bragin, Victor Svekolkin
+#
+#    This file is part of Projections.
+#
+#    Projections is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Projections is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with Projections.  If not, see <http://www.gnu.org/licenses/>.
+
 import logging
 import logging.config
-import os
 
 from Bio import Entrez
 
-from filesystem import ProjectionFilesystem
-from fuse import FUSE
-from projections import ProjectionDriver, PrototypeDeserializer
-from tests.mock import MockResource
+from projections import ProjectionDriver
 
-logger = logging.getLogger('genbank_projection')
+logger = logging.getLogger('genbank_driver')
 
 
 class GenbankDriver(ProjectionDriver):
-    def __init__(self, uri, driver_config, script_dir):
-        Entrez.email = driver_config['email']
+    def __init__(self, uri, driver_config_path, script_dir):
+        self.driver_configuration = self.read_config(script_dir, driver_config_path)
+
+        Entrez.email = self.driver_configuration['email']
         Entrez.tool = 'genbank_projection_manager'
         self.driver_cache = {}
 
@@ -27,6 +41,9 @@ class GenbankDriver(ProjectionDriver):
         :param uri: str containing query to SRA
         :return: dict of query contents
         """
+        if uri.startswith('gb:') or uri.startswith('fasta:'):
+            return {}
+
         if uri not in self.driver_cache:
             query = uri.split(':')
             logger.debug('Current query: %s', query)
@@ -62,7 +79,7 @@ class GenbankDriver(ProjectionDriver):
         query = query.split(':')
         query_type = query[0]
         if query_type == 'search_query':
-            return Entrez.esearch(db='nuccore', term=query[1], retmax=query[2])
+            return Entrez.esearch(db='nuccore', term=query[1], retmax=query[2]).read().encode()
         elif query_type == 'gb':
             # Returns query gb file bytes
             gb = Entrez.efetch(db='nuccore', id=query[1], rettype='gb', retmode='text')
@@ -71,38 +88,3 @@ class GenbankDriver(ProjectionDriver):
             # Returns query fasta file bytes
             fasta = Entrez.efetch(db='nuccore', id=query[1], rettype='fasta', retmode='text')
             return fasta.read().encode()
-
-
-# For smoke testing
-def main(config_path, mountpoint, data_folder, projection_name, foreground=True):
-    # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
-    # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
-    projection_filesystem = ProjectionFilesystem(mountpoint, data_folder)
-    projection_configuration = PrototypeDeserializer(config_path)
-
-    genbank_driver = GenbankDriver('vsvekolkin@parseq.pro')
-
-    from db_projector import DBProjector
-    projection_filesystem.projection_manager = DBProjector(projection_name, genbank_driver,
-                                                           projection_configuration.prototype_tree,
-                                                           projection_configuration.root_projection_uri)
-
-    fuse = FUSE(projection_filesystem, mountpoint, foreground=foreground, nonempty=True)
-    return fuse
-
-if __name__ == '__main__':
-
-    script_dir = os.path.dirname(os.path.realpath(__file__))
-    logging.config.fileConfig(os.path.join(script_dir, 'logging.cfg'))
-
-    mock_resource = MockResource('tests/genbank_mock.json')
-
-    parser = argparse.ArgumentParser(description='Genbank projection.')
-    parser.add_argument('-p', '--projection-name', required=True, help='name of current projection')
-    parser.add_argument('-m', '--mount-point', required=True, help='specifies mount point path on host')
-    parser.add_argument('-d', '--data-directory', required=True, help='specifies data directory path on host')
-    parser.add_argument('-c', '--config-path', required=True, help='specifies projection configuration YAML file path')
-    args = parser.parse_args()
-
-    main(args.config_path, args.mount_point, args.data_directory, args.projection_name)
-    mock_resource.deactivate()

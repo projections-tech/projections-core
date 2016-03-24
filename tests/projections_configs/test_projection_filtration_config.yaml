@@ -1,0 +1,27 @@
+---
+dialect: python
+resource_uri: test.com
+driver_config_path: "drivers/driver_configurations/test_config.yaml"
+
+root_projection_uri: 'experiments'
+
+bam_file: &bam_file
+  type: file
+  children: None
+  name: "split($.environment.data, '/')[-1]"
+  uri: " $.data "
+
+result: &result
+  type: directory
+  children:
+    bam_file: *bam_file
+  name: "split($.filesystempath, '/')[-1]"
+  uri: "$.results"
+
+root:
+  type: directory
+  children:
+    result: *result
+  name: "replace($.displayName, ' ', '_')"
+  # Filters experiments according to their name
+  uri: "$.objects['1' in @.displayName and True].uri"

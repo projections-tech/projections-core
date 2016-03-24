@@ -1,6 +1,7 @@
 ---
 dialect: python
-resource_uri: testtorrentsuite.com
+resource_uri: test.com
+driver_config_path: "drivers/driver_configurations/test_config.yaml"
 
 root_projection_uri: 'test_uri'
 

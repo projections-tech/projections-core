@@ -1,3 +1,20 @@
+#    Copyright 2016  Anton Bragin, Victor Svekolkin
+#
+#    This file is part of Projections.
+#
+#    Projections is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Projections is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with Projections.  If not, see <http://www.gnu.org/licenses/>.
+
 import copy
 import getpass
 import io
@@ -13,7 +30,7 @@ import psycopg2
 import psycopg2.extras
 
 logging.config.fileConfig('logging.cfg')
-logger = logging.getLogger('db_test')
+logger = logging.getLogger('db_projector')
 
 
 class DBProjector:
@@ -42,9 +59,6 @@ class DBProjector:
         # Initializing projection driver
         self.projection_driver = projection_driver
 
-        # Initializing psycopg JSONB support
-        psycopg2.extras.register_json(oid=3802, array_oid=3807)
-
         # Opening connection with database
         self.db_connection = psycopg2.connect(
             "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
@@ -53,7 +67,7 @@ class DBProjector:
         self.cursor = self.db_connection.cursor()
 
         # Creating tables with which DBProjector will work
-        self.db_create_tables()
+        self.build_projection()
         logger.debug('Initialized projection: {}'.format(self.projection_name))
 
     def __del__(self):
@@ -83,8 +97,10 @@ class DBProjector:
             temp.append(tail)
             path = head
 
-    def db_create_tables(self):
+    def build_projection(self):
         """
+        THIS METHOD IS DEPRECATED!
+        Table creation is now part of another module
         This method creates tables which will be used to store projections structure and associated metadata
         """
         # Add root node to tables
@@ -143,7 +159,6 @@ class DBProjector:
         environment = copy.deepcopy(self.projection_driver.get_uri_contents_as_dict(root_projection_uri))
 
         # For every prototype in collection try to create corresponding projections
-
         for key, prototype in prototypes.items():
             # Set current prototype context to current environment for children node to use
             prototype.context = environment
@@ -156,7 +171,9 @@ class DBProjector:
 
             # Creating tree of environment contents which will be parsed by ObjectPath
             tree = objectpath.Tree(environment)
+
             URIs = tree.execute(prototype.uri)
+
             # Object path sometimes returns generator if user uses selectors, for consistency expand it using
             # list comprehension
             if isinstance(URIs, types.GeneratorType):
@@ -164,7 +181,7 @@ class DBProjector:
             # Treating URIs as list for consistency
             if not isinstance(URIs, list):
                 URIs = [URIs]
-
+            logger.debug('Projection uri: %s', URIs)
             # We get projection URIs based on environment and prototype properties
             # Every URI corresponds to projection object
             for uri in URIs:
@@ -180,6 +197,7 @@ class DBProjector:
                 # Creating tree which will be parsed by ObjectPath
                 tree = objectpath.Tree(content)
                 name = tree.execute(prototype.name)
+                logger.debug('Projection name: %s', name)
 
                 # Object path sometimes returns generator if user uses selectors, for consistency expand it using
                 # list comprehension
@@ -261,14 +279,15 @@ class DBProjector:
 
                         SELECT tree_table.node_id
                         FROM tree_table, current_node
-                        WHERE {meta_link}
+                        WHERE {meta_link} AND tree_table.projection_name = %(projection_name)s
                     )
                     INSERT INTO metadata_table (parent_node_id, node_id) SELECT %(current_node_id)s, meta_id.node_id
                     FROM meta_id
                     WHERE NOT EXISTS (SELECT 1 FROM metadata_table, meta_id
                     WHERE metadata_table.node_id = meta_id.node_id AND metadata_table.parent_node_id = %(current_node_id)s)
                     RETURNING meta_id
-                    """.format(meta_link=meta_link), {'current_node_id': node_id})
+                    """.format(meta_link=meta_link, ), {'current_node_id': node_id,
+                                                        'projection_name': self.projection_name})
 
                     meta_node_id = self.cursor.fetchone()
                     # Adding meta contents jsonb to projection if insertion were performed
@@ -280,8 +299,6 @@ class DBProjector:
                         meta_node_uri = self.cursor.fetchone()[0]
 
                         metadata_contents = self.projection_driver.get_uri_contents_as_dict(meta_node_uri)
-
-                        logger.debug(metadata_contents)
 
                         self.cursor.execute("""
                         UPDATE metadata_table SET meta_contents = %s WHERE meta_id = %s
@@ -445,7 +462,7 @@ class DBProjector:
         # This command checks existance of projection row in tree_table by path
         # Run command and return check result as bool
         self.cursor.execute("""
-        SELECT path FROM tree_table WHERE join_path(path)=%s;
+        SELECT path FROM tree_table WHERE concat( '/', array_to_string(path[2:array_upper(path, 1)], '/'))=%s;
         """, (path,))
 
         return self.cursor.fetchone() is not None

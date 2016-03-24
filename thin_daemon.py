@@ -14,18 +14,17 @@ import psycopg2
 
 from db_projector import DBProjector
 # TODO consider driver addition from config file
-from drivers.aws_s3 import S3Driver
-from drivers.fs_projection import FSDriver
-from drivers.genbank import GenbankDriver
-from drivers.iontorrent import TorrentSuiteDriver
-from drivers.sra import SRADriver
+from drivers.aws_s3_driver import S3Driver
+from drivers.fs_driver import FSDriver
+from drivers.genbank_driver import GenbankDriver
+from drivers.iontorrent_driver import TorrentSuiteDriver
+from drivers.sra_driver import SRADriver
 
 from filesystem import ProjectionFilesystem
 from fuse import FUSE
 from projections import PrototypeDeserializer
-from tests.mock import MockResource
 
-import yaml
+from tests.mock import MockResource
 
 
 class ThinDaemon:
@@ -165,12 +164,10 @@ class ThinDaemon:
 
         # Loading projection prototype and driver config
         projection_configuration = PrototypeDeserializer(self.projection_config_path)
-        # Opening driver configuration
-        with open(os.path.join(self.script_dir, projection_configuration.driver_config_path)) as yaml_stream:
-            projection_driver_config = yaml.safe_load(yaml_stream)
 
         projection_driver = self.drivers[self.projection_type](projection_configuration.resource_uri,
-                                                               projection_driver_config, self.script_dir)
+                                                               projection_configuration.driver_config_path,
+                                                               self.script_dir)
         # Initializing db projector
         projector = DBProjector(self.projection_name, projection_driver,
                                 projection_configuration.prototype_tree,
@@ -420,8 +417,6 @@ def main():
     script_dir = os.path.dirname(os.path.realpath(__file__))
     logging.config.fileConfig(os.path.join(script_dir, 'logging.cfg'))
 
-    mock_torrent_suite = MockResource('tests/torrent_suite_mock.json')
-
     parser = argparse.ArgumentParser(description='Projection Daemon')
 
     parser.add_argument('-p', '--project', action='store_true', help='perform search')
@@ -445,6 +440,8 @@ def main():
     elif args.search and args.projection_name is None:
         parser.error("search action requires --projection-name.")
 
+    mock_resource = MockResource('tests/torrent_suite_mock.json')
+
     # Daemon creation code
     if args.project:
         try:
@@ -456,7 +453,7 @@ def main():
             sys.exit(1)
 
         # decouple from parent environment
-        os.chdir("/")
+        os.chdir('/')
         os.setsid()
         os.umask(0)
 
