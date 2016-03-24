@@ -1,0 +1,70 @@
+---
+dialect: ObjectPath
+resource_uri: None
+driver_config_path: "tests/driver_configurations/fs_config.yaml"
+
+root_projection_uri: 'tests/test_dir'
+
+
+bed_projection: &bed_projection
+  type: file
+  children: None
+  name: " $.name "
+  uri: " $.children[@.type is 'file' and @.extension is '.bed'].resource_uri "
+
+vcf_projection: &vcf_projection
+  type: file
+  children: None
+  name: " $.name "
+  uri: " $.children[@.type is 'file' and @.extension is '.vcf'].resource_uri "
+
+bam_projection: &bam_projection
+  type: file
+  children: None
+  # This code performs binding on same level
+  meta_link:
+    - " tree_table.name ~ regexp_replace(current_node.name, '.bam', '') AND tree_table.name != current_node.name AND tree_table.path[1:2] = current_node.path[1:2] "
+  name: " $.name "
+  uri: " $.children[@.type is 'file' and @.extension is '.bam'].resource_uri "
+
+json_projection: &json_projection
+  type: file
+  children: None
+  name: " $.name "
+  uri: " $.children[@.type is 'file' and @.extension is '.json'].resource_uri "
+
+fasta_projection: &fasta_projection
+  type: file
+  children: None
+  # This code performs binding on lower level
+  meta_link:
+    - " tree_table.path[3] ~ concat('_', substring(current_node.name, '\\d+'), '$') AND tree_table.name ~ '.vcf' AND not tree_table.type = 'directory'"
+  name: " $.name "
+  uri: " $.children[@.type is 'file' and @.extension is '.fasta'].resource_uri "
+
+rerun_dir_projection: &rerun_dir_projection
+  type: directory
+  children:
+    vcf_projection: *vcf_projection
+    bed_projection: *bed_projection
+  name: " content['name'] "
+  uri: " $.children[@.type is 'dir'].resource_uri "
+
+sample_dir_projection: &sample_dir_projection
+  type: directory
+  children:
+    rerun_dir_projection: *rerun_dir_projection
+    vcf_projection: *vcf_projection
+    bed_projection: *bed_projection
+  name: " $.name "
+  uri: " $.children[@.type is 'dir'].resource_uri "
+
+root:
+  type: directory
+  children:
+    bam_projection: *bam_projection
+    fasta_projection: *fasta_projection
+    json_projection: *json_projection
+    sample_dir_projection: *sample_dir_projection
+  name: " $.name "
+  uri: " 'tests/test_dir' "

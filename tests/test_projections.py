@@ -19,6 +19,7 @@ import getpass
 import json
 import logging
 import logging.config
+import os
 import re
 from io import BytesIO
 from unittest import TestCase
@@ -26,6 +27,7 @@ from unittest import TestCase
 import psycopg2
 
 from db_projector import DBProjector
+from drivers.fs_driver import FSDriver
 from projections import ProjectionPrototype, ProjectionDriver, PrototypeDeserializer
 
 # Import logging configuration from the file provided
@@ -133,23 +135,6 @@ class TestProjector(TestCase):
 
         cls.projection_driver = TestDriver()
 
-        cls.experiment_prototype = ProjectionPrototype('directory')
-        cls.experiment_prototype.name = " replace($.displayName, ' ', '_') "
-        cls.experiment_prototype.uri = ' $.objects.uri '
-
-        result_prototype = ProjectionPrototype('directory')
-        result_prototype.name = " split($.filesystempath, '/')[-1] "
-        result_prototype.uri = " $.results "
-
-        bam_prototype = ProjectionPrototype('file')
-        bam_prototype.name = " split($.environment.data, '/')[-1] "
-        bam_prototype.uri = " $.data "
-
-        result_prototype.parent = cls.experiment_prototype
-        cls.experiment_prototype.children[result_prototype.name] = result_prototype
-        bam_prototype.parent = result_prototype
-        result_prototype.children[bam_prototype.name] = bam_prototype
-
     @classmethod
     def tearDownClass(cls):
         cls.cursor.execute(" DELETE FROM projections_table WHERE projection_name='test_projection' ")
@@ -167,10 +152,12 @@ class TestProjector(TestCase):
 
         self.db_connection.commit()
 
+        projection_settings = PrototypeDeserializer('tests/projections_configs/test_projection.yaml')
+
         self.projector = DBProjector('test_projection',
                                      self.projection_driver,
-                                     self.experiment_prototype,
-                                     'experiments')
+                                     projection_settings.prototype_tree,
+                                     projection_settings.root_projection_uri)
 
     def tearDown(self):
         # Clean up previous test entries in db
@@ -462,3 +449,91 @@ class TestProjectionVariants(TestCase):
 
         self.assertListEqual(expected_projections, created_projections,
                              msg='Checking non root resource projection creation.')
+
+
+class TestMetadataOperations(TestCase):
+    """
+    Tests DBProjector projection tree building
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.logger = logging.getLogger('test_projector')
+
+        # Initializing database connection which will be used during tests
+        cls.db_connection = psycopg2.connect(
+            "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
+        # Creating cursor, which will be used to interact with database
+        cls.cursor = cls.db_connection.cursor()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.cursor.execute(" DELETE FROM projections_table WHERE projection_name='test_projection' ")
+        cls.db_connection.commit()
+
+        # Closing cursor and connection
+        cls.cursor.close()
+        cls.db_connection.close()
+
+    def setUp(self):
+        self.cursor.execute("""
+        INSERT INTO projections_table (projection_name, mount_path, projector_pid)
+        VALUES ('test_projection', Null, Null)
+        """)
+
+        self.db_connection.commit()
+
+        projection_settings = PrototypeDeserializer('tests/projections_configs/test_metadata_operations.yaml')
+
+        script_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+        projection_driver = FSDriver(projection_settings.root_projection_uri, projection_settings.driver_config_path,
+                                     script_dir=script_dir)
+
+        self.projector = DBProjector('test_projection',
+                                     projection_driver,
+                                     projection_settings.prototype_tree,
+                                     projection_settings.root_projection_uri)
+
+    def tearDown(self):
+        # Clean up previous test entries in db
+        self.cursor.execute(" DELETE FROM projections_table WHERE projection_name='test_projection' ")
+        self.db_connection.commit()
+
+    def _list_projections(self):
+        """
+        This function is used to return list of projections paths from tree table
+        :returns: list of strings
+        """
+        self.cursor.execute("""
+        SELECT concat( '/', array_to_string(path[2:array_upper(path, 1)], '/'))
+        FROM tree_table
+        WHERE projection_name='test_projection'
+        """)
+
+        return [row[0] for row in self.cursor]
+
+    def test_metadata_binding(self):
+        """
+        Tests metadata-data binding process.
+        """
+        # Loading data-metadata name pairs
+        self.cursor.execute("""
+        WITH parents AS (
+        SELECT metadata_table.node_id as meta_id, tree_table.node_id as parent_id, tree_table.name as parent_name FROM tree_table, metadata_table WHERE tree_table.node_id = metadata_table.parent_node_id
+        )
+        SELECT parents.parent_name, tree_table.name FROM tree_table, parents WHERE tree_table.node_id = parents.meta_id
+        """)
+
+        parent_meta_pairs = [row for row in self.cursor]
+
+        for row in parent_meta_pairs:
+            parent_name, metadata_name = row
+            if parent_name.endswith('.bam'):
+                parent_name = parent_name.replace('.bam', '')
+                metadata_name = metadata_name.replace('_metadata.json', '')
+                self.assertEqual(parent_name, metadata_name, msg='Checking correctness of BAM metadata binding.')
+            elif parent_name.endswith('.fasta') and False:
+                self.assertEqual('fasta_file_.fasta', re.sub('\d+', '', parent_name),
+                                 msg='Checking if parent node is fasta file.')
+                self.assertEqual('vcf_file.vcf', metadata_name,
+                                 msg='Checking if meta node is vcf file.')

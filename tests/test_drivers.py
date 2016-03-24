@@ -20,7 +20,6 @@ import logging
 import logging.config
 import os
 import re
-import time
 from unittest import TestCase
 
 import boto3
@@ -304,8 +303,6 @@ class TestSRADriver(TestCase):
         cls.logger = logging.getLogger('test_torrent_suite_driver')
 
         cls.mock_resource = MockResource('tests/sra_mock.json')
-
-        time.sleep(0.5)
 
         script_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
         cls.driver = SRADriver('http://eutils.ncbi.nlm.nih.gov',

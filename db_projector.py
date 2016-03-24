@@ -28,7 +28,6 @@ import types
 import objectpath
 import psycopg2
 import psycopg2.extras
-from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('db_projector')
@@ -60,22 +59,10 @@ class DBProjector:
         # Initializing projection driver
         self.projection_driver = projection_driver
 
-        try:
-            # Opening connection with database
-            self.db_connection = psycopg2.connect(
-                "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
-        except Exception as e:
-            logger.debug(e)
-            logger.debug('Database "projections_database" was not found! Creating database.')
-            # Opening temp connection with temp cursor to create database
-            with psycopg2.connect(dbname='postgres', user=getpass.getuser()) as temp_connection:
-                temp_connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-                with temp_connection.cursor() as temp_cursor:
-                    temp_cursor.execute("CREATE DATABASE projections_database")
+        # Opening connection with database
+        self.db_connection = psycopg2.connect(
+            "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
 
-            # Opening connection with database
-            self.db_connection = psycopg2.connect(
-                "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
 
         # Creating cursor, which will be used to interact with database
         self.cursor = self.db_connection.cursor()
@@ -225,10 +212,7 @@ class DBProjector:
             # Creating tree of environment contents which will be parsed by ObjectPath
             tree = objectpath.Tree(environment)
 
-            logger.debug('Prototype environment: %s', environment)
             URIs = tree.execute(prototype.uri)
-
-            logger.debug('URI resolution passed!')
 
             # Object path sometimes returns generator if user uses selectors, for consistency expand it using
             # list comprehension
@@ -335,14 +319,15 @@ class DBProjector:
 
                         SELECT tree_table.node_id
                         FROM tree_table, current_node
-                        WHERE {meta_link}
+                        WHERE {meta_link} AND tree_table.projection_name = %(projection_name)s
                     )
                     INSERT INTO metadata_table (parent_node_id, node_id) SELECT %(current_node_id)s, meta_id.node_id
                     FROM meta_id
                     WHERE NOT EXISTS (SELECT 1 FROM metadata_table, meta_id
                     WHERE metadata_table.node_id = meta_id.node_id AND metadata_table.parent_node_id = %(current_node_id)s)
                     RETURNING meta_id
-                    """.format(meta_link=meta_link), {'current_node_id': node_id})
+                    """.format(meta_link=meta_link, ), {'current_node_id': node_id,
+                                                        'projection_name': self.projection_name})
 
                     meta_node_id = self.cursor.fetchone()
                     # Adding meta contents jsonb to projection if insertion were performed
@@ -354,8 +339,6 @@ class DBProjector:
                         meta_node_uri = self.cursor.fetchone()[0]
 
                         metadata_contents = self.projection_driver.get_uri_contents_as_dict(meta_node_uri)
-
-                        logger.debug(metadata_contents)
 
                         self.cursor.execute("""
                         UPDATE metadata_table SET meta_contents = %s WHERE meta_id = %s
