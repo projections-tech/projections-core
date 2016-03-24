@@ -146,15 +146,17 @@ class TestProjector(TestCase):
 
     def setUp(self):
         self.cursor.execute("""
-        INSERT INTO projections_table (projection_name, mount_path, projector_pid)
-        VALUES ('test_projection', Null, Null)
+        INSERT INTO projections.projections (projection_name, mount_point, driver)
+        VALUES ('Test_projection', 'None', 'test_driver')
+        RETURNING projection_id
         """)
 
+        self.projection_id = self.cursor.fetchone()
         self.db_connection.commit()
 
         projection_settings = PrototypeDeserializer('tests/projections_configs/test_projection.yaml')
 
-        self.projector = DBProjector('test_projection',
+        self.projector = DBProjector(self.projection_id,
                                      self.projection_driver,
                                      projection_settings.prototype_tree,
                                      projection_settings.root_projection_uri)
@@ -170,10 +172,10 @@ class TestProjector(TestCase):
         :returns: list of strings
         """
         self.cursor.execute("""
-        SELECT concat( '/', array_to_string(path[2:array_upper(path, 1)], '/'))
-        FROM tree_table
-        WHERE projection_name='test_projection'
-        """)
+        SELECT concat( '/', array_to_string(node_path[2:array_upper(node_path, 1)], '/'))
+        FROM projections.projection_nodes
+        WHERE tree_id=%s
+        """, (self.projection_id))
 
         return [row[0] for row in self.cursor]
 

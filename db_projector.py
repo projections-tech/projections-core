@@ -22,7 +22,6 @@ import logging
 import logging.config
 import os
 import stat
-import time
 import types
 
 import objectpath
@@ -39,20 +38,15 @@ class DBProjector:
     Current implementation is subject of future rewrites and optimisations,
     """
 
-    def __init__(self, projection_name, projection_driver, prototypes_tree, root_uri):
+    def __init__(self, projection_id, projection_driver, prototypes_tree, root_uri):
         """
         This method initializes database which will hold projection tree and associated metadata
-        :param projection_name: name of projection string
+        :param projection_id: name of projection string
         :param projection_driver: projection driver instance
         :param prototypes_tree: prototypes tree instance
         :param root_uri: root uri of a projection
         """
-        self.projection_name = projection_name
-
-        self.tree_table_name = 'tree_table'
-        self.metadata_table_name = 'metadata_table'
-        self.projections_attributes_table_name = 'projections_attributes_table'
-
+        self.projection_id = projection_id
         self.prototypes_tree = prototypes_tree
         self.root_uri = root_uri
 
@@ -66,9 +60,8 @@ class DBProjector:
         # Creating cursor, which will be used to interact with database
         self.cursor = self.db_connection.cursor()
 
-        # Creating tables with which DBProjector will work
         self.build_projection()
-        logger.debug('Initialized projection: {}'.format(self.projection_name))
+        logger.debug('Initialized projection: {}'.format(self.projection_id))
 
     def __del__(self):
         """
@@ -99,48 +92,30 @@ class DBProjector:
 
     def build_projection(self):
         """
-        THIS METHOD IS DEPRECATED!
-        Table creation is now part of another module
-        This method creates tables which will be used to store projections structure and associated metadata
+        This method builds projection
         """
         # Add root node to tables
-        tree_table_insertion_command = "INSERT INTO {0} (projection_name, parent_id, name, uri, type, path, meta_links) " \
-                                       "SELECT %(proj_name)s, %(p_id)s, %(name)s, %(uri)s, %(type)s, %(path)s, %(meta_links)s " \
-                                       "WHERE NOT EXISTS (" \
-                                       "SELECT * FROM {0} " \
-                                       "WHERE (path=%(path)s::varchar[]) AND projection_name=%(proj_name)s)" \
-                                       "RETURNING node_id".format(self.tree_table_name)
+        self.cursor.execute("""
 
-        self.cursor.execute(tree_table_insertion_command, {'proj_name': self.projection_name,
-                                                           'p_id': None,
-                                                           'name': '/',
-                                                           'type': 'directory',
-                                                           'path': ['/'],
-                                                           'uri': self.root_uri,
-                                                           'meta_links': [None]})
+        SELECT projections.add_projection_node(%(projection_id)s, %(node_name)s, %(parent_id)s, %(uri)s, %(type)s, %(metadata_content)s)
+
+        """, {'projection_id': self.projection_id,
+              'parent_id': None,
+              'node_name': '',
+              'type': 'DIR',
+              'uri': self.root_uri,
+              'metadata_content': None})
+
         # After insertion cursor returns id of root node, which will be used in tree building
         new_parent_id = self.cursor.fetchone()
 
-        now = time.time()
-        # Inserting root node attributes
-        projection_attributes_insertion_command = """
-        INSERT INTO {0} (node_id, st_atime, st_mtime, st_ctime, st_size, st_mode, st_nlink, st_ino)
-        VALUES (%(node_id)s, %(time)s, %(time)s, %(time)s, %(size)s, %(mode)s, %(nlink)s, %(ino)s);
-        """.format(self.projections_attributes_table_name)
-        self.cursor.execute(projection_attributes_insertion_command,
-                            {'node_id': new_parent_id,
-                             'time': now,
-                             'size': 1,
-                             'mode': 'directory',
-                             'nlink': 0,
-                             'ino': 1
-                             })
-        # Starting projections tree construction
-        self.db_build_tree({'/': self.prototypes_tree}, projection_path=['/'],
-                           root_projection_uri=self.root_uri, parent_id=new_parent_id)
-        self.bind_metadata_to_data()
+        self.db_connection.commit()
 
-    def db_build_tree(self, prototypes, parent_id=None, projection_path=None, root_projection_uri=None):
+        # Starting projections tree construction
+        self.db_build_tree({'/': self.prototypes_tree}, root_projection_uri=self.root_uri, parent_id=new_parent_id)
+        # self.bind_metadata_to_data()
+
+    def db_build_tree(self, prototypes, parent_id=None, root_projection_uri=None):
         """
         This method recursively builds projections file structure in tree_table from prototype tree
         :param prototypes: Prototype Tree object
@@ -185,7 +160,6 @@ class DBProjector:
             # We get projection URIs based on environment and prototype properties
             # Every URI corresponds to projection object
             for uri in URIs:
-                current_projection_path = projection_path[:]
                 # Get content for a projection
                 # We don`t want to change driver contents, hence we made deep copy
                 content = copy.deepcopy(self.projection_driver.get_uri_contents_as_dict(uri))
@@ -206,52 +180,35 @@ class DBProjector:
 
                 if prototype.type == 'transparent':
                     # If prototype is transparent skip projection building and pass parent node id as current level id
-                    self.db_build_tree(prototype.children, parent_id, current_projection_path,
-                                       root_projection_uri=uri)
+                    self.db_build_tree(prototype.children, parent_id, root_projection_uri=uri)
                     continue
                 else:
                     current_parent_id = parent_id
-                    current_projection_path.append(name)
-                # Forming tree table projection insertion command, on completion this command returns inserted node id
-                # which will be passed to lower level nodes
-                tree_table_insertion_command = "INSERT INTO {0} (projection_name, parent_id, name, uri, type, path, meta_links) " \
-                                               "SELECT %(proj_name)s, %(p_id)s, %(name)s, " \
-                                               "%(uri)s, %(type)s, %(path)s, %(meta_links)s" \
-                                               "WHERE NOT EXISTS (" \
-                                               "SELECT * FROM {0} " \
-                                               "WHERE (path=%(path)s::varchar[] AND projection_name=%(proj_name)s))" \
-                                               "RETURNING node_id".format(self.tree_table_name)
 
-                self.cursor.execute(tree_table_insertion_command, {'proj_name': self.projection_name,
-                                                                   'p_id': current_parent_id,
-                                                                   'name': name,
-                                                                   'type': prototype.type,
-                                                                   'path': current_projection_path,
-                                                                   'uri': uri,
-                                                                   'meta_links': prototype.meta_link})
+                prototype_types_binding = {
+                    'file': 'REG',
+                    'directory': 'DIR'
+                }
+
+                # Inserting node into projections tree on completion this command returns inserted node id
+                # which will be passed to lower level nodes
+                self.cursor.execute("""
+
+                SELECT projections.add_projection_node(%(projection_id)s, %(node_name)s, %(parent_id)s, %(uri)s, %(type)s, %(metadata_content)s)
+
+                """, {'projection_id': self.projection_id,
+                      'parent_id': current_parent_id,
+                      'node_name': name,
+                      'type': prototype_types_binding[prototype.type],
+                      'uri': self.root_uri,
+                      'metadata_content': None})
+
                 # Fetching inserted projection id which will be parent id for lower level projections
                 new_parent_id = self.cursor.fetchone()
 
                 # If new_parent_id is None, when projection already exists in table
                 if new_parent_id is not None:
-                    now = time.time()
-
-                    # Setting projection attributes
-                    projection_attributes_insertion_command = """
-                    INSERT INTO {0} (node_id, st_atime, st_mtime, st_ctime, st_size, st_mode, st_nlink, st_ino)
-                    VALUES (%(node_id)s, %(time)s, %(time)s, %(time)s, %(size)s, %(mode)s, %(nlink)s, %(ino)s);
-                    """.format(self.projections_attributes_table_name)
-                    self.cursor.execute(projection_attributes_insertion_command,
-                                        {'node_id': new_parent_id,
-                                         'time': now,
-                                         'size': 1,
-                                         'mode': prototype.type,
-                                         'nlink': 0,
-                                         'ino': 1
-                                         })
-
-                    self.db_build_tree(prototype.children, new_parent_id, current_projection_path,
-                                       root_projection_uri=uri)
+                    self.db_build_tree(prototype.children, new_parent_id, root_projection_uri=uri)
                     # Commit all changes
                     self.db_connection.commit()
 
@@ -262,7 +219,7 @@ class DBProjector:
         # List all projections, getting their id`s and lists of meta links
         self.cursor.execute("""
         SELECT node_id, meta_links FROM tree_table WHERE projection_name = %s
-        """, (self.projection_name,))
+        """, (self.projection_id,))
 
         projections_list = [row for row in self.cursor]
 
@@ -287,7 +244,7 @@ class DBProjector:
                     WHERE metadata_table.node_id = meta_id.node_id AND metadata_table.parent_node_id = %(current_node_id)s)
                     RETURNING meta_id
                     """.format(meta_link=meta_link, ), {'current_node_id': node_id,
-                                                        'projection_name': self.projection_name})
+                                                        'projection_name': self.projection_id})
 
                     meta_node_id = self.cursor.fetchone()
                     # Adding meta contents jsonb to projection if insertion were performed
@@ -365,7 +322,7 @@ class DBProjector:
         SELECT {0}.name FROM {0}, node_on_path WHERE {0}.parent_id=node_on_path.node_on_path_id
         """.format(self.tree_table_name)
 
-        self.cursor.execute(paths_request_command, (path, self.projection_name))
+        self.cursor.execute(paths_request_command, (path, self.projection_id))
         return [row[0] for row in self.cursor]
 
     def move_projection(self, node_to_move_path, new_node_root_path):

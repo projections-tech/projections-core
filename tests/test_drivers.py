@@ -83,7 +83,6 @@ class TestFsDriver(TestCase):
             self.assertEqual(resource_uri, driver_response['resource_uri'], msg='Checking if resource uri is correct.')
             self.assertEqual(driver_response['extension'], reference_extension, msg='Checking if extension is correct.')
 
-
     def test_get_uri_contents_as_bytes(self):
         """
         Tests driver get_uri_contents_as_bytes method on dirs and files
