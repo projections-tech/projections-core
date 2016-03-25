@@ -652,3 +652,24 @@ END;
 $BODY$
 LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION projections.get_projections_on_path(
+    current_tree_id bigint,
+    current_path varchar
+) RETURNS SETOF varchar[] AS
+$BODY$
+DECLARE
+node_on_path_id bigint;
+BEGIN
+    SELECT node_id
+    INTO node_on_path_id
+    FROM projections.projection_nodes
+    WHERE tree_id=current_tree_id
+    AND join_path(node_path, node_name) = current_path;
+
+    RETURN QUERY SELECT array(
+        SELECT join_path(node_path, node_name)
+        FROM projections.projection_nodes
+        WHERE parent_id=node_on_path_id
+        );
+END;
+$BODY$ LANGUAGE 'plpgsql';

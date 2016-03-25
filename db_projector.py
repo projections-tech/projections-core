@@ -289,18 +289,10 @@ class DBProjector:
         :param path: path to node string
         :return: list of nodes paths strings
         """
-        path = self.__split_path(path)
-
-        assert isinstance(path, list), 'Path is not a list!'
-        paths_request_command = """
-        WITH node_on_path AS (
-            SELECT node_id AS node_on_path_id FROM {0} WHERE path=%s::varchar[] AND projection_name=%s
-        )
-        SELECT {0}.name FROM {0}, node_on_path WHERE {0}.parent_id=node_on_path.node_on_path_id
-        """.format(self.tree_table_name)
-
-        self.cursor.execute(paths_request_command, (path, self.projection_id))
-        return [row[0] for row in self.cursor]
+        self.cursor.execute("""
+        SELECT projections.get_projections_on_path(%s, %s)
+        """, (self.projection_id, path))
+        return self.cursor.fetchone()[0]
 
     def move_projection(self, node_to_move_path, new_node_root_path):
         """
