@@ -16,6 +16,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Projections.  If not, see <http://www.gnu.org/licenses/>.
+import signal
 
 __author__ = 'abragin'
 
@@ -90,14 +91,37 @@ def start_daemon_listener():
         f.write(str(uri))
         f.write('\n')
 
-    logging.info('Projections daemon is starting. URI: {}'.format(uri))
+    logger.info('Projections daemon is starting. URI: {}'.format(uri))
     pyro_daemon.requestLoop()
+
+def stop_daemon(signum, frame):
+    """
+    This method is called when Projections daemon receives request to terminate.
+    The signature of method is fixed. See: https://docs.python.org/2/library/signal.html#signal.signal
+
+    :param signum: signal number
+    :param frame: current stack frame
+    """
+    logger.info('Signal to stop daemon received. Terminating projections daemon.')
+
+    # TODO: implement all cleaning up stuff here.
+    # Terminate projections FUSE subprocesses, flush database connections, etc.
+
 
 # To start projection daemon simple type: ./projections_daemon.py
 # Then use projections_cli.py client to send command to running daemon.
 if __name__ == '__main__':
     logger.debug('Starting daemon')
-    with daemon.DaemonContext(pidfile=open('/var/lock/projections.pid', 'wb'),
-                              stdout=open(LOG_FILE, 'wb'), stderr=sys.stdout,
-                              working_directory=os.getcwd()):
+    # Create context. For documentation see: https://www.python.org/dev/peps/pep-3143/
+    context = daemon.DaemonContext(
+            pidfile=open('/var/lock/projections.pid', 'wb'),
+            stdout=open(LOG_FILE, 'wb'),
+            stderr=sys.stdout,
+            working_directory=os.getcwd())
+
+    context.signal_map = {
+        signal.SIGTERM: stop_daemon
+    }
+
+    with context:
         start_daemon_listener()
