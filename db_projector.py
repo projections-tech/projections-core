@@ -111,8 +111,11 @@ class DBProjector:
 
         # Setting root projection attributes
         self.cursor.execute("""
-        SELECT projections.set_projection_node_attributes(%(node_id)s, %(node_size)s, %(node_mode)s )
-        """, {'node_id': new_parent_id, 'node_size': 1, 'node_mode': 'DIR'})
+        SELECT projections.set_projection_node_attributes(%(tree_id)s, %(node_id)s, %(node_size)s, %(node_mode)s )
+        """, {'tree_id': self.projection_id,
+              'node_id': new_parent_id,
+              'node_size': 1,
+              'node_mode': 'DIR'})
 
         self.db_connection.commit()
 
@@ -216,8 +219,12 @@ class DBProjector:
 
                 # Setting projection attributes
                 self.cursor.execute("""
-                SELECT projections.set_projection_node_attributes(%(node_id)s, %(node_size)s, %(node_mode)s )
-                """, {'node_id': new_parent_id, 'node_size': 1, 'node_mode': prototype_types_binding[prototype.type]})
+                SELECT projections.set_projection_node_attributes(%(tree_id)s, %(node_id)s, %(node_size)s, %(node_mode)s )
+                """, {'tree_id': self.projection_id,
+                      'node_id': new_parent_id,
+                      'node_size': 1,
+                      'node_mode': prototype_types_binding[prototype.type]}
+                                    )
 
                 # If new_parent_id is None, when projection already exists in table
                 if new_parent_id is not None:
@@ -275,49 +282,6 @@ class DBProjector:
                         """, (psycopg2.extras.Json(metadata_contents), meta_node_id))
 
                     self.db_connection.commit()
-
-    def update_node_descendants_paths(self, new_parent_node_id):
-        """
-        This method updates node descendants paths
-        :param new_parent_node_id: node_id of new parent node in tree_table which descendants we update
-        """
-
-        recursive_update_command = """
-
-        WITH RECURSIVE
-
-        descendants_table AS (
-            WITH RECURSIVE tree AS (
-                SELECT node_id, ARRAY[{1}]::integer[] AS ancestors
-                FROM {0} WHERE parent_id = {1}
-
-                UNION ALL
-
-                SELECT {0}.node_id, tree.ancestors || {0}.parent_id
-                FROM {0}, tree
-                WHERE {0}.parent_id = tree.node_id
-            )
-            SELECT node_id FROM tree WHERE {1} = ANY(tree.ancestors)
-        ),
-
-        ancestors_table AS (
-            SELECT node_id, ARRAY[]::integer[] AS ancestors, ARRAY[{0}.name]::varchar[] AS anc_paths
-            FROM {0} WHERE parent_id IS NULL
-
-            UNION ALL
-
-            SELECT {0}.node_id, ancestors_table.ancestors || {0}.parent_id, ancestors_table.anc_paths || {0}.name
-            FROM {0}, ancestors_table
-            WHERE {0}.parent_id = ancestors_table.node_id
-        )
-
-        UPDATE {0} SET path=ancestors_table.anc_paths FROM ancestors_table, descendants_table
-        WHERE {0}.node_id=ancestors_table.node_id AND {0}.node_id=descendants_table.node_id;
-
-        """.format(self.tree_table_name, new_parent_node_id)
-
-        self.cursor.execute(recursive_update_command)
-        self.db_connection.commit()
 
     def get_projections_on_path(self, path):
         """
@@ -383,10 +347,10 @@ class DBProjector:
         # This command checks existance of projection row in tree_table by path
         # Run command and return check result as bool
         self.cursor.execute("""
-        SELECT path FROM tree_table WHERE concat( '/', array_to_string(path[2:array_upper(path, 1)], '/'))=%s;
-        """, (path,))
+        SELECT projections.projector_is_managing_path(%s, %s)
+        """, (self.projection_id, path))
 
-        return self.cursor.fetchone() is not None
+        return self.cursor.fetchone()[0]
 
     def get_attributes(self, path):
         """

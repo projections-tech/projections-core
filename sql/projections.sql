@@ -543,13 +543,13 @@ END
 $BODY$
 LANGUAGE plpgsql;
 
-
 /*
 This function sets attributes of a node on path
 */
 CREATE OR REPLACE FUNCTION projections.set_projection_node_attributes(
-    current_node_id int,
-    current_node_size int,
+    current_tree_id bigint,
+    current_node_id bigint,
+    current_node_size bigint,
     current_node_mode varchar
     )
     RETURNS void AS
@@ -565,7 +565,8 @@ BEGIN
         st_mode = current_node_mode,
         st_nlink = 0, --currently 0, subject of future changes
         st_ino = 1
-    WHERE projections.projection_nodes.node_id = current_node_id;
+    WHERE projections.projection_nodes.node_id = current_node_id
+    AND projections.projection_nodes.tree_id = current_tree_id;
 END;
 $BODY$
 LANGUAGE plpgsql;
@@ -587,31 +588,6 @@ BEGIN
                                     node_to_remove.tree_id,
                                     node_to_remove.node_id)
     FROM node_to_remove;
-END;
-$BODY$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION projections.remove_node_on_path(
-    current_tree_id bigint,
-    node_to_remove_path varchar
-)
-RETURNS bool AS
-$BODY$
-DECLARE
-node_to_remove_id bigint := Null;
-BEGIN
-    SELECT node_id INTO node_to_remove_id
-    FROM projections.projection_nodes
-    WHERE join_path(projections.projection_nodes.node_path,
-                    projections.projection_nodes.node_name) = node_to_remove_path AND
-                    projections.projection_nodes.tree_id = current_tree_id;
-    IF node_to_remove_id IS NOT NULL THEN
-        PERFORM projections.remove_node('projections.projection_nodes',
-                                        current_tree_id,
-                                        node_to_remove_id);
-        RETURN True;
-    ELSE
-        RETURN False;
-    END IF;
 END;
 $BODY$ LANGUAGE plpgsql;
 
@@ -649,3 +625,26 @@ BEGIN
     END IF;
 END;
 $BODY$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION projections.projector_is_managing_path(
+    current_tree_id bigint,
+    current_node_path varchar
+    )
+  RETURNS bool AS
+$BODY$
+DECLARE
+current_node_id bigint;
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM projections.projection_nodes
+        WHERE join_path(node_path, node_name) = current_node_path) THEN
+        RETURN True;
+    ELSE
+        RETURN False;
+    END IF;
+END;
+$BODY$
+LANGUAGE plpgsql;
+
