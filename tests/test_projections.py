@@ -303,26 +303,27 @@ class TestProjector(TestCase):
         """
         Tests if projector reports correct projections attributes
         """
-        self.cursor.execute("""
-        SELECT st_atime, st_mtime, st_ctime, st_size, st_mode, st_nlink, st_ino
-        FROM tree_table, projections_attributes_table
-        WHERE tree_table.node_id = projections_attributes_table.node_id AND projection_name='test_projection'
-        """)
+        created_projections = self._list_projections()
+        for path in created_projections:
+            self.cursor.execute("""
+            SELECT st_atime, st_mtime, st_ctime, st_size, st_mode, st_nlink, st_ino
+            FROM projections.get_projection_node_attributes(%s, %s)
+            """, (self.projection_id, path))
 
-        for row in self.cursor:
-            st_atime, st_mtime, st_ctime, st_size, st_mode, st_nlink, st_ino = row
-            # Checking attributes type correctness
-            self.assertIsInstance(st_atime, int, msg='Checking projection st_atime attribute type.')
-            self.assertIsInstance(st_mtime, int, msg='Checking projection st_mtime attribute type.')
-            self.assertIsInstance(st_ctime, int, msg='Checking projection st_ctime attribute type.')
-            self.assertIsInstance(st_size, int, msg='Checking projection st_size attribute type.')
-            self.assertIsInstance(st_nlink, int, msg='Checking projection st_nlink attribute type.')
-            self.assertIsInstance(st_ino, int, msg='Checking projection st_ino attribute type.')
-            self.assertIsInstance(st_mode, str, msg='Checking projection st_mode attribute type.')
-            # Checking if attributes returned correctly
-            self.assertEqual(st_size, 1, msg='Checkin projection st_size attribute value.')
-            self.assertEqual(st_nlink, 0, msg='Checkin projection st_nlink attribute value.')
-            self.assertEqual(st_ino, 1, msg='Checkin projection st_ino attribute value.')
+            for row in self.cursor:
+                st_atime, st_mtime, st_ctime, st_size, st_mode, st_nlink, st_ino = row
+                # Checking attributes type correctness
+                self.assertIsInstance(st_atime, int, msg='Checking projection st_atime attribute type.')
+                self.assertIsInstance(st_mtime, int, msg='Checking projection st_mtime attribute type.')
+                self.assertIsInstance(st_ctime, int, msg='Checking projection st_ctime attribute type.')
+                self.assertIsInstance(st_size, int, msg='Checking projection st_size attribute type.')
+                self.assertIsInstance(st_nlink, int, msg='Checking projection st_nlink attribute type.')
+                self.assertIsInstance(st_ino, int, msg='Checking projection st_ino attribute type.')
+                self.assertIsInstance(st_mode, str, msg='Checking projection st_mode attribute type.')
+                # Checking if attributes returned correctly
+                self.assertEqual(st_size, 1, msg='Checkin projection st_size attribute value.')
+                self.assertEqual(st_nlink, 0, msg='Checkin projection st_nlink attribute value.')
+                self.assertEqual(st_ino, 1, msg='Checkin projection st_ino attribute value.')
 
     def test_get_projections_on_path(self):
         """

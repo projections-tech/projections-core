@@ -512,7 +512,10 @@ LANGUAGE 'plpgsql';
 /*
 This function returns attributes of a node on path
 */
-CREATE OR REPLACE FUNCTION projections.get_projection_node_attributes(checked_node_path varchar)
+CREATE OR REPLACE FUNCTION projections.get_projection_node_attributes(
+        current_tree_id bigint,
+        checked_node_path varchar
+        )
     RETURNS TABLE(
         st_atime int,
         st_mtime int,
@@ -538,7 +541,8 @@ BEGIN
         projections.projection_nodes.st_nlink,
         projections.projection_nodes.st_ino
     FROM projections.projection_nodes, node_on_path
-    WHERE projections.projection_nodes.node_id = node_on_path.node_id;
+    WHERE projections.projection_nodes.node_id = node_on_path.node_id
+    AND projections.projection_nodes.tree_id = current_tree_id;
 END
 $BODY$
 LANGUAGE plpgsql;

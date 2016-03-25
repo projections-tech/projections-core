@@ -362,8 +362,8 @@ class DBProjector:
 
         self.cursor.execute("""
         SELECT st_atime, st_mtime, st_ctime, st_size, st_mode, st_nlink, st_ino
-        FROM projections.get_projection_node_attributes(%s)
-        """, (path,))
+        FROM projections.get_projection_node_attributes(%s, %s)
+        """, (self.projection_id, path))
         # Fetching results of query
         attributes = self.cursor.fetchone()
 
