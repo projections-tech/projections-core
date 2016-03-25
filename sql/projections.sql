@@ -418,6 +418,7 @@ CREATE TABLE projections.projection_nodes (
     st_nlink int,
     st_ino int,
     metadata_content jsonb DEFAULT '{}',
+    meta_links varchar[], --NOTE this is a placehoder column, which will contain prototype id in future.
     FOREIGN KEY (tree_id)
         REFERENCES projections.projections (projection_id) MATCH SIMPLE
         ON UPDATE CASCADE ON DELETE CASCADE,
@@ -459,7 +460,8 @@ CREATE OR REPLACE FUNCTION projections.add_projection_node(
     parent_node_id bigint,
     node_content_uri varchar,
     node_type projections.node_types,
-    metadata_content jsonb
+    metadata_content jsonb,
+    meta_links varchar[]
     ) RETURNS bigint AS
 $BODY$
 DECLARE
@@ -476,11 +478,13 @@ BEGIN
     UPDATE projections.projection_nodes SET (
         node_content_uri,
         node_type,
-        metadata_content
+        metadata_content,
+        meta_links
     ) = (
         add_projection_node.node_content_uri,
         add_projection_node.node_type,
-        add_projection_node.metadata_content
+        add_projection_node.metadata_content,
+        add_projection_node.meta_links
     ) WHERE node_id = _projection_node_id;
 
     RETURN _projection_node_id;

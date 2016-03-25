@@ -334,11 +334,14 @@ class TestProjectionVariants(TestCase):
         # Creating cursor, which will be used to interact with database
         cls.cursor = cls.db_connection.cursor()
 
+        cls.cursor.execute(" DELETE FROM projections.projections WHERE projection_name='test_projection'; ")
+        cls.db_connection.commit()
+
         cls.projection_driver = TestDriver()
 
     @classmethod
     def tearDownClass(cls):
-        cls.cursor.execute(" DELETE FROM projections_table WHERE projection_name='test_projection' ")
+        cls.cursor.execute(" DELETE FROM projections.projections WHERE projection_name='test_projection'; ")
         cls.db_connection.commit()
 
         # Closing cursor and connection
@@ -347,15 +350,16 @@ class TestProjectionVariants(TestCase):
 
     def setUp(self):
         self.cursor.execute("""
-        INSERT INTO projections_table (projection_name, mount_path, projector_pid)
-        VALUES ('test_projection', Null, Null)
+        INSERT INTO projections.projections (projection_name, mount_point, driver)
+        VALUES ('test_projection', 'None', 'test_driver')
+        RETURNING projection_id
         """)
-
+        self.projection_id = self.cursor.fetchone()
         self.db_connection.commit()
 
     def tearDown(self):
         # Clean up previous test entries in db
-        self.cursor.execute(" DELETE FROM projections_table WHERE projection_name='test_projection' ")
+        self.cursor.execute(" DELETE FROM projections.projections WHERE projection_name='test_projection'; ")
         self.db_connection.commit()
 
     def _list_projections(self):
@@ -364,10 +368,10 @@ class TestProjectionVariants(TestCase):
         :returns: list of strings
         """
         self.cursor.execute("""
-        SELECT concat( '/', array_to_string(path[2:array_upper(path, 1)], '/'))
-        FROM tree_table
-        WHERE projection_name='test_projection'
-        """)
+        SELECT join_path(node_path, node_name)
+        FROM projections.projection_nodes
+        WHERE tree_id=%s
+        """, (self.projection_id,))
 
         return [row[0] for row in self.cursor]
 
@@ -378,17 +382,18 @@ class TestProjectionVariants(TestCase):
 
         projection_settings = PrototypeDeserializer('tests/projections_configs/test_transaprent_projection_config.yaml')
 
-        projector = DBProjector('test_projection',
+        projector = DBProjector(self.projection_id,
                                 self.projection_driver,
                                 projection_settings.prototype_tree,
                                 projection_settings.root_projection_uri)
+
         expected_projections = ['/', '/result_1_1.bam', '/result_2_2.bam',
                                 '/result_3_3.bam', '/result_4_4.bam', '/result_5_5.bam']
 
         created_projections = self._list_projections()
 
-        self.assertListEqual(expected_projections, created_projections,
-                             msg='Checking transparent projections creation.')
+        self.assertEqual(set(expected_projections), set(created_projections),
+                         msg='Checking transparent projections creation.')
 
     def test_projection_filtration(self):
         """
@@ -397,7 +402,7 @@ class TestProjectionVariants(TestCase):
 
         projection_settings = PrototypeDeserializer('tests/projections_configs/test_projection_filtration_config.yaml')
 
-        projector = DBProjector('test_projection',
+        projector = DBProjector(self.projection_id,
                                 self.projection_driver,
                                 projection_settings.prototype_tree,
                                 projection_settings.root_projection_uri)
@@ -407,8 +412,8 @@ class TestProjectionVariants(TestCase):
 
         created_projections = self._list_projections()
 
-        self.assertListEqual(expected_projections, created_projections,
-                             msg='Checking projection filtration.')
+        self.assertEqual(set(expected_projections), set(created_projections),
+                         msg='Checking projection filtration.')
 
     def test_non_root_resource_projection(self):
         """
@@ -416,7 +421,7 @@ class TestProjectionVariants(TestCase):
         """
         projection_settings = PrototypeDeserializer('tests/projections_configs/test_non_root_projection.yaml')
 
-        projector = DBProjector('test_projection',
+        projector = DBProjector(self.projection_id,
                                 self.projection_driver,
                                 projection_settings.prototype_tree,
                                 projection_settings.root_projection_uri)
@@ -425,8 +430,8 @@ class TestProjectionVariants(TestCase):
 
         created_projections = self._list_projections()
 
-        self.assertListEqual(expected_projections, created_projections,
-                             msg='Checking non root resource projection creation.')
+        self.assertEqual(set(expected_projections), set(created_projections),
+                         msg='Checking non root resource projection creation.')
 
 
 class TestMetadataOperations(TestCase):

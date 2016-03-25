@@ -181,7 +181,7 @@ class ProjectionPrototype(Node):
         super().__init__(name, self)
         self.parent = parent
         self.type = type
-        self.meta_link = [None]
+        self.meta_link = []
         # TODO: consider logical synchronization of name and uri
         # Dialect specific description that is used as a generator for projection uri's
         self.uri = None

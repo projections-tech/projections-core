@@ -20,7 +20,6 @@ import getpass
 import io
 import logging
 import logging.config
-import os
 import stat
 import types
 
@@ -70,26 +69,6 @@ class DBProjector:
         self.cursor.close()
         self.db_connection.close()
 
-    def __split_path(self, path):
-        """
-        Split path string in parts preserving path root
-        :param path: path string
-        :return: list of path parts strings
-        """
-        temp = []
-        while True:
-            head, tail = os.path.split(path)
-            if head == '/' or head == '':
-                if tail == '':
-                    return [head]
-                else:
-                    temp.append(tail)
-                    if not head == '':
-                        temp.append(head)
-                    return temp[::-1]
-            temp.append(tail)
-            path = head
-
     def build_projection(self):
         """
         This method builds projection
@@ -98,13 +77,22 @@ class DBProjector:
 
         # Add root node to tables
         self.cursor.execute("""
-        SELECT projections.add_projection_node(%(projection_id)s, %(node_name)s, %(parent_id)s, %(uri)s, %(type)s, %(metadata_content)s)
+        SELECT projections.add_projection_node(
+            %(projection_id)s,
+            %(node_name)s,
+            %(parent_id)s,
+            %(uri)s,
+            %(type)s,
+            %(metadata_content)s,
+            %(meta_links)s
+            )
         """, {'projection_id': self.projection_id,
               'parent_id': None,
               'node_name': '',
               'type': 'DIR',
               'uri': self.root_uri,
-              'metadata_content': psycopg2.extras.Json(root_node_metadata_content)})
+              'metadata_content': psycopg2.extras.Json(root_node_metadata_content),
+              'meta_links': []})
 
         # After insertion cursor returns id of root node, which will be used in tree building
         new_parent_id = self.cursor.fetchone()
@@ -134,7 +122,6 @@ class DBProjector:
         """
         environment = None
         content = None
-        path = os.path
 
         # This is environment in which projections are created (parent_projection content)
         # TODO: in many cases it means double request to parent projection resource so it should be optimized
@@ -205,14 +192,16 @@ class DBProjector:
                 self.cursor.execute("""
                 SELECT projections.add_projection_node(
                         %(projection_id)s, %(node_name)s, %(parent_id)s,
-                        %(uri)s, %(type)s, %(metadata_content)s
+                        %(uri)s, %(type)s, %(metadata_content)s, %(meta_links)s
                         )
                 """, {'projection_id': self.projection_id,
                       'parent_id': current_parent_id,
                       'node_name': name,
                       'type': prototype_types_binding[prototype.type],
                       'uri': self.root_uri,
-                      'metadata_content': psycopg2.extras.Json(node_metadata_content)})
+                      'metadata_content': psycopg2.extras.Json(node_metadata_content),
+                      'meta_links': prototype.meta_link
+                      })
 
                 # Fetching inserted projection id which will be parent id for lower level projections
                 new_parent_id = self.cursor.fetchone()
