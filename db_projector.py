@@ -430,19 +430,11 @@ class DBProjector:
         :param path: path to projection string
         :return: attributes dict
         """
-
-        path = self.__split_path(path)
-
         attributes_order = ['st_atime', 'st_mtime', 'st_ctime', 'st_size', 'st_mode', 'st_nlink', 'st_ino']
 
-        get_attributes_command = """
-        WITH projection_on_path AS (
-            SELECT node_id FROM {0} WHERE path = %s::varchar[]
-        )
-        SELECT {2} FROM {1} JOIN projection_on_path ON {1}.node_id=projection_on_path.node_id
-        """.format(self.tree_table_name, self.projections_attributes_table_name, ', '.join(attributes_order))
-
-        self.cursor.execute(get_attributes_command, (path,))
+        self.cursor.execute("""
+        SELECT st_atime, st_mtime, st_ctime, st_size, st_mode, st_nlink, st_ino FROM get_projection_node_attributes(%s)
+        """, (path,))
         # Fetching results of query
         attributes = self.cursor.fetchone()
 

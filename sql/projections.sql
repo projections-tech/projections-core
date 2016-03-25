@@ -486,3 +486,59 @@ BEGIN
     RETURN _projection_node_id;
 END;
 $BODY$ LANGUAGE plpgsql;
+
+/*
+This function performs path joining complaint with filesystem path.
+May be used in microcode as utility function.
+*/
+CREATE OR REPLACE FUNCTION join_path(path varchar[], node_name varchar)
+    RETURNS varchar AS
+$BODY$
+DECLARE
+BEGIN
+    IF node_name = '' THEN
+        RETURN '/';
+    END IF;
+
+    IF path = '{}' THEN
+        RETURN concat('/', node_name);
+    ELSE
+        RETURN concat( '/', array_to_string(path, '/'), '/',node_name);
+    END IF;
+END;
+$BODY$
+LANGUAGE 'plpgsql';
+
+/*
+This function returns attributes of a node on path
+*/
+CREATE OR REPLACE FUNCTION get_projection_node_attributes(checked_node_path varchar)
+    RETURNS TABLE(
+        st_atime int,
+        st_mtime int,
+        st_ctime int,
+        st_size int,
+        st_mode varchar,
+        st_nlink int,
+        st_ino int) AS
+$BODY$
+BEGIN
+    RETURN QUERY
+    WITH node_on_path AS (
+        SELECT node_id
+        FROM projections.projection_nodes
+        WHERE join_path(
+            projections.projection_nodes.node_path,
+            projections.projection_nodes.node_name ) = checked_node_path)
+    SELECT projections.projection_nodes.st_atime,
+        projections.projection_nodes.st_mtime,
+        projections.projection_nodes.st_ctime,
+        projections.projection_nodes.st_size,
+        projections.projection_nodes.st_mode,
+        projections.projection_nodes.st_nlink,
+        projections.projection_nodes.st_ino
+    FROM projections.projection_nodes, node_on_path
+    WHERE projections.projection_nodes.node_id = node_on_path.node_id;
+END
+$BODY$
+LANGUAGE plpgsql;

@@ -133,14 +133,14 @@ class TestProjector(TestCase):
         # Creating cursor, which will be used to interact with database
         cls.cursor = cls.db_connection.cursor()
 
-        cls.cursor.execute(" DELETE FROM projections.projections WHERE driver='test_driver'; ")
+        cls.cursor.execute(" DELETE FROM projections.projections WHERE projection_name='test_projection'; ")
         cls.db_connection.commit()
 
         cls.projection_driver = TestDriver()
 
     @classmethod
     def tearDownClass(cls):
-        cls.cursor.execute(" DELETE FROM projections.projections WHERE driver='test_driver'; ")
+        cls.cursor.execute(" DELETE FROM projections.projections WHERE driver='test_projection'; ")
         cls.db_connection.commit()
 
         # Closing cursor and connection
@@ -150,7 +150,7 @@ class TestProjector(TestCase):
     def setUp(self):
         self.cursor.execute("""
         INSERT INTO projections.projections (projection_name, mount_point, driver)
-        VALUES ('Test_projection', 'None', 'test_driver')
+        VALUES ('test_projection', 'None', 'test_driver')
         RETURNING projection_id
         """)
 
@@ -166,7 +166,7 @@ class TestProjector(TestCase):
 
     def tearDown(self):
         # Clean up previous test entries in db
-        self.cursor.execute(" DELETE FROM projections_table WHERE projection_name='test_projection' ")
+        self.cursor.execute(" DELETE FROM projections.projections WHERE driver='test_projection'; ")
         self.db_connection.commit()
 
     def _list_projections(self):
@@ -175,7 +175,7 @@ class TestProjector(TestCase):
         :returns: list of strings
         """
         self.cursor.execute("""
-        SELECT array_to_string(node_path::varchar[])
+        SELECT join_path(node_path, node_name)
         FROM projections.projection_nodes
         WHERE tree_id=%s
         """, (self.projection_id))
