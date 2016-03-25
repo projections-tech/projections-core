@@ -575,26 +575,34 @@ END;
 $BODY$
 LANGUAGE plpgsql;
 
-
+/*
+This function performs node removal from projection_nodes table basing on node path from root,
+*/
 CREATE OR REPLACE FUNCTION projections.remove_node_on_path(current_tree_id bigint, node_to_remove_path varchar)
-RETURNS VOID AS
+RETURNS bool AS
 $BODY$
 DECLARE
+node_to_remove_id bigint := Null;
 BEGIN
-    WITH node_to_remove AS (
-        SELECT node_id, tree_id
-        FROM projections.projection_nodes
-        WHERE join_path(projections.projection_nodes.node_path,
-                        projections.projection_nodes.node_name) = node_to_remove_path AND
-                        projections.projection_nodes.tree_id = current_tree_id
-    )
-    SELECT projections.remove_node('projections.projection_nodes',
-                                    node_to_remove.tree_id,
-                                    node_to_remove.node_id)
-    FROM node_to_remove;
+    SELECT node_id INTO node_to_remove_id
+    FROM projections.projection_nodes
+    WHERE join_path(projections.projection_nodes.node_path,
+                    projections.projection_nodes.node_name) = node_to_remove_path AND
+                    projections.projection_nodes.tree_id = current_tree_id;
+    IF node_to_remove_id IS NOT NULL THEN
+        PERFORM projections.remove_node('projections.projection_nodes',
+                                        current_tree_id,
+                                        node_to_remove_id);
+        RETURN TRUE;
+    ELSE
+        RETURN FALSE;
+    END IF;
 END;
 $BODY$ LANGUAGE plpgsql;
 
+/*
+This function performs node relocation to new parent node by path
+*/
 CREATE OR REPLACE FUNCTION projections.move_node_on_path(
     current_tree_id bigint,
     node_to_move_path varchar,
@@ -630,7 +638,9 @@ BEGIN
 END;
 $BODY$ LANGUAGE plpgsql;
 
-
+/*
+This function reports if node on current projection tree is present in projection_nodes table
+*/
 CREATE OR REPLACE FUNCTION projections.projector_is_managing_path(
     current_tree_id bigint,
     current_node_path varchar
@@ -652,6 +662,9 @@ END;
 $BODY$
 LANGUAGE plpgsql;
 
+/*
+This function returns list of children nodes names on node by path
+*/
 CREATE OR REPLACE FUNCTION projections.get_projections_on_path(
     current_tree_id bigint,
     current_path varchar
@@ -667,9 +680,31 @@ BEGIN
     AND join_path(node_path, node_name) = current_path;
 
     RETURN QUERY SELECT array(
-        SELECT join_path(node_path, node_name)
+        SELECT node_name
         FROM projections.projection_nodes
         WHERE parent_id=node_on_path_id
         );
+END;
+$BODY$ LANGUAGE 'plpgsql';
+
+/*
+This function is used to return node uri, id and st_mode for projector to use
+*/
+CREATE OR REPLACE FUNCTION projections.get_uri_of_projection_on_path(
+    current_tree_id bigint,
+    current_path varchar
+) RETURNS TABLE (
+    node_on_path_id bigint,
+    node_on_path_uri varchar,
+    node_on_path_st_mode varchar
+) AS
+$BODY$
+DECLARE
+BEGIN
+    RETURN QUERY
+    SELECT node_id, node_content_uri, st_mode
+    FROM projections.projection_nodes
+    WHERE tree_id=current_tree_id
+    AND join_path(node_path, node_name) = current_path;
 END;
 $BODY$ LANGUAGE 'plpgsql';

@@ -318,7 +318,6 @@ class DBProjector:
         This method removes node from tree_table and all of it`s descendants
         :param node_path: path to node list of strings
         """
-
         self.cursor.execute("""
         SELECT projections.remove_node_on_path(%s, %s)
         """, (self.projection_id, node_path))
@@ -389,25 +388,25 @@ class DBProjector:
         :return file_header
         :return resource_io
         """
-        path = self.__split_path(path)
+        self.cursor.execute("""
+        SELECT node_on_path_id, node_on_path_uri, node_on_path_st_mode
+        FROM projections.get_uri_of_projection_on_path(%s, %s)
+        """, (self.projection_id, path))
 
-        projection_id_and_uri_query = """
-        SELECT node_id, uri, type FROM {0} WHERE path = %s::varchar[]
-        """.format(self.tree_table_name)
-
-        self.cursor.execute(projection_id_and_uri_query, (path,))
-
-        node_id, uri, projecton_type = self.cursor.fetchone()
+        node_id, uri, node_on_path_st_mode = self.cursor.fetchone()
 
         content = self.projection_driver.get_uri_contents_as_bytes(uri)
         logger.info('Got path content: %s\n', path)
 
         projection_size = len(content)
 
-        update_projection_attributes_command = """
-        UPDATE {0} SET st_size=%s WHERE node_id=%s
-        """.format(self.projections_attributes_table_name)
-        self.cursor.execute(update_projection_attributes_command, (projection_size, node_id,))
+        # Updating projection attributes
+        self.cursor.execute("""
+        SELECT projections.set_projection_node_attributes(%(tree_id)s, %(node_id)s, %(node_size)s, %(node_mode)s )
+        """, {'tree_id': self.projection_id,
+              'node_id': node_id,
+              'node_size': projection_size,
+              'node_mode': node_on_path_st_mode})
 
         file_header = 3
         resource_io = io.BytesIO(content)

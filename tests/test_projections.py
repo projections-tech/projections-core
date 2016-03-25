@@ -81,7 +81,7 @@ class TestDriver(ProjectionDriver):
         assert False is True, 'Test driver can\'t handle resource request, aborting!'
 
     def get_uri_contents_as_bytes(self, uri):
-        return b'Mock contents!'
+        return b'Mock resource contents.'
 
 
 class TestPrototypeDeserializer(TestCase):
@@ -140,7 +140,7 @@ class TestProjector(TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.cursor.execute(" DELETE FROM projections.projections WHERE driver='test_projection'; ")
+        cls.cursor.execute(" DELETE FROM projections.projections WHERE projection_name='test_projection'; ")
         cls.db_connection.commit()
 
         # Closing cursor and connection
@@ -166,7 +166,7 @@ class TestProjector(TestCase):
 
     def tearDown(self):
         # Clean up previous test entries in db
-        self.cursor.execute(" DELETE FROM projections.projections WHERE driver='test_projection'; ")
+        self.cursor.execute(" DELETE FROM projections.projections WHERE projection_name='test_projection'; ")
         self.db_connection.commit()
 
     def _list_projections(self):
@@ -271,34 +271,6 @@ class TestProjector(TestCase):
         for path in projection_paths:
             self.assertTrue(self.projector.is_managing_path(path), msg='Testing if projector manages path.')
 
-    def test_update_projection_size_attribute(self):
-        """
-        Test if projection manager correctly updates projections size attribute
-        """
-        current_projections = self._list_projections()
-
-        self.cursor.execute("""
-        SELECT st_size
-        FROM tree_table, projections_attributes_table
-        WHERE tree_table.node_id = projections_attributes_table.node_id AND projection_name='test_projection' """)
-
-        current_projections_sizes = [row[0] for row in self.cursor]
-
-        for path in current_projections:
-            self.projector.update_projection_size_attribute(path, 10)
-
-        self.cursor.execute("""
-        SELECT st_size
-        FROM tree_table, projections_attributes_table
-        WHERE tree_table.node_id = projections_attributes_table.node_id AND projection_name='test_projection'
-        """)
-
-        updated_projections_sizes = [row[0] for row in self.cursor]
-
-        for size_before, size_after in zip(current_projections_sizes, updated_projections_sizes):
-            self.assertNotEqual(size_before, size_after, msg='Checking if projections sizes where updated.')
-            self.assertEqual(10, size_after, msg='Checking if projections sizes where updated properly')
-
     def test_get_attributes(self):
         """
         Tests if projector reports correct projections attributes
@@ -329,9 +301,9 @@ class TestProjector(TestCase):
         """
         Tests if projector correctly returns projections on path
         """
-        self.assertListEqual(['experiment_0', 'experiment_1', 'experiment_2'],
-                             self.projector.get_projections_on_path('/'),
-                             msg='Checking get_projections_on_path on dir path.')
+        self.assertEqual(set(['experiment_0', 'experiment_1', 'experiment_2']),
+                         set(self.projector.get_projections_on_path('/')),
+                         msg='Checking get_projections_on_path on dir path.')
 
         self.assertListEqual([], self.projector.get_projections_on_path('/experiment_1/result_2/2.bam'),
                              msg='Checking get_projections_on_path on file path.')
@@ -344,8 +316,8 @@ class TestProjector(TestCase):
         for path in paths_list:
             header, bytes_stream = self.projector.open_resource(path)
 
-            self.assertIsInstance(bytes_stream, BytesIO, msg='Checks if projector returns is BytesIO object.')
-            self.assertEqual(b'Mock contents!', bytes_stream.read(), msg='Check resource contents.')
+            self.assertIsInstance(bytes_stream, BytesIO, msg='Checks if projector returns BytesIO object.')
+            self.assertEqual(b'Mock resource contents.', bytes_stream.read(), msg='Check resource contents.')
 
             self.assertIsInstance(header, int, msg='Check header type.')
             self.assertEqual(3, header, msg='Check header value.')
