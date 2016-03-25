@@ -614,3 +614,38 @@ BEGIN
     END IF;
 END;
 $BODY$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION projections.move_node_on_path(
+    current_tree_id bigint,
+    node_to_move_path varchar,
+    new_parent_path varchar
+)
+RETURNS bool AS
+$BODY$
+DECLARE
+node_to_move_id bigint := Null;
+new_parent_id bigint := Null;
+BEGIN
+    SELECT node_id INTO node_to_move_id
+    FROM projections.projection_nodes
+    WHERE join_path(projections.projection_nodes.node_path,
+                    projections.projection_nodes.node_name) = node_to_move_path AND
+                    projections.projection_nodes.tree_id = current_tree_id;
+
+    SELECT node_id INTO new_parent_id
+    FROM projections.projection_nodes
+    WHERE join_path(projections.projection_nodes.node_path,
+                    projections.projection_nodes.node_name) = new_parent_path AND
+                    projections.projection_nodes.tree_id = current_tree_id;
+    --TODO inform user which node i not present, current implementation does not allow it
+    IF node_to_move_id IS NOT NULL AND new_parent_id IS NOT NULL THEN
+        PERFORM projections.move_node('projections.projection_nodes',
+                                      current_tree_id,
+                                      node_to_move_id,
+                                      new_parent_id);
+        RETURN True;
+    ELSE
+        RETURN False;
+    END IF;
+END;
+$BODY$ LANGUAGE plpgsql;

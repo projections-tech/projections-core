@@ -344,42 +344,18 @@ class DBProjector:
         :param node_to_move_path: path to node which will be moved as list of strings
         :param new_node_root_path: path to new parent node list of strings
         """
-        node_to_move_path = self.__split_path(node_to_move_path)
-        new_node_root_path = self.__split_path(new_node_root_path)
 
-        assert isinstance(node_to_move_path, list), 'Input old path is not a list!'
-        assert isinstance(new_node_root_path, list), 'Input new path is not a list!'
-        if node_to_move_path == new_node_root_path:
-            raise Exception('Cannot move node onto itself!')
-
-        node_ids_command = """
-        WITH
-        old_root_node AS (
-            SELECT node_id AS old_root_node_id FROM {0} WHERE path=%s::varchar[]
-        ),
-        new_root_node AS (
-            SELECT node_id AS new_root_node_id FROM {0} WHERE path=%s::varchar[]
-        )
-        SELECT * FROM old_root_node, new_root_node
-
-        """.format(self.tree_table_name)
-
-        self.cursor.execute(node_ids_command, (node_to_move_path, new_node_root_path))
-
-        fetch_result = self.cursor.fetchone()
-
-        if fetch_result is not None:
-            node_id, new_parent_id = fetch_result
+        self.cursor.execute("""
+        SELECT projections.move_node_on_path(%(tree_id)s, %(node_to_move_path)s, %(new_node_root_path)s )
+        """, {'tree_id': self.projection_id,
+              'node_to_move_path': node_to_move_path,
+              'new_node_root_path': new_node_root_path}
+                            )
+        is_node_moved = self.cursor.fetchone()[0]
+        if is_node_moved:
+            self.db_connection.commit()
         else:
-            raise OSError('Attempting to move non existant node on path: {}'.format(node_to_move_path))
-
-        move_command = """
-        UPDATE {0} SET parent_id={1} WHERE node_id = {2}
-        """.format(self.tree_table_name, new_parent_id, node_id)
-        self.cursor.execute(move_command)
-        self.db_connection.commit()
-
-        self.update_node_descendants_paths(new_parent_id)
+            raise OSError('Node on path:%s move to path:%s attempt failed!', node_to_move_path, new_node_root_path)
 
     def remove_projection(self, node_path):
         """
