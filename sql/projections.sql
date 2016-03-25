@@ -265,7 +265,7 @@ BEGIN
             WHERE tree_id = $1 AND node_id = $2
         $$, table_name)
         USING tree_id, node_id;
-        -- Child nodes should be deleted by cascase
+        -- Child nodes should be deleted by cascade
 END;
 $BODY$ LANGUAGE plpgsql;
 
@@ -512,7 +512,7 @@ LANGUAGE 'plpgsql';
 /*
 This function returns attributes of a node on path
 */
-CREATE OR REPLACE FUNCTION get_projection_node_attributes(checked_node_path varchar)
+CREATE OR REPLACE FUNCTION projections.get_projection_node_attributes(checked_node_path varchar)
     RETURNS TABLE(
         st_atime int,
         st_mtime int,
@@ -542,3 +542,75 @@ BEGIN
 END
 $BODY$
 LANGUAGE plpgsql;
+
+
+/*
+This function sets attributes of a node on path
+*/
+CREATE OR REPLACE FUNCTION projections.set_projection_node_attributes(
+    current_node_id int,
+    current_node_size int,
+    current_node_mode varchar
+    )
+    RETURNS void AS
+$BODY$
+DECLARE
+    curr_time int := EXTRACT(epoch FROM now())::int;
+BEGIN
+    UPDATE projections.projection_nodes
+    SET st_atime = curr_time,
+        st_mtime = curr_time,
+        st_ctime = curr_time,
+        st_size = current_node_size,
+        st_mode = current_node_mode,
+        st_nlink = 0, --currently 0, subject of future changes
+        st_ino = 1
+    WHERE projections.projection_nodes.node_id = current_node_id;
+END;
+$BODY$
+LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION projections.remove_node_on_path(current_tree_id bigint, node_to_remove_path varchar)
+RETURNS VOID AS
+$BODY$
+DECLARE
+BEGIN
+    WITH node_to_remove AS (
+        SELECT node_id, tree_id
+        FROM projections.projection_nodes
+        WHERE join_path(projections.projection_nodes.node_path,
+                        projections.projection_nodes.node_name) = node_to_remove_path AND
+                        projections.projection_nodes.tree_id = current_tree_id
+    )
+    SELECT projections.remove_node('projections.projection_nodes',
+                                    node_to_remove.tree_id,
+                                    node_to_remove.node_id)
+    FROM node_to_remove;
+END;
+$BODY$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION projections.remove_node_on_path(
+    current_tree_id bigint,
+    node_to_remove_path varchar
+)
+RETURNS bool AS
+$BODY$
+DECLARE
+node_to_remove_id bigint := Null;
+BEGIN
+    SELECT node_id INTO node_to_remove_id
+    FROM projections.projection_nodes
+    WHERE join_path(projections.projection_nodes.node_path,
+                    projections.projection_nodes.node_name) = node_to_remove_path AND
+                    projections.projection_nodes.tree_id = current_tree_id;
+    IF node_to_remove_id IS NOT NULL THEN
+        PERFORM projections.remove_node('projections.projection_nodes',
+                                        current_tree_id,
+                                        node_to_remove_id);
+        RETURN True;
+    ELSE
+        RETURN False;
+    END IF;
+END;
+$BODY$ LANGUAGE plpgsql;

@@ -111,7 +111,7 @@ class DBProjector:
 
         # Setting root projection attributes
         self.cursor.execute("""
-        SELECT set_projection_node_attributes(%(node_id)s, %(node_size)s, %(node_mode)s )
+        SELECT projections.set_projection_node_attributes(%(node_id)s, %(node_size)s, %(node_mode)s )
         """, {'node_id': new_parent_id, 'node_size': 1, 'node_mode': 'DIR'})
 
         self.db_connection.commit()
@@ -216,7 +216,7 @@ class DBProjector:
 
                 # Setting projection attributes
                 self.cursor.execute("""
-                SELECT set_projection_node_attributes(%(node_id)s, %(node_size)s, %(node_mode)s )
+                SELECT projections.set_projection_node_attributes(%(node_id)s, %(node_size)s, %(node_mode)s )
                 """, {'node_id': new_parent_id, 'node_size': 1, 'node_mode': prototype_types_binding[prototype.type]})
 
                 # If new_parent_id is None, when projection already exists in table
@@ -386,42 +386,17 @@ class DBProjector:
         This method removes node from tree_table and all of it`s descendants
         :param node_path: path to node list of strings
         """
-        node_path = self.__split_path(node_path)
 
-        assert isinstance(node_path, list), 'Node path is not a list!'
-
-        fetch_node_to_remove_id_command = """
-        SELECT node_id FROM {0} WHERE path=%s::varchar[]
-        """.format(self.tree_table_name)
-        self.cursor.execute(fetch_node_to_remove_id_command, (node_path,))
-        self.db_connection.commit()
-
-        fetch_result = self.cursor.fetchone()
-
-        if fetch_result is not None:
-            node_to_remove_id = fetch_result[0]
+        self.cursor.execute("""
+        SELECT projections.remove_node_on_path(%s, %s)
+        """, (self.projection_id, node_path))
+        # Checking if node removal where successful.
+        is_successful = self.cursor.fetchone()[0]
+        if is_successful:
+            logger.info('Succesfully removed projection on path: %s', node_path)
+            self.db_connection.commit()
         else:
-            raise OSError('Attempting to delete non existant node on path {}'.format(node_path))
-
-        node_removal_command = """
-        WITH RECURSIVE descendants_table AS (
-            SELECT node_id, ARRAY[]::integer[] AS ancestors
-            FROM {0} WHERE parent_id IS NULL
-
-            UNION ALL
-
-            SELECT {0}.node_id, descendants_table.ancestors || {0}.parent_id
-            FROM {0}, descendants_table
-            WHERE {0}.parent_id = descendants_table.node_id
-        )
-        DELETE FROM {0}
-        WHERE node_id IN (
-            SELECT node_id FROM descendants_table WHERE {1} = ANY(descendants_table.ancestors)
-        ) OR node_id = {1};
-        """.format(self.tree_table_name, node_to_remove_id)
-
-        self.cursor.execute(node_removal_command)
-        self.db_connection.commit()
+            raise OSError('Attempting to remove non existant projection on path: %s', node_path)
 
     def is_managing_path(self, path):
         """
@@ -446,7 +421,8 @@ class DBProjector:
         attributes_order = ['st_atime', 'st_mtime', 'st_ctime', 'st_size', 'st_mode', 'st_nlink', 'st_ino']
 
         self.cursor.execute("""
-        SELECT st_atime, st_mtime, st_ctime, st_size, st_mode, st_nlink, st_ino FROM get_projection_node_attributes(%s)
+        SELECT st_atime, st_mtime, st_ctime, st_size, st_mode, st_nlink, st_ino
+        FROM projections.get_projection_node_attributes(%s)
         """, (path,))
         # Fetching results of query
         attributes = self.cursor.fetchone()
@@ -457,7 +433,7 @@ class DBProjector:
         # Setting appropriate types access modes for projection types for FUSE
         access_modes = {'REG': (stat.S_IFREG | 0o0777),
                         'DIR': (stat.S_IFDIR | 0o0777)}
-        logger.debug('Proj st_mode: %s', attributes['st_mode'])
+
         attributes['st_mode'] = access_modes[attributes['st_mode']]
         return attributes
 
