@@ -16,6 +16,7 @@
 #    along with Projections.  If not, see <http://www.gnu.org/licenses/>.
 
 import copy
+import getpass
 import io
 import logging
 import logging.config
@@ -60,7 +61,7 @@ class DBProjector:
 
         # Opening connection with database
         self.db_connection = psycopg2.connect(
-            "dbname=projections_database user=docker password=docker host=localhost port=32678")
+            "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
 
         # Creating cursor, which will be used to interact with database
         self.cursor = self.db_connection.cursor()
