@@ -94,20 +94,25 @@ class DBProjector:
         """
         This method builds projection
         """
+        root_node_metadata_content = self.projection_driver.get_uri_contents_as_dict(self.root_uri)
+
         # Add root node to tables
         self.cursor.execute("""
-
         SELECT projections.add_projection_node(%(projection_id)s, %(node_name)s, %(parent_id)s, %(uri)s, %(type)s, %(metadata_content)s)
-
         """, {'projection_id': self.projection_id,
               'parent_id': None,
               'node_name': '',
               'type': 'DIR',
               'uri': self.root_uri,
-              'metadata_content': None})
+              'metadata_content': psycopg2.extras.Json(root_node_metadata_content)})
 
         # After insertion cursor returns id of root node, which will be used in tree building
         new_parent_id = self.cursor.fetchone()
+
+        # Setting root projection attributes
+        self.cursor.execute("""
+        SELECT set_projection_node_attributes(%(node_id)s, %(node_size)s, %(node_mode)s )
+        """, {'node_id': new_parent_id, 'node_size': 1, 'node_mode': 'DIR'})
 
         self.db_connection.commit()
 
@@ -190,21 +195,29 @@ class DBProjector:
                     'directory': 'DIR'
                 }
 
+                node_metadata_content = self.projection_driver.get_uri_contents_as_dict(uri)
+
                 # Inserting node into projections tree on completion this command returns inserted node id
                 # which will be passed to lower level nodes
                 self.cursor.execute("""
-
-                SELECT projections.add_projection_node(%(projection_id)s, %(node_name)s, %(parent_id)s, %(uri)s, %(type)s, %(metadata_content)s)
-
+                SELECT projections.add_projection_node(
+                        %(projection_id)s, %(node_name)s, %(parent_id)s,
+                        %(uri)s, %(type)s, %(metadata_content)s
+                        )
                 """, {'projection_id': self.projection_id,
                       'parent_id': current_parent_id,
                       'node_name': name,
                       'type': prototype_types_binding[prototype.type],
                       'uri': self.root_uri,
-                      'metadata_content': None})
+                      'metadata_content': psycopg2.extras.Json(node_metadata_content)})
 
                 # Fetching inserted projection id which will be parent id for lower level projections
                 new_parent_id = self.cursor.fetchone()
+
+                # Setting projection attributes
+                self.cursor.execute("""
+                SELECT set_projection_node_attributes(%(node_id)s, %(node_size)s, %(node_mode)s )
+                """, {'node_id': new_parent_id, 'node_size': 1, 'node_mode': prototype_types_binding[prototype.type]})
 
                 # If new_parent_id is None, when projection already exists in table
                 if new_parent_id is not None:
@@ -442,10 +455,9 @@ class DBProjector:
         attributes = {el[0]: el[1] for el in zip(attributes_order, attributes)}
 
         # Setting appropriate types access modes for projection types for FUSE
-        access_modes = {'file': (stat.S_IFREG | 0o0777),
-                        'metadata': (stat.S_IFREG | 0o0777),
-                        'directory': (stat.S_IFDIR | 0o0777)}
-
+        access_modes = {'REG': (stat.S_IFREG | 0o0777),
+                        'DIR': (stat.S_IFDIR | 0o0777)}
+        logger.debug('Proj st_mode: %s', attributes['st_mode'])
         attributes['st_mode'] = access_modes[attributes['st_mode']]
         return attributes
 

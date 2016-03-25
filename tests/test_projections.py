@@ -200,8 +200,8 @@ class TestProjector(TestCase):
             self.assertIn(dir_path, created_projections, 'Check that projection exists')
 
             projection_stats = self.projector.get_attributes(dir_path)
-
-            self.assertTrue(projection_stats['st_mode'] == 16895, 'Check that this is a directory projection')
+            self.logger.debug('Proj stats: %s', projection_stats)
+            self.assertEqual(projection_stats['st_mode'], 16895, 'Check that this is a directory projection')
 
         file_paths = ['/experiment_1/result_1/1.bam', '/experiment_1/result_2/2.bam',
                       '/experiment_2/result_3/3.bam', '/experiment_2/result_4/4.bam', '/experiment_2/result_5/5.bam']
