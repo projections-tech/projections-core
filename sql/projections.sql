@@ -712,3 +712,42 @@ BEGIN
     AND join_path(node_path, node_name) = current_path;
 END;
 $BODY$ LANGUAGE 'plpgsql';
+
+/*
+This function performs metadata-data binding
+*/
+CREATE OR REPLACE FUNCTION projections.projector_bind_metadata_to_data(
+    current_tree_id bigint
+) RETURNS bigint[] AS
+$BODY$
+DECLARE
+_node RECORD;
+_node_id bigint;
+_meta_node_id bigint;
+_meta_link varchar;
+tree_nodes_ids bigint[];
+BEGIN
+    FOR _node IN SELECT node_id, meta_links FROM projections.projection_nodes WHERE tree_id=current_tree_id LOOP
+        _node_id = _node.node_id;
+        -- Iterating over meta links of a node
+        FOREACH _meta_link IN ARRAY _node.meta_links LOOP
+            -- Executing meta_link stored in meta_links
+            EXECUTE format(
+            $$
+                WITH current_node AS (
+                    SELECT * FROM projections.projection_nodes WHERE node_id=$1
+                )
+                SELECT nodes.node_id
+                FROM projections.projection_nodes AS nodes, current_node
+                WHERE %s AND nodes.tree_id = $2
+            $$, _meta_link)
+            INTO _meta_node_id
+            USING _node_id, current_tree_id;
+            tree_nodes_ids = tree_nodes_ids || _meta_node_id;
+
+        END LOOP;
+    END LOOP;
+    RETURN tree_nodes_ids;
+
+END;
+$BODY$ LANGUAGE 'plpgsql';

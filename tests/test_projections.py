@@ -451,7 +451,8 @@ class TestMetadataOperations(TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.cursor.execute(" DELETE FROM projections_table WHERE projection_name='test_projection' ")
+        # Clean up previous test entries in db
+        cls.cursor.execute(" DELETE FROM projections.projections WHERE projection_name='test_projection'; ")
         cls.db_connection.commit()
 
         # Closing cursor and connection
@@ -460,9 +461,12 @@ class TestMetadataOperations(TestCase):
 
     def setUp(self):
         self.cursor.execute("""
-        INSERT INTO projections_table (projection_name, mount_path, projector_pid)
-        VALUES ('test_projection', Null, Null)
+        INSERT INTO projections.projections (projection_name, mount_point, driver)
+        VALUES ('test_projection', 'None', 'test_driver')
+        RETURNING projection_id
         """)
+
+        self.projection_id = self.cursor.fetchone()
 
         self.db_connection.commit()
 
@@ -472,14 +476,14 @@ class TestMetadataOperations(TestCase):
         projection_driver = FSDriver(projection_settings.root_projection_uri, projection_settings.driver_config_path,
                                      script_dir=script_dir)
 
-        self.projector = DBProjector('test_projection',
+        self.projector = DBProjector(self.projection_id,
                                      projection_driver,
                                      projection_settings.prototype_tree,
                                      projection_settings.root_projection_uri)
 
     def tearDown(self):
         # Clean up previous test entries in db
-        self.cursor.execute(" DELETE FROM projections_table WHERE projection_name='test_projection' ")
+        self.cursor.execute(" DELETE FROM projections.projections WHERE projection_name='test_projection'; ")
         self.db_connection.commit()
 
     def _list_projections(self):
