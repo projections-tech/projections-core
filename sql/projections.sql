@@ -46,6 +46,8 @@ CREATE TABLE projections.tree_nodes (
     node_path varchar[],
     UNIQUE (tree_id, node_path, node_name),
     UNIQUE (tree_id, node_id),
+    CHECK (node_name != '' OR parent_id IS NULL),
+    CHECK (node_name = '' OR parent_id IS NOT NULL),
     CHECK (node_id != parent_id),
     FOREIGN KEY (tree_id, parent_id) 
         REFERENCES projections.tree_nodes (tree_id, node_id) MATCH SIMPLE

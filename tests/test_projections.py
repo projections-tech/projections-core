@@ -133,11 +133,14 @@ class TestProjector(TestCase):
         # Creating cursor, which will be used to interact with database
         cls.cursor = cls.db_connection.cursor()
 
+        cls.cursor.execute(" DELETE FROM projections.projections WHERE driver='test_driver'; ")
+        cls.db_connection.commit()
+
         cls.projection_driver = TestDriver()
 
     @classmethod
     def tearDownClass(cls):
-        cls.cursor.execute(" DELETE FROM projections_table WHERE projection_name='test_projection' ")
+        cls.cursor.execute(" DELETE FROM projections.projections WHERE driver='test_driver'; ")
         cls.db_connection.commit()
 
         # Closing cursor and connection
@@ -172,7 +175,7 @@ class TestProjector(TestCase):
         :returns: list of strings
         """
         self.cursor.execute("""
-        SELECT concat( '/', array_to_string(node_path[2:array_upper(node_path, 1)], '/'))
+        SELECT array_to_string(node_path::varchar[])
         FROM projections.projection_nodes
         WHERE tree_id=%s
         """, (self.projection_id))
