@@ -109,7 +109,7 @@ class DBProjector:
 
         # Starting projections tree construction
         self.db_build_tree({'/': self.prototypes_tree}, root_projection_uri=self.root_uri, parent_id=new_parent_id)
-        # self.bind_metadata_to_data()
+        self.bind_metadata_to_data()
 
     def db_build_tree(self, prototypes, parent_id=None, root_projection_uri=None):
         """
@@ -225,52 +225,10 @@ class DBProjector:
         """
         Performs data-metadata binding according to meta_link
         """
-        # List all projections, getting their id`s and lists of meta links
         self.cursor.execute("""
-        SELECT node_id, meta_links FROM tree_table WHERE projection_name = %s
+        SELECT projections.projector_bind_metadata_to_data(%s)
         """, (self.projection_id,))
-
-        projections_list = [row for row in self.cursor]
-
-        # Perform metadata binding for each projection according to commands in meta_links
-        for node_id, meta_links in projections_list:
-            for meta_link in meta_links:
-                if meta_link is not None:
-
-                    self.cursor.execute("""
-                    WITH meta_id AS (
-                        WITH current_node AS (
-                            SELECT * FROM tree_table WHERE node_id=%(current_node_id)s
-                        )
-
-                        SELECT tree_table.node_id
-                        FROM tree_table, current_node
-                        WHERE {meta_link} AND tree_table.projection_name = %(projection_name)s
-                    )
-                    INSERT INTO metadata_table (parent_node_id, node_id) SELECT %(current_node_id)s, meta_id.node_id
-                    FROM meta_id
-                    WHERE NOT EXISTS (SELECT 1 FROM metadata_table, meta_id
-                    WHERE metadata_table.node_id = meta_id.node_id AND metadata_table.parent_node_id = %(current_node_id)s)
-                    RETURNING meta_id
-                    """.format(meta_link=meta_link, ), {'current_node_id': node_id,
-                                                        'projection_name': self.projection_id})
-
-                    meta_node_id = self.cursor.fetchone()
-                    # Adding meta contents jsonb to projection if insertion were performed
-                    if meta_node_id is not None:
-                        self.cursor.execute("""
-                        SELECT uri FROM tree_table WHERE node_id=(SELECT node_id FROM metadata_table WHERE meta_id = %s)
-                        """, (meta_node_id,))
-
-                        meta_node_uri = self.cursor.fetchone()[0]
-
-                        metadata_contents = self.projection_driver.get_uri_contents_as_dict(meta_node_uri)
-
-                        self.cursor.execute("""
-                        UPDATE metadata_table SET meta_contents = %s WHERE meta_id = %s
-                        """, (psycopg2.extras.Json(metadata_contents), meta_node_id))
-
-                    self.db_connection.commit()
+        self.db_connection.commit()
 
     def get_projections_on_path(self, path):
         """

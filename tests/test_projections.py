@@ -449,9 +449,13 @@ class TestMetadataOperations(TestCase):
         # Creating cursor, which will be used to interact with database
         cls.cursor = cls.db_connection.cursor()
 
+        cls.cursor.execute(" DELETE FROM projections.projections WHERE projection_name='test_projection'; ")
+        cls.db_connection.commit()
+
+        cls.projection_driver = TestDriver()
+
     @classmethod
     def tearDownClass(cls):
-        # Clean up previous test entries in db
         cls.cursor.execute(" DELETE FROM projections.projections WHERE projection_name='test_projection'; ")
         cls.db_connection.commit()
 
@@ -465,9 +469,7 @@ class TestMetadataOperations(TestCase):
         VALUES ('test_projection', 'None', 'test_driver')
         RETURNING projection_id
         """)
-
         self.projection_id = self.cursor.fetchone()
-
         self.db_connection.commit()
 
         projection_settings = PrototypeDeserializer('tests/projections_configs/test_metadata_operations.yaml')
@@ -492,10 +494,10 @@ class TestMetadataOperations(TestCase):
         :returns: list of strings
         """
         self.cursor.execute("""
-        SELECT concat( '/', array_to_string(path[2:array_upper(path, 1)], '/'))
-        FROM tree_table
-        WHERE projection_name='test_projection'
-        """)
+        SELECT join_path(node_path, node_name)
+        FROM projections.projection_nodes
+        WHERE tree_id=%s
+        """, (self.projection_id,))
 
         return [row[0] for row in self.cursor]
 

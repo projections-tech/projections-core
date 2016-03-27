@@ -716,16 +716,16 @@ $BODY$ LANGUAGE 'plpgsql';
 /*
 This function performs metadata-data binding
 */
+
 CREATE OR REPLACE FUNCTION projections.projector_bind_metadata_to_data(
     current_tree_id bigint
-) RETURNS bigint[] AS
+) RETURNS VOID AS
 $BODY$
 DECLARE
 _node RECORD;
 _node_id bigint;
 _meta_node_id bigint;
 _meta_link varchar;
-tree_nodes_ids bigint[];
 BEGIN
     FOR _node IN SELECT node_id, meta_links FROM projections.projection_nodes WHERE tree_id=current_tree_id LOOP
         _node_id = _node.node_id;
@@ -743,11 +743,9 @@ BEGIN
             $$, _meta_link)
             INTO _meta_node_id
             USING _node_id, current_tree_id;
-            tree_nodes_ids = tree_nodes_ids || _meta_node_id;
-
+            INSERT INTO projections.projection_links (head_node_id, tail_node_id, link_name)
+            VALUES (_node_id, _meta_node_id, format('link_from_%s_to_%s', _node_id, _meta_node_id));
         END LOOP;
     END LOOP;
-    RETURN tree_nodes_ids;
-
 END;
 $BODY$ LANGUAGE 'plpgsql';

@@ -23,7 +23,7 @@ bam_projection: &bam_projection
   children: None
   # This code performs binding on same level
   meta_link:
-    - " nodes.name ~ regexp_replace(current_node.name, '.bam', '') AND nodes.name != current_node.name AND nodes.path[1:2] = current_node.path[1:2] "
+    - " nodes.node_name ~ regexp_replace(current_node.node_name, '.bam', '') AND nodes.node_name != current_node.node_name "
   name: " $.name "
   uri: " $.children[@.type is 'file' and @.extension is '.bam'].resource_uri "
 
@@ -36,9 +36,6 @@ json_projection: &json_projection
 fasta_projection: &fasta_projection
   type: file
   children: None
-  # This code performs binding on lower level
-  meta_link:
-    - " nodes.path[3] ~ concat('_', substring(current_node.name, '\\d+'), '$') AND nodes.node_name ~ '.vcf' AND not nodes.type = 'directory'"
   name: " $.name "
   uri: " $.children[@.type is 'file' and @.extension is '.fasta'].resource_uri "
 
