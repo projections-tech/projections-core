@@ -21,7 +21,7 @@ run_prototype: &run_prototype
 experiment_meta_prototype: &experiment_meta_prototype
   type: file
   children: None
-  name:  " 'metadata.json' "
+  name:  " $.@accession + '.sam' + '.meta' "
   uri: " $.resource_uri "
 
 # This is a root prototype for projections, its context will be used as environment for children prototypes

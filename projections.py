@@ -1,18 +1,18 @@
 __author__ = 'abragin'
 
+import copy
 import io
 import json
 import logging
 import os
-import stat
-import time
-import threading
-import yaml
 import pprint
-import objectpath
+import stat
+import threading
+import time
 import types
-import copy
-import itertools
+
+import objectpath
+import yaml
 
 # Import logging configuration from the file provided
 logging.config.fileConfig('logging.cfg')
@@ -463,6 +463,7 @@ class Projector:
                 # Adding environment to use by prototype
                 content['environment'] = environment
                 content['context'] = context
+                content['resource_uri'] = uri
 
                 # Creating tree which will be parsed by ObjectPath
                 tree = objectpath.Tree(content)

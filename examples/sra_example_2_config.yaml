@@ -13,19 +13,19 @@ root_projection_uri: 'query:Volvox:10'
 run_prototype: &run_prototype
   type: file
   children: None
-  name:  " $.@accession + '.sam' "
+  name:  " join([$.@accession, '.sam'. '_']) "
   uri: " $.EXPERIMENT_PACKAGE_SET.EXPERIMENT_PACKAGE.RUN_SET.RUN.@accession "
 
 # Prototype of experiment metadata, projects to json file
 experiment_meta_prototype: &experiment_meta_prototype
   type: file
   children: None
-  name:  " 'metadata.json' "
-  uri: " $.resource_uri "
+  name:  " join([$.@accession, '.sam.meta'. '_']) "
+  uri: " $.EXPERIMENT_PACKAGE_SET.EXPERIMENT_PACKAGE.RUN_SET.RUN.@accession "
 
 # This is a root prototype for projections, its context will be used as environment for children prototypes
 root:
-  type: directory
+  type: transparent
   children:
     experiment_meta_prototype: *experiment_meta_prototype
     run_prototype: *run_prototype

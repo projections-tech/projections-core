@@ -1,25 +1,20 @@
 #!/usr/bin/env python3
 
+import argparse
+import json
 import logging
 import logging.config
-import json
 import os
 import re
-import sys
-import time
-import xmltodict
 import subprocess
-import argparse
+
+import xmltodict
 from Bio import Entrez
 
-from tests.mock import MockResource
-
-
-
-from projections import ProjectionDriver, Projector, PrototypeDeserializer
 from filesystem import ProjectionFilesystem
 from fuse import FUSE
-
+from projections import ProjectionDriver, Projector, PrototypeDeserializer
+from tests.mock import MockResource
 
 logger = logging.getLogger('sra_projection')
 
@@ -89,7 +84,7 @@ class SRADriver(ProjectionDriver):
         else:
             return self.driver_cache[uri]
 
-    def load_uri_contents_as_bytes(self, uri):
+    def get_uri_contents_as_bytes(self, uri):
         """
         Returns stream of uri contents
         :param uri: uri of resource

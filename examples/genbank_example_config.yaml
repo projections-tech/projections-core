@@ -2,24 +2,24 @@
 dialect: ObjectPath
 resource_uri: http://eutils.ncbi.nlm.nih.gov
 
-root_projection_uri: 'search_query:escherichia[orgn] AND complete genome[title]:1'
+root_projection_uri: 'search_query:escherichia[orgn] AND complete genome[title]:3'
 
 fasta_file_prototype: &fasta_file_prototype
   type: file
   children: None
-  name: "'sequence.fasta'"
+  name: " join([$.resource_uri, 'sequence.fasta'], '_' )"
   uri: " $.fasta_files "
 
 gb_file_prototype: &gb_file_prototype
   type: file
   children: None
-  name: " 'sequence.gb' "
+  name: " join([$.resource_uri, 'sequence.fasta'], '_' ) "
   uri: " $.gb_files "
 
 root:
-  type: directory
+  type: transparent
   children:
     gb_file_prototype: *gb_file_prototype
     fasta_file_prototype: *fasta_file_prototype
-  name: " $.QueryTranslation "
-  uri: " 'search_query:escherichia[orgn] AND complete genome[title]:1' "
+  name: " $.resource_uri "
+  uri: " 'search_query:escherichia[orgn] AND complete genome[title]:3' "
