@@ -40,9 +40,7 @@ class TestFsDriver(TestCase):
     def setUpClass(cls):
         cls.logger = logging.getLogger('fs_driver_test')
 
-        script_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
         cls.driver = FSDriver(driver_config_path='tests/driver_configurations/fs_config.yaml',
-                              script_dir=script_dir,
                               uri='')
 
     def test_get_uri_contents_as_dict(self):
@@ -122,10 +120,7 @@ class TestS3Driver(TestCase):
         cls.mock.start()
 
         cls.logger = logging.getLogger('s3_driver_test')
-
-        script_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-
-        cls.driver = S3Driver('tests3', 'tests/driver_configurations/aws_s3_config.yaml', script_dir)
+        cls.driver = S3Driver('tests3', 'tests/driver_configurations/aws_s3_config.yaml')
 
         # Add contents to mock S3 resource using boto3
         s3 = boto3.resource('s3')
@@ -185,12 +180,8 @@ class TestTorrentSuiteDriver(TestCase):
 
         cls.mock_resource = MockResource('tests/torrent_suite_mock.json')
 
-        # Drivers use script directory of object that instantiate them as prefix in path resolution.
-        # This behaviour implemented because they are used by daemon object
-        script_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
         cls.driver = TorrentSuiteDriver('mockiontorrent.com',
-                                        'tests/driver_configurations/iontorrent_config.yaml',
-                                        script_dir)
+                                        'tests/driver_configurations/iontorrent_config.yaml')
         with open('tests/torrent_suite_mock.json') as m_f:
             cls.mock_structure = json.load(m_f)
 
@@ -240,10 +231,8 @@ class TestGenbankDriver(TestCase):
 
         cls.mock_resource = MockResource('tests/genbank_mock.json')
 
-        script_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
         cls.driver = GenbankDriver('http://eutils.ncbi.nlm.nih.gov',
-                                   'tests/driver_configurations/genbank_config.yaml',
-                                   script_dir)
+                                   'tests/driver_configurations/genbank_config.yaml')
 
         with open('tests/genbank_driver_responses.json') as r_r:
             cls.reference_genbank_responses = json.load(r_r)
@@ -289,10 +278,8 @@ class TestSRADriver(TestCase):
 
         cls.mock_resource = MockResource('tests/sra_mock.json')
 
-        script_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
         cls.driver = SRADriver('http://eutils.ncbi.nlm.nih.gov',
-                               'tests/driver_configurations/sra_config.yaml',
-                               script_dir)
+                               'tests/driver_configurations/sra_config.yaml')
 
         with open('tests/sra_driver_responses.json') as r_r:
             cls.reference_sra_responses = json.load(r_r)

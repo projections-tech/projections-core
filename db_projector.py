@@ -15,17 +15,23 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Projections.  If not, see <http://www.gnu.org/licenses/>.
 
+import argparse
 import copy
 import getpass
 import io
 import logging
 import logging.config
+import os
 import stat
 import types
 
 import objectpath
 import psycopg2
 import psycopg2.extras
+
+from filesystem import ProjectionFilesystem
+from fuse import FUSE
+from projections import PrototypeDeserializer
 
 logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('db_projector')
@@ -316,3 +322,61 @@ class DBProjector:
         self.db_connection.commit()
 
         return file_header, resource_io
+
+
+def main(projection_id, mount_point, prototype, driver):
+    # TODO consider driver addition from config file
+    from drivers.aws_s3_driver import S3Driver
+    from drivers.fs_driver import FSDriver
+    from drivers.genbank_driver import GenbankDriver
+    from drivers.iontorrent_driver import TorrentSuiteDriver
+    from drivers.sra_driver import SRADriver
+
+    drivers = {
+        'iontorrent': TorrentSuiteDriver,
+        'fs_driver': FSDriver,
+        'genbank': GenbankDriver,
+        'sra_projection': SRADriver,
+        'aws_s3_driver': S3Driver
+    }
+
+    mount_root, mount_point_name = os.path.split(mount_point)
+    data_directory = os.path.join(mount_root, '.' + mount_point_name)
+
+    # Saving data to hidden directory near mount point
+    if not os.path.exists(data_directory):
+        os.mkdir(data_directory)
+
+    projection_filesystem = ProjectionFilesystem(mount_point, data_directory)
+
+    # Loading projection prototype and driver config
+    projection_configuration = PrototypeDeserializer(prototype)
+
+    projection_driver = drivers[driver](projection_configuration.resource_uri,
+                                        projection_configuration.driver_config_path)
+    # Initializing db projector
+    projector = DBProjector(projection_id, projection_driver,
+                            projection_configuration.prototype_tree,
+                            projection_configuration.root_projection_uri)
+    projection_filesystem.projection_manager = projector
+
+    # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
+    # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
+    fuse = FUSE(projection_filesystem, mount_point, foreground=True, nonempty=True, nothreads=True)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='DBProjector')
+
+    parser.add_argument('-p_id', '--projection_id', required=True,
+                        help='Id of a projection to be created (required).')
+    parser.add_argument('-m', '--mount_point', required=True,
+                        help='Folder in a system to mount projection to.')
+    parser.add_argument('-p', '--prototype', required=True,
+                        help='Path to prototype file to create projection for.')
+    parser.add_argument('-d', '--driver', required=True,
+                        help='Name of the driver to use with projection')
+
+    args = parser.parse_args()
+
+    main(args.projection_id, args.mount_point, args.prototype, args.driver)

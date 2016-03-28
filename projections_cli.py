@@ -35,7 +35,7 @@ from Pyro4.errors import CommunicationError
 LOCK_FILE = '/var/lock/projections'
 
 # Maps CLI commands to daemon methods.
-# Simplifies API by removing command aliases. If no mapping is provided subperser is used as a method name.
+# Simplifies API by removing command aliases. If no mapping is provided superuser is used as a method name.
 COMMAND_METHOD_MAPPING = {
     'ps': 'get_projections',
     'projections': 'get_projections',
@@ -144,8 +144,11 @@ if __name__ == '__main__':
     try:
         daemon_command = getattr(projection_daemon, command)
         result = daemon_command(**command_arguments)
-        print('Call result: ', result)
+        if not isinstance(result, list):
+            result = [result]
+        for res in result:
+            print('Call result: ', result)
     except CommunicationError as e:
         print('FATAL: Error communicating with Projections daemon. Make sure that it is up and running!')
     except Exception as e:
-        print('FATAL: Error occurred while trying to connect to daemon:', type(e))
+        print('FATAL: Error occurred while trying to connect to daemon:', e)

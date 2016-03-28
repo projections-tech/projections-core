@@ -16,7 +16,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Projections.  If not, see <http://www.gnu.org/licenses/>.
+import getpass
 import signal
+
+import psycopg2
 
 __author__ = 'abragin'
 
@@ -25,6 +28,7 @@ import logging
 from logging import config
 import os
 import sys
+import subprocess
 
 import Pyro4
 
@@ -39,19 +43,63 @@ logger = logging.getLogger('projection_daemon')
 class ProjectionsDaemon(object):
     logger = logging.getLogger('projection_daemon')
 
-    # TODO: substitute with real implementation!
+    def __init__(self):
+        # This dictionary contains mapping of projectors id`s in database to running subprocessess objects
+        self.projectors = dict()
+
+        # Opening connection with database
+        self.db_connection = psycopg2.connect(
+            "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
+
+        # Setting connection mode of connection
+        self.db_connection.autocommit = False
+
+        # Creating cursor, which will be used to interact with database
+        self.cursor = self.db_connection.cursor()
 
     def get_projections(self):
-        logger.info('List projections')
-        return 'List projections'
+        """
+        This method returns a list of projections in database
+        :return: list of projection names strings
+        """
+        self.cursor.callproc('projections.daemon_get_projections')
+
+        current_projections = list()
+        message_template = 'Projection id: {0} Projection name: {1} Mount point: {2} Driver: {3} Projector PID: {4}'
+
+        # Format message template and return projections list
+        for row in self.cursor:
+            current_projections.append(message_template.format(*row))
+        return current_projections
 
     def get_prototypes(self):
         logger.info('List prototypes')
         return 'List prototypes'
 
     def project(self, projection_name, mount_point, prototype, driver):
-        logger.info('Creating projection with name: %s on %s using prototype: %s and driver: %s.')
-        return 'Creating projection'
+        logger.info('Creating projection with name: %s on %s using prototype: %s and driver: %s.', projection_name,
+                    mount_point, prototype, driver)
+
+        self.cursor.callproc('projections.daemon_add_projection', [projection_name, mount_point, driver])
+
+        projection_id = self.cursor.fetchone()[0]
+
+        self.db_connection.commit()
+
+        projector = subprocess.Popen([sys.executable,
+                                      'db_projector.py',
+                                      '-p_id', str(projection_id),
+                                      '-m', mount_point,
+                                      '-p', prototype,
+                                      '-d', driver], stdout=subprocess.DEVNULL)
+
+        self.projectors[projection_id] = projector
+
+        logger.debug('Projector PID: %s', projector.pid)
+
+        self.cursor.callproc("projections.daemon_set_projection_projector_pid", [projection_id, projector.pid])
+
+        self.db_connection.commit()
 
     def start(self, projection_name):
         logger.info('Starting projection with name: %s')
@@ -76,6 +124,14 @@ class ProjectionsDaemon(object):
     def search(self, path, query):
         logger.info('Do search')
         return 'searching on path: {} with query: {}'.format(path, query)
+
+    def stop_daemon(self):
+        for projection_id, projector in self.projectors.items():
+            logger.debug('Terminating projection: %s, projector: %s', projection_id, projector)
+            projector.terminate()
+
+        self.cursor.close()
+        self.db_connection.close()
 
 
 def start_daemon_listener():

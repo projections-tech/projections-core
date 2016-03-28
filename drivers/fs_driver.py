@@ -27,10 +27,9 @@ logger = logging.getLogger('filesystem_driver')
 
 
 class FSDriver(ProjectionDriver):
-    def __init__(self, uri, driver_config_path, script_dir):
+    def __init__(self, uri, driver_config_path):
         self.uri = uri
-        self.daemon_script_dir = script_dir
-        self.driver_configuration = self.read_config(script_dir, driver_config_path)
+        self.driver_configuration = self.read_config(driver_config_path)
 
     def get_uri_contents_as_dict(self, uri):
         """
@@ -38,7 +37,7 @@ class FSDriver(ProjectionDriver):
         :param uri: URI string
         :return: dict of URI contents
         """
-        uri = os.path.join(self.daemon_script_dir, uri)
+        uri = os.path.join(uri)
 
         # Directory projection returns list of it`s children as metadata
         if os.path.isdir(uri):
@@ -63,7 +62,7 @@ class FSDriver(ProjectionDriver):
         :param uri: URI string
         :return: content bytes
         """
-        uri = os.path.join(self.daemon_script_dir, uri)
+        uri = os.path.join(uri)
 
         if os.path.isfile(uri):
             with open(uri, 'rb') as f:

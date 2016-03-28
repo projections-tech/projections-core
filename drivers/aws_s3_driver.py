@@ -28,12 +28,12 @@ logger = logging.getLogger('s3_driver')
 
 
 class S3Driver(ProjectionDriver):
-    def __init__(self, bucket_name, driver_config_path, script_dir):
+    def __init__(self, bucket_name, driver_config_path):
         """
         Initialize driver which will be used to interact with host.
         :param bucket_name: name of projected S3 bucket
         """
-        self.driver_configuration = self.read_config(script_dir, driver_config_path)
+        self.driver_configuration = self.read_config(driver_config_path)
 
         aws_access_key_id, aws_secret_access_key, region_name = self.driver_configuration['aws_access_key_id'], \
                                                                 self.driver_configuration['aws_secret_access_key'], \

@@ -262,9 +262,9 @@ class ProjectionDriver(object):
     Object that has get_uri_content(uri) method returning array of Python dictionaries.
     """
 
-    def read_config(self, daemon_script_dir, config_path):
+    def read_config(self, config_path):
         # Opening driver configuration
-        with open(os.path.join(daemon_script_dir, config_path)) as yaml_stream:
+        with open(config_path) as yaml_stream:
             return yaml.safe_load(yaml_stream)
 
     def get_uri_contents_as_dict(self, uri):

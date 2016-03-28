@@ -1,7 +1,7 @@
 ---
 dialect: python
 resource_uri: test.com
-driver_config_path: "drivers/driver_configurations/test_config.yaml"
+driver_config_path: "tests/driver_configurations/fs_config.yaml"
 
 root_projection_uri: 'test_uri'
 

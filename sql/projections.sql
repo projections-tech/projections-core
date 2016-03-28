@@ -851,3 +851,61 @@ COMMENT ON FUNCTION projections.projector_bind_metadata_to_data(
         @param: current_tree_id - id of a projection which nodes will be checked.
         @returns: VOID.
     $$;
+
+
+
+/*
+This function lists created projections
+*/
+CREATE OR REPLACE FUNCTION projections.daemon_get_projections()
+    RETURNS TABLE(
+        _projection_id bigint,
+        _projection_name varchar,
+        _mount_point varchar,
+        _driver varchar,
+        _projector_pid int
+) AS
+$BODY$
+DECLARE
+BEGIN
+    RETURN QUERY
+    SELECT projection_id, projection_name, mount_point, driver, projector_pid FROM projections.projections;
+END;
+$BODY$ LANGUAGE 'plpgsql';
+
+
+/*
+This function adds new projection into database
+*/
+CREATE OR REPLACE FUNCTION projections.daemon_add_projection(
+    _projection_name varchar,
+    _mount_point varchar,
+    _driver varchar
+)    RETURNS bigint AS
+$BODY$
+DECLARE
+_projection_id bigint;
+BEGIN
+    INSERT INTO projections.projections (projection_name, mount_point, driver)
+    VALUES (_projection_name, _mount_point, _driver)
+    RETURNING projection_id INTO _projection_id;
+    RETURN _projection_id;
+END;
+$BODY$ LANGUAGE 'plpgsql';
+
+
+/*
+This function sets projection`s projector PID
+*/
+CREATE OR REPLACE FUNCTION projections.daemon_set_projection_projector_pid(
+    _projection_id bigint,
+    _projector_pid bigint
+)    RETURNS VOID AS
+$BODY$
+DECLARE
+BEGIN
+    UPDATE projections.projections
+    SET projector_pid=_projector_pid
+    WHERE projection_id = _projection_id;
+END;
+$BODY$ LANGUAGE 'plpgsql';

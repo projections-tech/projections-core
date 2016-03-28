@@ -30,7 +30,7 @@ logger = logging.getLogger('iontorrent_projection')
 
 
 class TorrentSuiteDriver(ProjectionDriver):
-    def __init__(self, host_url, configuration_file_path, script_dir):
+    def __init__(self, host_url, configuration_file_path):
         """
         Initialize driver which will be used to interact with host.
         :param host_url: URL of host string
@@ -38,7 +38,7 @@ class TorrentSuiteDriver(ProjectionDriver):
         :param password: password string
         """
 
-        self.driver_configuration = self.read_config(script_dir, configuration_file_path)
+        self.driver_configuration = self.read_config(configuration_file_path)
         user, password = self.driver_configuration['user'], self.driver_configuration['password']
         self.host_url = 'http://{}'.format(host_url)
         self.api_url = 'http://{}/rundb/api/v1/'.format(host_url)

@@ -32,13 +32,13 @@ logger = logging.getLogger('sra_driver')
 
 
 class SRADriver(ProjectionDriver):
-    def __init__(self, uri, driver_config_path, script_dir):
+    def __init__(self, uri, driver_config_path):
         """
         Initialize driver telling NCBI using user email and name of program
         :param driver_config: driver configuration dictionary
         :return:
         """
-        self.driver_configuration = self.read_config(script_dir, driver_config_path)
+        self.driver_configuration = self.read_config(driver_config_path)
 
         Entrez.email = self.driver_configuration['email']
         Entrez.tool = 'sra_projection_manager'

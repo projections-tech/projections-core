@@ -19,7 +19,6 @@ import getpass
 import json
 import logging
 import logging.config
-import os
 import re
 from io import BytesIO
 from unittest import TestCase
@@ -474,9 +473,7 @@ class TestMetadataOperations(TestCase):
 
         projection_settings = PrototypeDeserializer('tests/projections_configs/test_metadata_operations.yaml')
 
-        script_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-        projection_driver = FSDriver(projection_settings.root_projection_uri, projection_settings.driver_config_path,
-                                     script_dir=script_dir)
+        projection_driver = FSDriver(projection_settings.root_projection_uri, projection_settings.driver_config_path)
 
         self.projector = DBProjector(self.projection_id,
                                      projection_driver,

@@ -28,8 +28,8 @@ logger = logging.getLogger('genbank_driver')
 
 
 class GenbankDriver(ProjectionDriver):
-    def __init__(self, uri, driver_config_path, script_dir):
-        self.driver_configuration = self.read_config(script_dir, driver_config_path)
+    def __init__(self, uri, driver_config_path):
+        self.driver_configuration = self.read_config(driver_config_path)
 
         Entrez.email = self.driver_configuration['email']
         Entrez.tool = 'genbank_projection_manager'
