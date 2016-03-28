@@ -106,8 +106,20 @@ class ProjectionsDaemon(object):
         return 'Starting projection'
 
     def stop(self, projection_name):
-        logger.info('Stopping projection with name: %s')
-        return 'Stopping projection'
+        logger.info('Stopping projection with name: %s', projection_name)
+
+        self.cursor.callproc('projections.get_projection_id_by_name', [projection_name])
+
+        projection_id = self.cursor.fetchone()[0]
+        # Terminating projector process and setting it to None for projection with this id
+        projector_to_stop = self.projectors[projection_id]
+        projector_to_stop.terminate()
+        self.projectors[projection_id] = None
+
+        # Updating projection projector`s pid accordingly
+        self.cursor.callproc('projections.daemon_stop_projection', [projection_name])
+        self.db_connection.commit()
+        logger.info('Stopped projection: %s', projection_name)
 
     def remove_projection(self, projection_name):
         logger.info('Removing projection with name: %s')
@@ -128,6 +140,8 @@ class ProjectionsDaemon(object):
     def stop_daemon(self):
         for projection_id, projector in self.projectors.items():
             logger.debug('Terminating projection: %s, projector: %s', projection_id, projector)
+            if projector is None:
+                continue
             projector.terminate()
 
         self.cursor.close()

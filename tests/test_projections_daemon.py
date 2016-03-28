@@ -36,6 +36,11 @@ class TestProjectionsDaemon(TestCase):
         self.daemon = ProjectionsDaemon()
 
     def tearDown(self):
+        # Stopping daemon and it`s projectors
+        self.daemon.stop_daemon()
+        # Unmounting projection dir
+        subprocess.call(['umount', 'tests/mnt'])
+
         # Clean up previous test entries in db
         self.cursor.execute(" DELETE FROM projections.projections WHERE projection_name~'test_projection'; ")
         self.db_connection.commit()
@@ -79,9 +84,40 @@ class TestProjectionsDaemon(TestCase):
         projection_db_entry = self.cursor.fetchone()
 
         reference_entry = ['test_projection', 'tests/mnt', 'fs_driver']
-        self.assertListEqual(reference_entry, projection_db_entry, msg='Checking projection entry correctness.')
+        self.assertListEqual(reference_entry, list(projection_db_entry), msg='Checking projection entry correctness.')
 
-        # Stopping daemon and it`s projectors
-        self.daemon.stop_daemon()
-        # Unmounting projection dir
-        subprocess.call(['umount', 'tests/mnt'])
+    def test_stop(self):
+        self.daemon.project('test_projection', 'tests/mnt', 'tests/projections_configs/test_metadata_operations.yaml',
+                            'fs_driver')
+
+        projectors = self.daemon.projectors
+        projection_id = list(projectors.keys())[0]
+
+        self.assertTrue(any(projectors), msg='Checking if projectors dict is not empty after projection start')
+
+        self.cursor.execute("""
+        SELECT projector_pid FROM projections.projections WHERE projection_name = 'test_projection'
+        """)
+        projection_pid_before_stop = self.cursor.fetchone()[0]
+        self.assertIsInstance(projection_pid_before_stop, int, msg='Checking if projection pid where setted.')
+
+        # Stopping projector
+        self.daemon.stop('test_projection')
+        projectors = self.daemon.projectors
+        self.assertIsNone(projectors[projection_id], msg='Checking if projection projector was set to None after stop.')
+
+        self.cursor.execute("""
+        SELECT projector_pid FROM projections.projections WHERE projection_name = 'test_projection'
+        """)
+
+        projection_pid_after_stop = self.cursor.fetchone()[0]
+        self.assertIsNone(projection_pid_after_stop, msg='Checking if projector pid where set correctly.')
+
+    def test_start(self):
+        self.daemon.project('test_projection', 'tests/mnt', 'tests/projections_configs/test_metadata_operations.yaml',
+                            'fs_driver')
+
+        # Stopping projector
+        self.daemon.stop('test_projection')
+
+        self.daemon.start('test_projection')

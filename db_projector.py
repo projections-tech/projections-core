@@ -43,7 +43,7 @@ class DBProjector:
     Current implementation is subject of future rewrites and optimisations,
     """
 
-    def __init__(self, projection_id, projection_driver, prototypes_tree, root_uri):
+    def __init__(self, projection_id, projection_driver, prototypes_tree, root_uri, restarting_projection=False):
         """
         This method initializes database which will hold projection tree and associated metadata
         :param projection_id: projection uri id integer
@@ -68,7 +68,8 @@ class DBProjector:
         # Creating cursor, which will be used to interact with database
         self.cursor = self.db_connection.cursor()
 
-        self.build_projection()
+        if not restarting_projection:
+            self.build_projection()
         logger.debug('Initialized projection: {}'.format(self.projection_id))
 
     def __del__(self):
@@ -324,7 +325,7 @@ class DBProjector:
         return file_header, resource_io
 
 
-def main(projection_id, mount_point, prototype, driver):
+def main(projection_id, mount_point, prototype, driver, restart):
     # TODO consider driver addition from config file
     from drivers.aws_s3_driver import S3Driver
     from drivers.fs_driver import FSDriver
@@ -357,7 +358,8 @@ def main(projection_id, mount_point, prototype, driver):
     # Initializing db projector
     projector = DBProjector(projection_id, projection_driver,
                             projection_configuration.prototype_tree,
-                            projection_configuration.root_projection_uri)
+                            projection_configuration.root_projection_uri,
+                            restart)
     projection_filesystem.projection_manager = projector
 
     # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
@@ -376,7 +378,9 @@ if __name__ == '__main__':
                         help='Path to prototype file to create projection for.')
     parser.add_argument('-d', '--driver', required=True,
                         help='Name of the driver to use with projection')
+    parser.add_argument('-r', '--restart',
+                        help='Restart projection')
 
     args = parser.parse_args()
 
-    main(args.projection_id, args.mount_point, args.prototype, args.driver)
+    main(args.projection_id, args.mount_point, args.prototype, args.driver, args.restart)

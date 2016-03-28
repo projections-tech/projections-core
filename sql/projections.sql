@@ -909,3 +909,37 @@ BEGIN
     WHERE projection_id = _projection_id;
 END;
 $BODY$ LANGUAGE 'plpgsql';
+
+
+/*
+This function returns projection id by projection name
+*/
+CREATE OR REPLACE FUNCTION projections.get_projection_id_by_name(
+    _projection_name varchar
+)    RETURNS bigint AS
+$BODY$
+DECLARE
+_projection_to_stop_id bigint;
+BEGIN
+    SELECT projection_id
+    INTO _projection_to_stop_id
+    FROM projections.projections
+    WHERE projection_name=_projection_name;
+    RETURN _projection_to_stop_id;
+END;
+$BODY$ LANGUAGE 'plpgsql';
+
+/*
+This function sets projection`s projector by given name to Null
+*/
+CREATE OR REPLACE FUNCTION projections.daemon_stop_projection(
+    _projection_name varchar
+)    RETURNS VOID AS
+$BODY$
+DECLARE
+_projection_to_stop_id bigint;
+BEGIN
+    _projection_to_stop_id = projections.get_projection_id_by_name(_projection_name);
+    PERFORM projections.daemon_set_projection_projector_pid(_projection_to_stop_id, NULL);
+END;
+$BODY$ LANGUAGE 'plpgsql';
