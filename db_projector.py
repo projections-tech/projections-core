@@ -103,44 +103,6 @@ class DBProjector:
         Table creation is now part of another module
         This method creates tables which will be used to store projections structure and associated metadata
         """
-        # Checking if tree_table exists in pg_class table
-        self.cursor.execute("SELECT relname FROM pg_class WHERE relname = '{}';".format(self.tree_table_name))
-        is_tree_table_exist = self.cursor.fetchone()
-
-        # If no tree table found, create required tables
-        if not bool(is_tree_table_exist):
-            self.cursor.execute("CREATE TABLE {} ("
-                                "node_id serial PRIMARY KEY, "
-                                "projection_name varchar REFERENCES projections_table(projection_name) ON DELETE CASCADE,"
-                                "parent_id integer, "
-                                "name varchar, "
-                                "uri varchar, "
-                                "path varchar[][], "
-                                "type varchar, "
-                                "meta_links varchar[][]"
-                                ");".format(self.tree_table_name))
-            # Dropping metadata table to recreate it
-            self.cursor.execute("DROP TABLE IF EXISTS {0}".format(self.metadata_table_name))
-
-            self.cursor.execute("CREATE TABLE {} ("
-                                "meta_id serial PRIMARY KEY,"
-                                "node_id integer REFERENCES tree_table(node_id) ON DELETE CASCADE,"
-                                "parent_node_id integer REFERENCES tree_table(node_id) ON DELETE CASCADE,"
-                                "meta_contents jsonb);".format(self.metadata_table_name))
-            # Dropping attributes table to recreate it
-            self.cursor.execute("DROP TABLE IF EXISTS {0}".format(self.projections_attributes_table_name))
-
-            self.cursor.execute("CREATE TABLE {} ("
-                                "attr_id serial PRIMARY KEY,"
-                                "node_id integer REFERENCES tree_table(node_id) ON DELETE CASCADE, "
-                                "st_atime int, "
-                                "st_mtime int, "
-                                "st_ctime int, "
-                                "st_size int, "
-                                "st_mode varchar, "
-                                "st_nlink int, "
-                                "st_ino int);".format(self.projections_attributes_table_name))
-            self.db_connection.commit()
 
         # Add root node to tables
         tree_table_insertion_command = "INSERT INTO {0} (projection_name, parent_id, name, uri, type, path, meta_links) " \

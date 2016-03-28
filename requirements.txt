@@ -6,3 +6,7 @@ PyYAML==3.11
 objectpath==0.5
 boto3==1.1.4
 moto==0.4.18
+psycopg2==2.6.1
+Pyro4==4.41
+python-daemon==2.1.1
+
