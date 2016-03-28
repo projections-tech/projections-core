@@ -54,7 +54,7 @@ BEGIN
     $$, _projection_id), NULL, NULL, 'Create projection node before root node creation');
 
     RETURN NEXT lives_ok(format($$
-        SELECT projections.add_projection_node(%s, '', NULL, 'http://projections.tech/', 'DIR', NULL);
+        SELECT projections.add_projection_node(%s, '', NULL, 'http://projections.tech/', 'DIR', NULL, '{}');
     $$, _projection_id), 'Create projection root node');
 
     SELECT node_id 
@@ -63,7 +63,7 @@ BEGIN
     INTO _root_node_id;
 
     RETURN NEXT lives_ok(format($$
-        SELECT projections.add_projection_node(%s, 'a_dir', %s, 'http://projections.tech/a_dir', 'DIR', NULL);
+        SELECT projections.add_projection_node(%s, 'a_dir', %s, 'http://projections.tech/a_dir', 'DIR', NULL, '{}');
     $$, _projection_id, _root_node_id), 'Create projection first-level node');
 
     SELECT node_id 
@@ -72,7 +72,7 @@ BEGIN
     INTO _child_node_id;
 
     RETURN NEXT lives_ok(format($$
-        SELECT projections.add_projection_node(%s, 'aa_dir', %s, 'http://projections.tech/a_dir/aa_dir', 'DIR', NULL);
+        SELECT projections.add_projection_node(%s, 'aa_dir', %s, 'http://projections.tech/a_dir/aa_dir', 'DIR', NULL, '{}');
     $$, _projection_id, _child_node_id), 'Create projection second-level node');
 
     RETURN NEXT lives_ok(format($$
@@ -80,10 +80,10 @@ BEGIN
     $$, _projection_id, _child_node_id), 'Create projection second-level node by generic function');
 
     -- Add more nodes
-    SELECT projections.add_projection_node(_projection_id, 'b_dir', _root_node_id, 'http://projections.tech/b_dir', 'DIR', NULL) 
+    SELECT projections.add_projection_node(_projection_id, 'b_dir', _root_node_id, 'http://projections.tech/b_dir', 'DIR', NULL, '{}')
         INTO _second_child_node_id;
-    PERFORM projections.add_projection_node(_projection_id, 'c', _root_node_id, 'http://projections.tech/c', 'REG', NULL);
-    PERFORM projections.add_projection_node(_projection_id, 'aa', _child_node_id, 'http://projections.tech/a_dir/aa', 'REG', NULL);
+    PERFORM projections.add_projection_node(_projection_id, 'c', _root_node_id, 'http://projections.tech/c', 'REG', NULL, '{}');
+    PERFORM projections.add_projection_node(_projection_id, 'aa', _child_node_id, 'http://projections.tech/a_dir/aa', 'REG', NULL, '{}');
 
     RETURN NEXT results_eq(format($$
         SELECT projections.validate_tree('projections.projection_nodes', %s)
@@ -104,6 +104,8 @@ BEGIN
     RETURN NEXT results_eq(format($$
         SELECT projections.validate_tree('projections.projection_nodes', %s)
     $$, _projection_id), ARRAY[TRUE], 'Check tree state');
+
+
 
 END;
 $BODY$ LANGUAGE plpgsql;

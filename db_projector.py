@@ -55,6 +55,8 @@ class DBProjector:
         # Opening connection with database
         self.db_connection = psycopg2.connect(
             "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
+        # Setting connection mode of connection
+        self.db_connection.autocommit = False
 
         # Creating cursor, which will be used to interact with database
         self.cursor = self.db_connection.cursor()
