@@ -76,34 +76,22 @@ class DBProjector:
         root_node_metadata_content = self.projection_driver.get_uri_contents_as_dict(self.root_uri)
 
         # Add root node to tables
-        self.cursor.execute("""
-        SELECT projections.add_projection_node(
-            %(projection_id)s,
-            %(node_name)s,
-            %(parent_id)s,
-            %(uri)s,
-            %(type)s,
-            %(metadata_content)s,
-            %(meta_links)s
-            )
-        """, {'projection_id': self.projection_id,
-              'parent_id': None,
-              'node_name': '',
-              'type': 'DIR',
-              'uri': self.root_uri,
-              'metadata_content': psycopg2.extras.Json(root_node_metadata_content),
-              'meta_links': []})
+        self.cursor.callproc("projections.add_projection_node", [self.projection_id,
+                                                                 '',
+                                                                 None,
+                                                                 self.root_uri,
+                                                                 'DIR',
+                                                                 psycopg2.extras.Json(root_node_metadata_content),
+                                                                 []])
 
         # After insertion cursor returns id of root node, which will be used in tree building
         new_parent_id = self.cursor.fetchone()
 
         # Setting root projection attributes
-        self.cursor.execute("""
-        SELECT projections.set_projection_node_attributes(%(tree_id)s, %(node_id)s, %(node_size)s, %(node_mode)s )
-        """, {'tree_id': self.projection_id,
-              'node_id': new_parent_id,
-              'node_size': 1,
-              'node_mode': 'DIR'})
+        self.cursor.callproc("projections.set_projection_node_attributes", [self.projection_id,
+                                                                            new_parent_id,
+                                                                            1,
+                                                                            'DIR'])
 
         self.db_connection.commit()
 
@@ -189,31 +177,22 @@ class DBProjector:
 
                 # Inserting node into projections tree on completion this command returns inserted node id
                 # which will be passed to lower level nodes
-                self.cursor.execute("""
-                SELECT projections.add_projection_node(
-                        %(projection_id)s, %(node_name)s, %(parent_id)s,
-                        %(uri)s, %(type)s, %(metadata_content)s, %(meta_links)s
-                        )
-                """, {'projection_id': self.projection_id,
-                      'parent_id': current_parent_id,
-                      'node_name': name,
-                      'type': prototype_types_binding[prototype.type],
-                      'uri': self.root_uri,
-                      'metadata_content': psycopg2.extras.Json(node_metadata_content),
-                      'meta_links': prototype.meta_link
-                      })
+                self.cursor.callproc("projections.add_projection_node", [self.projection_id,
+                                                                         name,
+                                                                         current_parent_id,
+                                                                         uri,
+                                                                         prototype_types_binding[prototype.type],
+                                                                         psycopg2.extras.Json(node_metadata_content),
+                                                                         prototype.meta_link])
 
                 # Fetching inserted projection id which will be parent id for lower level projections
                 new_parent_id = self.cursor.fetchone()
 
                 # Setting projection attributes
-                self.cursor.execute("""
-                SELECT projections.set_projection_node_attributes(%(tree_id)s, %(node_id)s, %(node_size)s, %(node_mode)s )
-                """, {'tree_id': self.projection_id,
-                      'node_id': new_parent_id,
-                      'node_size': 1,
-                      'node_mode': prototype_types_binding[prototype.type]}
-                                    )
+                self.cursor.callproc("projections.set_projection_node_attributes", [self.projection_id, new_parent_id,
+                                                                                    1,
+                                                                                    prototype_types_binding[
+                                                                                        prototype.type]])
 
                 # If new_parent_id is None, when projection already exists in table
                 if new_parent_id is not None:
@@ -225,9 +204,7 @@ class DBProjector:
         """
         Performs data-metadata binding according to meta_link
         """
-        self.cursor.execute("""
-        SELECT projections.projector_bind_metadata_to_data(%s)
-        """, (self.projection_id,))
+        self.cursor.callproc("projections.projector_bind_metadata_to_data", [self.projection_id])
         self.db_connection.commit()
 
     def get_projections_on_path(self, path):
@@ -236,9 +213,7 @@ class DBProjector:
         :param path: path to node string
         :return: list of nodes paths strings
         """
-        self.cursor.execute("""
-        SELECT projections.get_projections_on_path(%s, %s)
-        """, (self.projection_id, path))
+        self.cursor.callproc("projections.get_projections_on_path", [self.projection_id, path])
         return self.cursor.fetchone()[0]
 
     def move_projection(self, node_to_move_path, new_node_root_path):
@@ -248,12 +223,9 @@ class DBProjector:
         :param new_node_root_path: path to new parent node list of strings
         """
 
-        self.cursor.execute("""
-        SELECT projections.move_node_on_path(%(tree_id)s, %(node_to_move_path)s, %(new_node_root_path)s )
-        """, {'tree_id': self.projection_id,
-              'node_to_move_path': node_to_move_path,
-              'new_node_root_path': new_node_root_path}
-                            )
+        self.cursor.callproc("projections.move_node_on_path", [self.projection_id,
+                                                               node_to_move_path,
+                                                               new_node_root_path])
         is_node_moved = self.cursor.fetchone()[0]
         if is_node_moved:
             self.db_connection.commit()
@@ -265,9 +237,7 @@ class DBProjector:
         This method removes node from tree_table and all of it`s descendants
         :param node_path: path to node list of strings
         """
-        self.cursor.execute("""
-        SELECT projections.remove_node_on_path(%s, %s)
-        """, (self.projection_id, node_path))
+        self.cursor.callproc("projections.remove_node_on_path", [self.projection_id, node_path])
         # Checking if node removal where successful.
         is_successful = self.cursor.fetchone()[0]
         if is_successful:
@@ -282,11 +252,9 @@ class DBProjector:
         :param path: projection path string
         :return: bool
         """
-        # This command checks existance of projection row in tree_table by path
+        # This command checks existence of projection row in tree_table by path
         # Run command and return check result as bool
-        self.cursor.execute("""
-        SELECT projections.projector_is_managing_path(%s, %s)
-        """, (self.projection_id, path))
+        self.cursor.callproc("projections.projector_is_managing_path", [self.projection_id, path])
 
         return self.cursor.fetchone()[0]
 
@@ -315,19 +283,6 @@ class DBProjector:
         attributes['st_mode'] = access_modes[attributes['st_mode']]
         return attributes
 
-    def update_projection_size_attribute(self, path, size):
-        path = self.__split_path(path)
-
-        size_update_command = """
-        WITH projection_on_path AS (
-            SELECT node_id FROM {0} WHERE path = %s::varchar[]
-        )
-        UPDATE {1} SET st_size={2} FROM projection_on_path WHERE {1}.node_id=projection_on_path.node_id
-        """.format(self.tree_table_name, self.projections_attributes_table_name, size)
-
-        self.cursor.execute(size_update_command, (path,))
-        self.db_connection.commit()
-
     def open_resource(self, path):
         """
         Opens resource on path and returns it`s header and contents stream
@@ -335,10 +290,7 @@ class DBProjector:
         :return file_header
         :return resource_io
         """
-        self.cursor.execute("""
-        SELECT node_on_path_id, node_on_path_uri, node_on_path_st_mode
-        FROM projections.get_uri_of_projection_on_path(%s, %s)
-        """, (self.projection_id, path))
+        self.cursor.callproc("projections.get_uri_of_projection_on_path", [self.projection_id, path])
 
         node_id, uri, node_on_path_st_mode = self.cursor.fetchone()
 
@@ -348,12 +300,10 @@ class DBProjector:
         projection_size = len(content)
 
         # Updating projection attributes
-        self.cursor.execute("""
-        SELECT projections.set_projection_node_attributes(%(tree_id)s, %(node_id)s, %(node_size)s, %(node_mode)s )
-        """, {'tree_id': self.projection_id,
-              'node_id': node_id,
-              'node_size': projection_size,
-              'node_mode': node_on_path_st_mode})
+        self.cursor.callproc("projections.set_projection_node_attributes", [self.projection_id,
+                                                                            node_id,
+                                                                            projection_size,
+                                                                            node_on_path_st_mode])
 
         file_header = 3
         resource_io = io.BytesIO(content)
