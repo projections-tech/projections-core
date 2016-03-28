@@ -3,6 +3,7 @@
 # This projection uses ObjectPath as it`s microcode
 dialect: ObjectPath
 resource_uri: http://eutils.ncbi.nlm.nih.gov'
+driver_config_path: "drivers/driver_configurations/sra_config.yaml"
 
 # Root projection us query to Entrez eutils esearch, this enables user to enter desired search query to search SRA
 # database and project search results.

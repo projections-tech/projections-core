@@ -44,7 +44,7 @@ class GenbankDriver(ProjectionDriver):
         if uri.startswith('gb:') or uri.startswith('fasta:'):
             return {}
 
-        if uri not in self.driver_cache:
+        if uri not in self.driver_cache and uri.startswith('search_query:'):
             query = uri.split(':')
             logger.debug('Current query: %s', query)
             # Info about Biopython`s eutils: http://biopython.org/DIST/docs/tutorial/Tutorial.html#chapter:entrez
@@ -60,12 +60,14 @@ class GenbankDriver(ProjectionDriver):
             for nuc_id in search_result['IdList']:
                 fasta_id = 'fasta:{}'.format(nuc_id)
                 gb_id = 'gb:{}'.format(nuc_id)
+                query_id = 'query:'.format(nuc_id)
 
                 search_result['fasta_files'].append(fasta_id)
                 search_result['gb_files'].append(gb_id)
 
                 self.driver_cache[fasta_id] = {'resource_uri': fasta_id}
                 self.driver_cache[gb_id] = {'resource_uri': gb_id}
+                self.driver_cache[query_id] = {'resource_uri': query_id}
             self.driver_cache[uri] = search_result
         return self.driver_cache[uri]
 

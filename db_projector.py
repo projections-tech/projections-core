@@ -336,8 +336,8 @@ def main(projection_id, mount_point, prototype, driver, restart):
     drivers = {
         'iontorrent': TorrentSuiteDriver,
         'fs_driver': FSDriver,
-        'genbank': GenbankDriver,
-        'sra_projection': SRADriver,
+        'genbank_driver': GenbankDriver,
+        'sra_driver': SRADriver,
         'aws_s3_driver': S3Driver
     }
 
