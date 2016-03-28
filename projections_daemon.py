@@ -25,7 +25,6 @@ import logging
 from logging import config
 import os
 import sys
-import time
 
 import Pyro4
 
@@ -36,8 +35,8 @@ LOG_FILE = 'projections.log'
 logging.config.fileConfig('logging.cfg')
 logger = logging.getLogger('projection_daemon')
 
-class ProjectionsDaemon(object):
 
+class ProjectionsDaemon(object):
     logger = logging.getLogger('projection_daemon')
 
     # TODO: substitute with real implementation!
@@ -94,6 +93,7 @@ def start_daemon_listener():
     logger.info('Projections daemon is starting. URI: {}'.format(uri))
     pyro_daemon.requestLoop()
 
+
 def stop_daemon(signum, frame):
     """
     This method is called when Projections daemon receives request to terminate.
@@ -114,10 +114,10 @@ if __name__ == '__main__':
     logger.debug('Starting daemon')
     # Create context. For documentation see: https://www.python.org/dev/peps/pep-3143/
     context = daemon.DaemonContext(
-            pidfile=open('/var/lock/projections.pid', 'wb'),
-            stdout=open(LOG_FILE, 'wb'),
-            stderr=sys.stdout,
-            working_directory=os.getcwd())
+        pidfile=open('/var/lock/projections.pid', 'wb'),
+        stdout=open(LOG_FILE, 'wb'),
+        stderr=sys.stdout,
+        working_directory=os.getcwd())
 
     context.signal_map = {
         signal.SIGTERM: stop_daemon
