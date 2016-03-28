@@ -492,7 +492,8 @@ END;
 $BODY$ LANGUAGE plpgsql;
 
 /*
-This function performs path joining complaint with filesystem path.
+This function performs path joining complaint with filesystem path, e.g. given node_name='test.bam' and
+path as array {exp_1, _exp_2} it will return string '/exp_1/exp_2/test.bam'.
 May be used in microcode as utility function.
 */
 CREATE OR REPLACE FUNCTION join_path(path varchar[], node_name varchar)
@@ -512,6 +513,14 @@ BEGIN
 END;
 $BODY$
 LANGUAGE 'plpgsql';
+
+COMMENT ON FUNCTION join_path(path varchar[], node_name varchar) IS
+    $$Join node path with node name.
+
+        @param: path - path of node to join.
+        @param: node_name - name of a node which will be appended to path.
+        @returns: joined path string.
+    $$;
 
 /*
 This function returns attributes of a node on path
@@ -551,6 +560,14 @@ END
 $BODY$
 LANGUAGE plpgsql;
 
+COMMENT ON FUNCTION projections.get_projection_node_attributes(current_tree_id bigint, checked_node_path varchar) IS
+    $$This function returns attributes of node on path.
+
+        @param: current_tree_id - id of a projection to work with.
+        @param: checked_node_path - name of a node which will be appended to path.
+        @returns: list of node attributes.
+    $$;
+
 /*
 This function sets attributes of a node on path
 */
@@ -579,6 +596,21 @@ END;
 $BODY$
 LANGUAGE plpgsql;
 
+COMMENT ON FUNCTION projections.set_projection_node_attributes(
+    current_tree_id bigint,
+    current_node_id bigint,
+    current_node_size bigint,
+    current_node_mode varchar
+    ) IS
+    $$This function sets attributes of node on path.
+
+        @param: current_tree_id - id of a projection to work with.
+        @param: current_node_id - id of a node which attributes will be set.
+        @param: size of a node to set int.
+        @param: mode of a node to set str.
+        @returns: VOID.
+    $$;
+
 /*
 This function performs node removal from projection_nodes table basing on node path from root,
 */
@@ -603,6 +635,14 @@ BEGIN
     END IF;
 END;
 $BODY$ LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION projections.remove_node_on_path(current_tree_id bigint, node_to_remove_path varchar) IS
+    $$This function removes node on given path from projection.
+
+        @param: current_tree_id - id of a projection to work with.
+        @param: node_to_remove_path - path of node to remove string.
+        @returns: True if node was removed, otherwise False.
+    $$;
 
 /*
 This function performs node relocation to new parent node by path
@@ -629,7 +669,7 @@ BEGIN
     WHERE join_path(projections.projection_nodes.node_path,
                     projections.projection_nodes.node_name) = new_parent_path AND
                     projections.projection_nodes.tree_id = current_tree_id;
-    --TODO inform user which node i not present, current implementation does not allow it
+    --TODO inform user which node is not present, current implementation does not allow it
     IF node_to_move_id IS NOT NULL AND new_parent_id IS NOT NULL THEN
         PERFORM projections.move_node('projections.projection_nodes',
                                       current_tree_id,
@@ -641,6 +681,20 @@ BEGIN
     END IF;
 END;
 $BODY$ LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION projections.move_node_on_path(
+    current_tree_id bigint,
+    node_to_move_path varchar,
+    new_parent_path varchar
+) IS
+    $$This function moves node on given path to new parent node on projection.
+
+        @param: current_tree_id - id of a projection to work with.
+        @param: node_to_move_path - path of node to move string.
+        @param: new_parent_path - path of node new parent node string.
+        @returns: bool - True if moved correctly, False otherwise.
+    $$;
+
 
 /*
 This function reports if node on current projection tree is present in projection_nodes table
@@ -665,6 +719,17 @@ BEGIN
 END;
 $BODY$
 LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION projections.projector_is_managing_path(
+    current_tree_id bigint,
+    current_node_path varchar
+    ) IS
+    $$This function reports if node on current projection tree is present in projection_nodes table.
+
+        @param: current_tree_id - id of a projection to work with.
+        @param: current_node_path - path of node to check string.
+        @returns: bool - True if node is present in table correctly, False otherwise.
+    $$;
 
 /*
 This function returns list of children nodes names on node by path
@@ -691,6 +756,18 @@ BEGIN
 END;
 $BODY$ LANGUAGE 'plpgsql';
 
+COMMENT ON FUNCTION projections.get_projections_on_path(
+    current_tree_id bigint,
+    current_path varchar
+    ) IS
+    $$This function returns list of children nodes names on node by path.
+
+        @param: current_tree_id - id of a projection to work with.
+        @param: current_path - path of parent node of projections string.
+        @returns: list of projection nodes names.
+    $$;
+
+
 /*
 This function is used to return node uri, id and st_mode for projector to use
 */
@@ -713,6 +790,17 @@ BEGIN
 END;
 $BODY$ LANGUAGE 'plpgsql';
 
+COMMENT ON FUNCTION projections.get_uri_of_projection_on_path(
+    current_tree_id bigint,
+    current_path varchar
+    ) IS
+    $$This function is used to return node uri, id and st_mode for projector to use.
+
+        @param: current_tree_id - id of a projection to work with.
+        @param: current_path - path of node to work with.
+        @returns: list which contains node uri, id and st_mode.
+    $$;
+
 /*
 This function performs metadata-data binding
 */
@@ -731,7 +819,7 @@ BEGIN
         _node_id = _node.node_id;
         -- Iterating over meta links of a node
         FOREACH _meta_link IN ARRAY _node.meta_links LOOP
-            -- Executing meta_link stored in meta_links
+            -- Executing meta_link stored in meta_links, stored query may return Null if no node were finded
             EXECUTE format(
             $$
                 WITH current_node AS (
@@ -743,6 +831,7 @@ BEGIN
             $$, _meta_link)
             INTO _meta_node_id
             USING _node_id, current_tree_id;
+            -- If no node finded using query continue
             IF _meta_node_id IS NOT NULL THEN
                 INSERT INTO projections.projection_links (head_node_id, tail_node_id, link_name)
                 VALUES (_node_id, _meta_node_id, format('link_from_%s_to_%s', _node_id, _meta_node_id));
@@ -753,3 +842,12 @@ BEGIN
     END LOOP;
 END;
 $BODY$ LANGUAGE 'plpgsql';
+
+COMMENT ON FUNCTION projections.projector_bind_metadata_to_data(
+    current_tree_id bigint
+    ) IS
+    $$This function is used to return node uri, id and st_mode for projector to use.
+
+        @param: current_tree_id - id of a projection which nodes will be checked.
+        @returns: VOID.
+    $$;

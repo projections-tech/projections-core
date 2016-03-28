@@ -40,7 +40,7 @@ class DBProjector:
     def __init__(self, projection_id, projection_driver, prototypes_tree, root_uri):
         """
         This method initializes database which will hold projection tree and associated metadata
-        :param projection_id: name of projection string
+        :param projection_id: projection uri id integer
         :param projection_driver: projection driver instance
         :param prototypes_tree: prototypes tree instance
         :param root_uri: root uri of a projection
@@ -97,6 +97,7 @@ class DBProjector:
 
         # Starting projections tree construction
         self.db_build_tree({'/': self.prototypes_tree}, root_projection_uri=self.root_uri, parent_id=new_parent_id)
+        # Bind metadata to data
         self.bind_metadata_to_data()
 
     def db_build_tree(self, prototypes, parent_id=None, root_projection_uri=None):
@@ -202,14 +203,14 @@ class DBProjector:
 
     def bind_metadata_to_data(self):
         """
-        Performs data-metadata binding according to meta_link
+        Performs data-metadata binding according to meta_links of nodes
         """
         self.cursor.callproc("projections.projector_bind_metadata_to_data", [self.projection_id])
         self.db_connection.commit()
 
     def get_projections_on_path(self, path):
         """
-        Method returns list of nodes on path
+        This method returns list of nodes on path
         :param path: path to node string
         :return: list of nodes paths strings
         """
