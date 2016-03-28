@@ -508,20 +508,27 @@ class TestMetadataOperations(TestCase):
         # Loading data-metadata name pairs
         self.cursor.execute("""
         WITH parents AS (
-        SELECT metadata_table.node_id as meta_id, tree_table.node_id as parent_id, tree_table.name as parent_name FROM tree_table, metadata_table WHERE tree_table.node_id = metadata_table.parent_node_id
+        SELECT projections.projection_links.tail_node_id as meta_id,
+                projections.projection_links.head_node_id as parent_id,
+                projections.projection_nodes.node_name as parent_name
+        FROM projections.projection_nodes, projections.projection_links
+        WHERE projections.projection_nodes.node_id = projections.projection_links.head_node_id
         )
-        SELECT parents.parent_name, tree_table.name FROM tree_table, parents WHERE tree_table.node_id = parents.meta_id
+        SELECT parents.parent_name, projections.projection_nodes.node_name
+        FROM projections.projection_nodes, parents
+        WHERE projections.projection_nodes.node_id = parents.meta_id
         """)
 
         parent_meta_pairs = [row for row in self.cursor]
 
         for row in parent_meta_pairs:
             parent_name, metadata_name = row
+            self.logger.debug('Parent_name: %s Meta_name: %s', parent_name, metadata_name)
             if parent_name.endswith('.bam'):
                 parent_name = parent_name.replace('.bam', '')
                 metadata_name = metadata_name.replace('_metadata.json', '')
                 self.assertEqual(parent_name, metadata_name, msg='Checking correctness of BAM metadata binding.')
-            elif parent_name.endswith('.fasta') and False:
+            elif parent_name.endswith('.fasta'):
                 self.assertEqual('fasta_file_.fasta', re.sub('\d+', '', parent_name),
                                  msg='Checking if parent node is fasta file.')
                 self.assertEqual('vcf_file.vcf', metadata_name,

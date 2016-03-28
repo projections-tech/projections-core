@@ -743,8 +743,12 @@ BEGIN
             $$, _meta_link)
             INTO _meta_node_id
             USING _node_id, current_tree_id;
-            INSERT INTO projections.projection_links (head_node_id, tail_node_id, link_name)
-            VALUES (_node_id, _meta_node_id, format('link_from_%s_to_%s', _node_id, _meta_node_id));
+            IF _meta_node_id IS NOT NULL THEN
+                INSERT INTO projections.projection_links (head_node_id, tail_node_id, link_name)
+                VALUES (_node_id, _meta_node_id, format('link_from_%s_to_%s', _node_id, _meta_node_id));
+            ELSE
+                CONTINUE;
+            END IF;
         END LOOP;
     END LOOP;
 END;

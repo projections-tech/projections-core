@@ -36,6 +36,9 @@ json_projection: &json_projection
 fasta_projection: &fasta_projection
   type: file
   children: None
+  # This code performs binding on lower level
+  meta_link:
+    - " nodes.node_path[2] ~ concat('_', substring(current_node.node_name, '\\d+'), '$') AND nodes.node_name ~ '.vcf' AND nodes.node_type != 'DIR'"
   name: " $.name "
   uri: " $.children[@.type is 'file' and @.extension is '.fasta'].resource_uri "
 
