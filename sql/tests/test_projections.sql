@@ -105,6 +105,18 @@ BEGIN
         SELECT projections.validate_tree('projections.projection_nodes', %s)
     $$, _projection_id), ARRAY[TRUE], 'Check tree state');
 
+    RETURN NEXT lives_ok(format($$
+        SELECT join_path(projections.projection_nodes.node_path, projections.projection_nodes.node_name)
+        FROM projections.projection_nodes
+        WHERE projections.projection_nodes.node_id = %s;
+    $$, _child_node_id), 'Check join_path function on run');
+
+    RETURN NEXT results_eq(format($$
+        SELECT join_path(projections.projection_nodes.node_path, projections.projection_nodes.node_name)
+        FROM projections.projection_nodes
+        WHERE projections.projection_nodes.node_id = %s;
+    $$, _child_node_id), ARRAY['/b_dir/a_dir'::varchar], 'Check join_path function output');
+
 
 
 END;
