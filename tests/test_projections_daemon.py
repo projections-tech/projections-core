@@ -64,7 +64,9 @@ class TestProjectionsDaemon(TestCase):
         self.db_connection.commit()
 
     def test_get_projections(self):
-
+        """
+        Tests daemon get_projections returned list of projections correctness
+        """
         projections_ids = []
         for i in range(1, 6):
             self.cursor.execute("""
@@ -85,6 +87,9 @@ class TestProjectionsDaemon(TestCase):
                              msg='Checking id daemon lists projections properly.')
 
     def test_project(self):
+        """
+        Tests if daemon correctly initializes creation of projection
+        """
         # Creating projection subprocess
         self.daemon.project('test_projection', 'tests/mnt', 'tests/projections_configs/test_metadata_operations.yaml',
                             'fs_driver')
@@ -105,6 +110,9 @@ class TestProjectionsDaemon(TestCase):
         self.assertListEqual(reference_entry, list(projection_db_entry), msg='Checking projection entry correctness.')
 
     def test_stop(self):
+        """
+        Tests if daemon correctly stops underlying Projector subprocess
+        """
         self.daemon.project('test_projection', 'tests/mnt', 'tests/projections_configs/test_metadata_operations.yaml',
                             'fs_driver')
 
@@ -133,6 +141,9 @@ class TestProjectionsDaemon(TestCase):
         self.assertIsNone(projection_pid_after_stop, msg='Checking if projector pid where set correctly.')
 
     def test_start(self):
+        """
+        Tests if daemon correctly starts underlying Projector subprocess
+        """
         self.daemon.project('test_projection', 'tests/mnt', 'tests/projections_configs/test_metadata_operations.yaml',
                             'fs_driver')
 
@@ -160,6 +171,10 @@ class TestProjectionsDaemon(TestCase):
         self.assertIsInstance(projector, subprocess.Popen, msg='Checking if projector is subprocess instance.')
 
     def test_remove_projection(self):
+        """
+        Tests if daemon correctly removes projection
+        :return:
+        """
         self.daemon.project('test_projection', 'tests/mnt', 'tests/projections_configs/test_metadata_operations.yaml',
                             'fs_driver')
 
@@ -175,6 +190,9 @@ class TestProjectionsDaemon(TestCase):
                         msg='Checking if projection were removed properly.')
 
     def test_search(self):
+        """
+        Tests projection search by daemon
+        """
         self.daemon.project('test_projection', 'tests/mnt', 'tests/projections_configs/test_metadata_operations.yaml',
                             'fs_driver')
         # Projector needs some time to initialize
