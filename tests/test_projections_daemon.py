@@ -178,11 +178,11 @@ class TestProjectionsDaemon(TestCase):
         self.daemon.project('test_projection', 'tests/mnt', 'tests/projections_configs/test_metadata_operations.yaml',
                             'fs_driver')
         # Projector needs some time to initialize
-        time.sleep(1)
+        time.sleep(1.5)
 
         reference_result = {'/test_dir/fasta_file_1.fasta', '/test_dir/fasta_file_2.fasta',
                             '/test_dir/fasta_file_3.fasta', '/test_dir/fasta_file_4.fasta'}
-        # Check search based on metadata contents
+        # Check search based on node properties
         search_result = self.daemon.search('test_projection', '/',
                                            query="""
                                             nodes.node_name ~ 'fasta$'
@@ -202,3 +202,15 @@ class TestProjectionsDaemon(TestCase):
                                            """)
         self.logger.debug('Search results: %s', search_result)
         self.assertEqual(reference_result, set(search_result), msg='Checking if search returned proper results.')
+
+        for i in range(1, 6):
+            # Check search on different path
+            reference_result = {'/test_dir/sample_{}/vcf_file.vcf'.format(i),
+                                '/test_dir/sample_{}/rerun/vcf_file.vcf'.format(i)}
+            # Check search based on metadata contents
+            search_result = self.daemon.search('test_projection', '/test_dir/sample_{}'.format(i),
+                                               query="""
+                                                nodes.node_name ~ 'vcf$'
+                                               """)
+            self.logger.debug('Search results: %s', search_result)
+            self.assertEqual(reference_result, set(search_result), msg='Checking if search returned proper results.')
