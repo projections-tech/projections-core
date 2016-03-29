@@ -86,11 +86,11 @@ def _create_args_parser():
                              help='Name of a projection to stop (required).')
 
     parser_rm = subparsers.add_parser('remove_projection', aliases=['rm'], help='Remove projection.')
-    parser_rm.add_argument('-n', '--name', required=True,
+    parser_rm.add_argument('-n', '--projection_name', required=True,
                            help='Name of projection to remove.')
 
     parser_rmp = subparsers.add_parser('remove_prototype', aliases=['rmp'], help='Remove projection prototype.')
-    parser_rmp.add_argument('-n', '--name', required=True,
+    parser_rmp.add_argument('-n', '--projection_name', required=True,
                             help='Name of prototype to remove.')
 
     parser_drivers = subparsers.add_parser('drivers',
@@ -99,6 +99,8 @@ def _create_args_parser():
     parser_search = subparsers.add_parser('search', help='Search projections metadata.')
     parser_search.add_argument('-p', '--path', required=False, help='Limit search to specified path.')
     parser_search.add_argument('-q', '--query', required=True, help='Search objects conforming to the query.')
+    parser_search.add_argument('-n', '--projection_name', required=True,
+                               help='Name of a projection where to search.')
 
     return parser
 
@@ -147,8 +149,8 @@ if __name__ == '__main__':
         if not isinstance(result, list):
             result = [result]
         for res in result:
-            print('Call result: ', result)
+            print(res)
     except CommunicationError as e:
-        print('FATAL: Error communicating with Projections daemon. Make sure that it is up and running!')
+        print('FATAL: Error communicating with Projections daemon. Make sure that it is up and running! Error: %s', e)
     except Exception as e:
         print('FATAL: Error occurred while trying to connect to daemon:', e)

@@ -311,7 +311,20 @@ class DBProjector:
         content = self.projection_driver.get_uri_contents_as_bytes(uri)
         logger.info('Got path content: %s\n', path)
 
-        projection_size = len(content)
+        file_header = 3
+        resource_io = io.BytesIO(content)
+
+        return file_header, resource_io
+
+    def update_projection_size_attribute(self, path, projection_size):
+        """
+
+        :param path:
+        :param projection_size:
+        :return:
+        """
+        self.cursor.callproc("projections.get_uri_of_projection_on_path", [self.projection_id, path])
+        node_id, _, node_on_path_st_mode = self.cursor.fetchone()
 
         # Updating projection attributes
         self.cursor.callproc("projections.set_projection_node_attributes", [self.projection_id,
@@ -319,12 +332,7 @@ class DBProjector:
                                                                             projection_size,
                                                                             node_on_path_st_mode])
 
-        file_header = 3
-        resource_io = io.BytesIO(content)
-
         self.db_connection.commit()
-
-        return file_header, resource_io
 
 
 def main(projection_id, mount_point, prototype, driver, restart):

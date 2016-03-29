@@ -74,17 +74,22 @@ class TestProjectionsDaemon(TestCase):
             VALUES ('test_projection_{0}', '/{0}', 'test_driver_{0}')
             RETURNING projection_id
             """.format(i))
-            projections_ids.append(self.cursor.fetchone()[0])
+
+            projection_id = self.cursor.fetchone()[0]
 
             self.db_connection.commit()
 
-        reference_result = []
-        for i, proj_id in enumerate(projections_ids):
-            reference_result.append('Projection id: {1} Projection name: test_projection_{0} '
-                                    'Mount point: /{0} Driver: test_driver_{0} Projector PID: None'.format(i + 1,
-                                                                                                           proj_id))
-        self.assertListEqual(reference_result, self.daemon.get_projections(),
-                             msg='Checking id daemon lists projections properly.')
+            reference_result = 'Projection id: {1} Projection name: test_projection_{0} ' \
+                               'Mount point: /{0} Driver: test_driver_{0} Projector PID: None'.format(i,
+                                                                                                      projection_id)
+            self.assertIn(reference_result, self.daemon.get_projections(),
+                          msg='Checking if daemon lists projections properly.')
+            improper_result = 'Projection id: {1} Projection name: test_projection_{0} ' \
+                              'Mount point: /{0} Driver: test_driver_{0} Projector PID: None'.format(i + 1,
+                                                                                                     projection_id + 1)
+            self.assertNotIn(improper_result, self.daemon.get_projections(),
+                             msg='Checking if daemon not list misplaced projections.')
+
 
     def test_project(self):
         """
