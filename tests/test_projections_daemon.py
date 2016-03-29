@@ -1,7 +1,27 @@
+#!/usr/bin/env python3
+
+# Copyright 2016  Anton Bragin, Victor Svekolkin
+#
+# This file is part of Projections.
+#
+# Projections is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Projections is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Projections.  If not, see <http://www.gnu.org/licenses/>.
+
 import getpass
 import logging
 import logging.config
 import subprocess
+import time
 from unittest import TestCase
 
 import psycopg2
@@ -155,4 +175,30 @@ class TestProjectionsDaemon(TestCase):
                         msg='Checking if projection were removed properly.')
 
     def test_search(self):
-        pass
+        self.daemon.project('test_projection', 'tests/mnt', 'tests/projections_configs/test_metadata_operations.yaml',
+                            'fs_driver')
+        # Projector needs some time to initialize
+        time.sleep(1)
+
+        reference_result = {'/test_dir/fasta_file_1.fasta', '/test_dir/fasta_file_2.fasta',
+                            '/test_dir/fasta_file_3.fasta', '/test_dir/fasta_file_4.fasta'}
+        # Check search based on metadata contents
+        search_result = self.daemon.search('test_projection', '/',
+                                           query="""
+                                            nodes.node_name ~ 'fasta$'
+                                           """)
+        self.logger.debug('Search results: %s', search_result)
+        self.assertEqual(reference_result, set(search_result), msg='Checking if search returned proper results.')
+
+        reference_result = {'/test_dir/bam_file_1.bam', '/test_dir/bam_file_2.bam', '/test_dir/bam_file_3.bam'}
+        # Check search based on metadata contents
+        search_result = self.daemon.search('test_projection', '/',
+                                           query="""
+                                            nodes.node_name ~ 'bam$'
+                                            AND nodes.node_id
+                                                IN (SELECT head_node_id
+                                                    FROM links
+                                                    WHERE metadata_content->'size'='23')
+                                           """)
+        self.logger.debug('Search results: %s', search_result)
+        self.assertEqual(reference_result, set(search_result), msg='Checking if search returned proper results.')

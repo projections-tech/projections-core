@@ -16,6 +16,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Projections.  If not, see <http://www.gnu.org/licenses/>.
+
 import getpass
 import signal
 
@@ -161,9 +162,12 @@ class ProjectionsDaemon(object):
         logger.info('List drivers')
         return 'List drivers'
 
-    def search(self, path, query):
+    def search(self, projection_name, path, query):
         logger.info('Do search')
-        return 'searching on path: {} with query: {}'.format(path, query)
+
+        self.cursor.callproc('projections.search_projections', [projection_name, path, query])
+
+        return [row[0] for row in self.cursor]
 
     def stop_daemon(self):
         for projection_id, projection_data in self.projectors.items():

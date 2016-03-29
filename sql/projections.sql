@@ -801,58 +801,6 @@ COMMENT ON FUNCTION projections.get_uri_of_projection_on_path(
         @returns: list which contains node uri, id and st_mode.
     $$;
 
-/*
-This function performs metadata-data binding
-*/
-
-CREATE OR REPLACE FUNCTION projections.projector_bind_metadata_to_data(
-    current_tree_id bigint
-) RETURNS VOID AS
-$BODY$
-DECLARE
-_node RECORD;
-_node_id bigint;
-_meta_node_id bigint;
-_meta_link varchar;
-BEGIN
-    FOR _node IN SELECT node_id, meta_links FROM projections.projection_nodes WHERE tree_id=current_tree_id LOOP
-        _node_id = _node.node_id;
-        -- Iterating over meta links of a node
-        FOREACH _meta_link IN ARRAY _node.meta_links LOOP
-            -- Executing meta_link stored in meta_links, stored query may return Null if no node were finded
-            EXECUTE format(
-            $$
-                WITH current_node AS (
-                    SELECT * FROM projections.projection_nodes WHERE node_id=$1
-                )
-                SELECT nodes.node_id
-                FROM projections.projection_nodes AS nodes, current_node
-                WHERE %s AND nodes.tree_id = $2
-            $$, _meta_link)
-            INTO _meta_node_id
-            USING _node_id, current_tree_id;
-            -- If no node finded using query continue
-            IF _meta_node_id IS NOT NULL THEN
-                INSERT INTO projections.projection_links (head_node_id, tail_node_id, link_name)
-                VALUES (_node_id, _meta_node_id, format('link_from_%s_to_%s', _node_id, _meta_node_id));
-            ELSE
-                CONTINUE;
-            END IF;
-        END LOOP;
-    END LOOP;
-END;
-$BODY$ LANGUAGE 'plpgsql';
-
-COMMENT ON FUNCTION projections.projector_bind_metadata_to_data(
-    current_tree_id bigint
-    ) IS
-    $$This function is used to return node uri, id and st_mode for projector to use.
-
-        @param: current_tree_id - id of a projection which nodes will be checked.
-        @returns: VOID.
-    $$;
-
-
 
 /*
 This function lists created projections
@@ -929,6 +877,7 @@ BEGIN
 END;
 $BODY$ LANGUAGE 'plpgsql';
 
+
 /*
 This function sets projection`s projector by given name to Null
 */
@@ -944,6 +893,7 @@ BEGIN
 END;
 $BODY$ LANGUAGE 'plpgsql';
 
+
 /*
 This function removes projection
 */
@@ -956,5 +906,124 @@ _projection_to_remove_id bigint;
 BEGIN
     _projection_to_remove_id = projections.get_projection_id_by_name(_projection_name);
     DELETE FROM projections.projections WHERE projection_id=_projection_to_remove_id;
+END;
+$BODY$ LANGUAGE 'plpgsql';
+
+
+/*
+This function performs metadata-data binding
+*/
+CREATE OR REPLACE FUNCTION projections.projector_bind_metadata_to_data(
+    current_tree_id bigint
+) RETURNS VOID AS
+$BODY$
+DECLARE
+_node RECORD;
+_node_id bigint;
+_meta_node_id bigint;
+_meta_link varchar;
+BEGIN
+    FOR _node IN SELECT node_id, meta_links FROM projections.projection_nodes WHERE tree_id=current_tree_id LOOP
+        _node_id = _node.node_id;
+        -- Iterating over meta links of a node
+        FOREACH _meta_link IN ARRAY _node.meta_links LOOP
+            -- Executing meta_link stored in meta_links, stored query may return Null if no node were finded
+            EXECUTE format(
+            $$
+                WITH current_node AS (
+                    SELECT * FROM projections.projection_nodes WHERE node_id=$1
+                )
+                SELECT nodes.node_id
+                FROM projections.projection_nodes AS nodes, current_node
+                WHERE %s AND nodes.tree_id = $2
+            $$, _meta_link)
+            INTO _meta_node_id
+            USING _node_id, current_tree_id;
+            -- If no node finded using query continue
+            IF _meta_node_id IS NOT NULL THEN
+                INSERT INTO projections.projection_links (head_node_id, tail_node_id, link_name)
+                VALUES (_node_id, _meta_node_id, format('link_from_%s_to_%s', _node_id, _meta_node_id));
+            ELSE
+                CONTINUE;
+            END IF;
+        END LOOP;
+    END LOOP;
+END;
+$BODY$ LANGUAGE 'plpgsql';
+
+COMMENT ON FUNCTION projections.projector_bind_metadata_to_data(
+    current_tree_id bigint
+    ) IS
+    $$This function is used to return node uri, id and st_mode for projector to use.
+
+        @param: current_tree_id - id of a projection which nodes will be checked.
+        @returns: VOID.
+    $$;
+
+
+/*
+This function performs metadata-data binding
+*/
+
+CREATE OR REPLACE FUNCTION projections.search_projections(
+    current_tree_name varchar,
+    search_path varchar,
+    search_code varchar
+) RETURNS TABLE (
+    path varchar
+) AS
+$BODY$
+DECLARE
+node_on_search_path_id bigint;
+current_tree_id bigint;
+BEGIN
+    current_tree_id = projections.get_projection_id_by_name(current_tree_name);
+
+    SELECT node_id
+    INTO node_on_search_path_id
+    FROM projections.projection_nodes
+    WHERE join_path(node_path, node_name) = search_path
+    AND tree_id=current_tree_id;
+
+    RETURN QUERY
+    EXECUTE format(
+        $$
+        WITH nodes AS (
+            WITH RECURSIVE descendants_ids AS (
+                WITH RECURSIVE tree AS (
+                    SELECT node_id, ARRAY[$1]::bigint[] AS ancestors
+                    FROM projections.projection_nodes WHERE parent_id = $1
+
+                    UNION ALL
+
+                    SELECT projections.projection_nodes.node_id, tree.ancestors || projections.projection_nodes.parent_id
+                    FROM projections.projection_nodes, tree
+                    WHERE projections.projection_nodes.parent_id = tree.node_id
+                )
+                SELECT node_id FROM tree WHERE $1 = ANY(tree.ancestors)
+            )
+            SELECT projections.projection_nodes.*
+            FROM projections.projection_nodes, descendants_ids
+            WHERE projections.projection_nodes.node_id = descendants_ids.node_id
+        ),
+            links AS ( -- this table contains links for nodes on path and their attached metadata
+            WITH subtree_links AS (
+                SELECT head_node_id, tail_node_id, link_name
+                FROM projections.projection_links, nodes
+                WHERE head_node_id = nodes.node_id
+                )
+            SELECT
+            subtree_links.head_node_id AS head_node_id,
+            subtree_links.tail_node_id AS tail_node_id,
+            subtree_links.link_name AS link_name,
+            nodes.metadata_content AS metadata_content
+            FROM subtree_links, nodes
+            WHERE nodes.node_id = subtree_links.tail_node_id
+        )
+        SELECT join_path(nodes.node_path, nodes.node_name)
+        FROM nodes
+        WHERE %s;
+        $$, search_code)
+    USING node_on_search_path_id;
 END;
 $BODY$ LANGUAGE 'plpgsql';

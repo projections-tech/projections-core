@@ -68,10 +68,10 @@ class DBProjector:
         # Creating cursor, which will be used to interact with database
         self.cursor = self.db_connection.cursor()
 
-        if not restarting_projection:
-            self.build_projection()
-        else:
+        if restarting_projection:
             logger.info('Restarting projection!')
+        else:
+            self.build_projection()
         logger.debug('Initialized projection: {}'.format(self.projection_id))
 
     def __del__(self):
