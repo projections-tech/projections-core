@@ -943,3 +943,18 @@ BEGIN
     PERFORM projections.daemon_set_projection_projector_pid(_projection_to_stop_id, NULL);
 END;
 $BODY$ LANGUAGE 'plpgsql';
+
+/*
+This function removes projection
+*/
+CREATE OR REPLACE FUNCTION projections.daemon_remove_projection(
+    _projection_name varchar
+)    RETURNS VOID AS
+$BODY$
+DECLARE
+_projection_to_remove_id bigint;
+BEGIN
+    _projection_to_remove_id = projections.get_projection_id_by_name(_projection_name);
+    DELETE FROM projections.projections WHERE projection_id=_projection_to_remove_id;
+END;
+$BODY$ LANGUAGE 'plpgsql';

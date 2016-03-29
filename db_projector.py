@@ -70,6 +70,8 @@ class DBProjector:
 
         if not restarting_projection:
             self.build_projection()
+        else:
+            logger.info('Restarting projection!')
         logger.debug('Initialized projection: {}'.format(self.projection_id))
 
     def __del__(self):
@@ -378,7 +380,7 @@ if __name__ == '__main__':
                         help='Path to prototype file to create projection for.')
     parser.add_argument('-d', '--driver', required=True,
                         help='Name of the driver to use with projection')
-    parser.add_argument('-r', '--restart',
+    parser.add_argument('-r', '--restart', action='store_true',
                         help='Restart projection')
 
     args = parser.parse_args()

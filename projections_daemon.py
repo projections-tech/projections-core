@@ -93,37 +93,65 @@ class ProjectionsDaemon(object):
                                       '-p', prototype,
                                       '-d', driver], stdout=subprocess.DEVNULL)
 
-        self.projectors[projection_id] = projector
+        self.projectors[projection_id] = {'projector_subprocess': projector,
+                                          'mount_point': mount_point,
+                                          'prototype_path': prototype,
+                                          'driver': driver}
 
         logger.debug('Projector PID: %s', projector.pid)
 
         self.cursor.callproc("projections.daemon_set_projection_projector_pid", [projection_id, projector.pid])
 
         self.db_connection.commit()
+        return 'Projection {} created and started!'.format(projection_name)
 
     def start(self, projection_name):
-        logger.info('Starting projection with name: %s')
-        return 'Starting projection'
+        logger.info('Starting projection with name: %s', projection_name)
+        self.cursor.callproc('projections.get_projection_id_by_name', [projection_name])
+        # Fetching id of projection by it`s name
+        projection_id = self.cursor.fetchone()[0]
+        # Setting data required to run projection
+        projection_data = self.projectors[projection_id]
+        projector = subprocess.Popen([sys.executable,
+                                      'db_projector.py',
+                                      '-p_id', str(projection_id),
+                                      '-m', projection_data['mount_point'],
+                                      '-p', projection_data['prototype_path'],
+                                      '-d', projection_data['driver'],
+                                      '-r'],
+                                     stdout=subprocess.DEVNULL)
+
+        self.projectors[projection_id]['projector_subprocess'] = projector
+        return 'Projection {} started!'.format(projection_name)
 
     def stop(self, projection_name):
         logger.info('Stopping projection with name: %s', projection_name)
 
         self.cursor.callproc('projections.get_projection_id_by_name', [projection_name])
-
+        # Fetching id of projection by it`s name
         projection_id = self.cursor.fetchone()[0]
         # Terminating projector process and setting it to None for projection with this id
-        projector_to_stop = self.projectors[projection_id]
+        projector_to_stop = self.projectors[projection_id]['projector_subprocess']
         projector_to_stop.terminate()
-        self.projectors[projection_id] = None
+        self.projectors[projection_id]['projector_subprocess'] = None
 
         # Updating projection projector`s pid accordingly
         self.cursor.callproc('projections.daemon_stop_projection', [projection_name])
         self.db_connection.commit()
-        logger.info('Stopped projection: %s', projection_name)
+        return 'Stopped projection: %s'.format(projection_name)
 
     def remove_projection(self, projection_name):
-        logger.info('Removing projection with name: %s')
-        return 'Removing projection'
+        logger.info('Removing projection with name: %s', projection_name)
+        self.cursor.callproc('projections.get_projection_id_by_name', [projection_name])
+        # Fetching id of projection by it`s name
+        projection_id = self.cursor.fetchone()[0]
+
+        if self.projectors[projection_id]['projector_subprocess'] is not None:
+            logger.debug('Projection %s is currently running, stopping it!', projection_name)
+            self.stop(projection_name)
+
+        self.cursor.callproc('projections.daemon_remove_projection', [projection_name])
+        return 'Projection {} removed.'.format(projection_name)
 
     def remove_prototype(self, prototype_name):
         logger.info('Removing prototype with name: %s')
@@ -138,10 +166,12 @@ class ProjectionsDaemon(object):
         return 'searching on path: {} with query: {}'.format(path, query)
 
     def stop_daemon(self):
-        for projection_id, projector in self.projectors.items():
-            logger.debug('Terminating projection: %s, projector: %s', projection_id, projector)
+        for projection_id, projection_data in self.projectors.items():
+            projector = projection_data['projector_subprocess']
+
             if projector is None:
                 continue
+            logger.debug('Terminating projection: %s, projector: %s', projection_id, projector)
             projector.terminate()
 
         self.cursor.close()

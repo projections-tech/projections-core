@@ -38,8 +38,6 @@ class TestProjectionsDaemon(TestCase):
     def tearDown(self):
         # Stopping daemon and it`s projectors
         self.daemon.stop_daemon()
-        # Unmounting projection dir
-        subprocess.call(['umount', 'tests/mnt'])
 
         # Clean up previous test entries in db
         self.cursor.execute(" DELETE FROM projections.projections WHERE projection_name~'test_projection'; ")
@@ -104,7 +102,8 @@ class TestProjectionsDaemon(TestCase):
         # Stopping projector
         self.daemon.stop('test_projection')
         projectors = self.daemon.projectors
-        self.assertIsNone(projectors[projection_id], msg='Checking if projection projector was set to None after stop.')
+        self.assertIsNone(projectors[projection_id]['projector_subprocess'],
+                          msg='Checking if projection projector was set to None after stop.')
 
         self.cursor.execute("""
         SELECT projector_pid FROM projections.projections WHERE projection_name = 'test_projection'
@@ -120,4 +119,40 @@ class TestProjectionsDaemon(TestCase):
         # Stopping projector
         self.daemon.stop('test_projection')
 
+        projectors = self.daemon.projectors
+        projection_id = list(projectors.keys())[0]
+
+        projector = projectors[projection_id]['projector_subprocess']
+
+        self.assertIsNone(projector,
+                          msg='Checking if projection projector was set to None after stop.')
+
         self.daemon.start('test_projection')
+
+        projectors = self.daemon.projectors
+        projection_id = list(projectors.keys())[0]
+
+        projector = projectors[projection_id]['projector_subprocess']
+
+        self.assertIsNotNone(projector,
+                             msg='Checking if projection`s projector was set after start.')
+
+        self.assertIsInstance(projector, subprocess.Popen, msg='Checking if projector is subprocess instance.')
+
+    def test_remove_projection(self):
+        self.daemon.project('test_projection', 'tests/mnt', 'tests/projections_configs/test_metadata_operations.yaml',
+                            'fs_driver')
+
+        self.daemon.remove_projection('test_projection')
+
+        # Checking if projection is in projections table
+        self.cursor.execute("""
+        SELECT 1 FROM projections.projections WHERE projection_name~'test_projection';
+        """)
+        is_projection_exists = self.cursor.fetchone()[0] is not None
+
+        self.assertTrue(is_projection_exists,
+                        msg='Checking if projection were removed properly.')
+
+    def test_search(self):
+        pass
