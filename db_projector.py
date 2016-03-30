@@ -76,7 +76,7 @@ class DBProjector:
 
     def __del__(self):
         """
-        This method closes cursor and database connection at call to destructor method
+        This method closes cursor and database connection at call
         """
         self.cursor.close()
         self.db_connection.close()
@@ -218,8 +218,11 @@ class DBProjector:
         """
         Performs data-metadata binding according to meta_links of nodes
         """
-        self.cursor.callproc("projections.projector_bind_metadata_to_data", [self.projection_id])
-        self.db_connection.commit()
+        try:
+            self.cursor.callproc("projections.projector_bind_metadata_to_data", [self.projection_id])
+            self.db_connection.commit()
+        except psycopg2.ProgrammingError as e:
+            logger.fatal('Error encountered during metadata-data binding: %s', e)
 
     def get_projections_on_path(self, path):
         """

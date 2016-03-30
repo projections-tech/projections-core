@@ -89,9 +89,9 @@ class ProjectionsDaemon(object):
         # Checking if projection is in projections table
         self.cursor.callproc('projections.get_projection_id_by_name', [projection_name])
         # Fetching id of projection by it`s name
-        fetch_result = self.cursor.fetchone()
+        projection_id = self.cursor.fetchone()[0]
 
-        if fetch_result is not None:
+        if projection_id is not None:
             # TODO add force flag to override this behaviour
             return 'Projection already created!'
         else:
@@ -113,14 +113,12 @@ class ProjectionsDaemon(object):
                                               'prototype_path': prototype,
                                               'driver': driver}
 
+            logger.debug('Projector PID: %s', projector.pid)
+
+            self.cursor.callproc("projections.daemon_set_projection_projector_pid", [projection_id, projector.pid])
+            self.logger.debug('Id of projectors dict at project: %s', id(self.projectors))
             self.db_connection.commit()
-
-        logger.debug('Projector PID: %s', projector.pid)
-
-        self.cursor.callproc("projections.daemon_set_projection_projector_pid", [projection_id, projector.pid])
-        self.logger.debug('Id of projectors dict at project: %s', id(self.projectors))
-        self.db_connection.commit()
-        return 'Projection {} created and started!'.format(projection_name)
+            return 'Projection {} created and started!'.format(projection_name)
 
     def start(self, projection_name):
         """
@@ -131,10 +129,9 @@ class ProjectionsDaemon(object):
         logger.info('Starting projection with name: %s', projection_name)
         self.cursor.callproc('projections.get_projection_id_by_name', [projection_name])
         # Fetching id of projection by it`s name
-        fetch_result = self.cursor.fetchone()
+        projection_id = self.cursor.fetchone()[0]
         # Checking if projection exists
-        if fetch_result is not None:
-            projection_id = fetch_result[0]
+        if projection_id is not None:
             # Setting data required to run projection
             projection_data = self.projectors[projection_id]
 
@@ -164,19 +161,25 @@ class ProjectionsDaemon(object):
         logger.info('Stopping projection with name: %s', projection_name)
         self.cursor.callproc('projections.get_projection_id_by_name', [projection_name])
         # Fetching id of projection by it`s name
-        fetch_result = self.cursor.fetchone()
+        projection_id = self.cursor.fetchone()[0]
 
-        if fetch_result is not None:
-            projection_id = fetch_result[0]
-            # Terminating projector process and setting it to None for projection with this id
-            projector_to_stop = self.projectors[projection_id]['projector_subprocess']
-            projector_to_stop.terminate()
-            self.projectors[projection_id]['projector_subprocess'] = None
+        if projection_id is not None:
+            # Checking if projection  is already stopped
+            projection_data = self.projectors[projection_id]
+            if projection_data['projector_subprocess'] is not None:
+                # Terminating projector process and setting it to None for projection with this id
+                projector_to_stop = self.projectors[projection_id]['projector_subprocess']
+                projector_to_stop.terminate()
+                projector_to_stop.communicate()
 
-            # Updating projection projector`s pid accordingly
-            self.cursor.callproc('projections.daemon_stop_projection', [projection_name])
-            self.db_connection.commit()
-            return 'Stopped projection: {}'.format(projection_name)
+                self.projectors[projection_id]['projector_subprocess'] = None
+
+                # Updating projection projector`s pid accordingly
+                self.cursor.callproc('projections.daemon_stop_projection', [projection_name])
+                self.db_connection.commit()
+                return 'Stopped projection: {}'.format(projection_name)
+            else:
+                return 'Projection is already stopped!'
         else:
             return 'There is no projection named {}'.format(projection_name)
 
@@ -191,13 +194,18 @@ class ProjectionsDaemon(object):
         # Fetching id of projection by it`s name
         projection_id = self.cursor.fetchone()[0]
 
-        if self.projectors[projection_id]['projector_subprocess'] is not None:
-            # TODO add flag to force remove projection
-            logger.debug('Projection %s is currently running, stopping it!', projection_name)
-            self.stop(projection_name)
+        if projection_id is not None:
+            if self.projectors[projection_id]['projector_subprocess'] is not None:
+                # TODO add flag to force remove projection
+                logger.debug('Projection %s is currently running, stopping it!', projection_name)
+                self.stop(projection_name)
 
-        self.cursor.callproc('projections.daemon_remove_projection', [projection_name])
-        return 'Projection {} removed.'.format(projection_name)
+            self.cursor.callproc('projections.daemon_remove_projection', [projection_name])
+            self.db_connection.commit()
+
+            return 'Projection {} removed.'.format(projection_name)
+        else:
+            return 'Error: Attempting to remove non existant projection!'
 
     def remove_prototype(self, prototype_name):
         """
@@ -225,8 +233,12 @@ class ProjectionsDaemon(object):
         :return:
         """
         logger.info('Do search')
-        self.cursor.callproc('projections.search_projections', [projection_name, path, query])
-        return [row[0] for row in self.cursor]
+        try:
+            self.cursor.callproc('projections.search_projections', [projection_name, path, query])
+            return [row[0] for row in self.cursor]
+        except psycopg2.ProgrammingError as e:
+            self.db_connection.rollback()
+            return 'Error: query is malformed: {}'.format(e)
 
     def stop_daemon(self):
         """
