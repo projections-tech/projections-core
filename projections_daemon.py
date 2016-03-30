@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Projections.  If not, see <http://www.gnu.org/licenses/>.
 
+import argparse
 import getpass
 import signal
 
@@ -44,7 +45,10 @@ logger = logging.getLogger('projection_daemon')
 class ProjectionsDaemon(object):
     logger = logging.getLogger('projection_daemon')
 
-    def __init__(self):
+    def __init__(self, pyro_daemon):
+
+        self.pyro_daemon = pyro_daemon
+
         # This dictionary contains mapping of projectors id`s in database to running subprocessess objects
         self.projectors = dict()
         self.logger.debug('Id of projectors dict at init: %s', id(self.projectors))
@@ -255,6 +259,7 @@ class ProjectionsDaemon(object):
 
         self.cursor.close()
         self.db_connection.close()
+        self.pyro_daemon.shutdown()
 
 
 def start_daemon_listener():
@@ -269,13 +274,21 @@ def start_daemon_listener():
 
     pyro_daemon = Pyro4.Daemon()
 
-    uri = pyro_daemon.register(ProjectionsDaemon())
+    projections_daemon = ProjectionsDaemon(pyro_daemon)
+    uri = pyro_daemon.register(projections_daemon)
 
     with open(LOCK_FILE, 'w') as f:
         f.write(str(uri))
         f.write('\n')
 
+    with open('/var/lock/projections.pid', 'w') as f:
+        f.write(str(os.getpid()))
+        f.write('\n')
+
+    logger.debug('Daemon_pid: %s', os.getpid())
+
     logger.info('Projections daemon is starting. URI: {}'.format(uri))
+
     pyro_daemon.requestLoop()
 
 
@@ -288,25 +301,42 @@ def stop_daemon(signum, frame):
     :param frame: current stack frame
     """
     logger.info('Signal to stop daemon received. Terminating projections daemon.')
-
-    # TODO: implement all cleaning up stuff here.
     # Terminate projections FUSE subprocesses, flush database connections, etc.
+    with open(LOCK_FILE, 'r') as f:
+        uri = f.readline()
+        projections_daemon = Pyro4.Proxy(uri)
+
+    projections_daemon.stop_daemon()
+    sys.exit()
 
 
-# To start projection daemon simple type: ./projections_daemon.py
+# To start projection daemon simply type: ./projections_daemon.py
 # Then use projections_cli.py client to send command to running daemon.
 if __name__ == '__main__':
-    logger.debug('Starting daemon')
-    # Create context. For documentation see: https://www.python.org/dev/peps/pep-3143/
-    context = daemon.DaemonContext(
-        pidfile=open('/var/lock/projections.pid', 'wb'),
-        stdout=open(LOG_FILE, 'wb'),
-        stderr=sys.stdout,
-        working_directory=os.getcwd())
+    parser = argparse.ArgumentParser(description='DBProjector')
 
-    context.signal_map = {
-        signal.SIGTERM: stop_daemon
-    }
+    options = parser.add_mutually_exclusive_group(required=True)
+    options.add_argument('-start', action='store_true', help='Start projections daemon.')
+    options.add_argument('-stop', action='store_true', help='Stop projections daemon.')
 
-    with context:
-        start_daemon_listener()
+    args = parser.parse_args()
+
+    if args.start:
+        logger.debug('Starting daemon')
+        # Create context. For documentation see: https://www.python.org/dev/peps/pep-3143/
+        context = daemon.DaemonContext(
+            pidfile=open('/var/lock/projections.pid', 'wb'),
+            stdout=open(LOG_FILE, 'wb'),
+            stderr=sys.stdout,
+            working_directory=os.getcwd())
+
+        context.signal_map = {
+            signal.SIGTERM: stop_daemon
+        }
+
+        with context:
+            start_daemon_listener()
+
+    elif args.stop:
+        with open('/var/lock/projections.pid') as pid_file:
+            logger.debug('Daemon pid: {}'.format(pid_file.readline()))
