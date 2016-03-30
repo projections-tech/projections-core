@@ -137,20 +137,21 @@ if __name__ == '__main__':
     # Remove 'command' from arguments dictionary
     del command_arguments['command']
 
-    print('Calling command {} with arguments: {}'.format(command, command_arguments))
+    # print('Calling command {} with arguments: {}'.format(command, command_arguments))
 
     # This is DEMO implementation that greatly reduces boilerplate code
     # It requires client calls to be strictly compatible with daemon methods.
     # Extra checks (e.g. syntactical checks) may be incorporated between client commands and daemon methods.
-
-    try:
-        daemon_command = getattr(projection_daemon, command)
-        result = daemon_command(**command_arguments)
-        if not isinstance(result, list):
-            result = [result]
-        for res in result:
-            print(res)
-    except CommunicationError as e:
-        print('FATAL: Error communicating with Projections daemon. Make sure that it is up and running! Error: %s', e)
-    except Exception as e:
-        print('FATAL: Error occurred while trying to connect to daemon:', e)
+    if command is not None:
+        try:
+            daemon_command = getattr(projection_daemon, command)
+            result = daemon_command(**command_arguments)
+            if not isinstance(result, list):
+                result = [result]
+            for res in result:
+                print(res)
+        except CommunicationError as e:
+            print('FATAL: Error communicating with Projections daemon. Make sure that it is up and running! Error: %s',
+                  e)
+        except Exception as e:
+            print('FATAL: Error occurred while trying to connect to daemon:', e)

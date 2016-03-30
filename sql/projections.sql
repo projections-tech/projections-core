@@ -395,7 +395,8 @@ CREATE TABLE projections.projections (
     projection_name varchar NOT NULL UNIQUE,
     mount_point varchar NOT NULL UNIQUE,
     driver varchar NOT NULL,    -- May reference additional drivers table records
-    projector_pid integer UNIQUE
+    projector_pid integer UNIQUE,
+    prototype varchar NOT NULL -- TODO remove after prototype table added
 );
 ALTER TABLE projections.projections
     OWNER TO projections_admin;
@@ -404,6 +405,7 @@ COMMENT ON TABLE projections.projections IS 'Identifies Projections of resources
 COMMENT ON COLUMN projections.projections.projection_name IS 'Human-readable name used to uniquely identify projection.';
 COMMENT ON COLUMN projections.projections.mount_point IS 'Absolute projection mount path.';
 COMMENT ON COLUMN projections.projections.projector_pid IS 'PID of projection`s projector process.';
+COMMENT ON COLUMN projections.projections.prototype IS 'Prototype of projection`s projector process.';
 
 
 CREATE TABLE projections.projection_nodes (
@@ -811,13 +813,14 @@ CREATE OR REPLACE FUNCTION projections.daemon_get_projections()
         _projection_name varchar,
         _mount_point varchar,
         _driver varchar,
-        _projector_pid int
+        _projector_pid int,
+        _prototype varchar
 ) AS
 $BODY$
 DECLARE
 BEGIN
     RETURN QUERY
-    SELECT projection_id, projection_name, mount_point, driver, projector_pid FROM projections.projections;
+    SELECT projection_id, projection_name, mount_point, driver, projector_pid, prototype FROM projections.projections;
 END;
 $BODY$ LANGUAGE 'plpgsql';
 
@@ -828,14 +831,15 @@ This function adds new projection into database
 CREATE OR REPLACE FUNCTION projections.daemon_add_projection(
     _projection_name varchar,
     _mount_point varchar,
-    _driver varchar
+    _driver varchar,
+    _prototype varchar --temporary, until prototypes are stored in database
 )    RETURNS bigint AS
 $BODY$
 DECLARE
 _projection_id bigint;
 BEGIN
-    INSERT INTO projections.projections (projection_name, mount_point, driver)
-    VALUES (_projection_name, _mount_point, _driver)
+    INSERT INTO projections.projections (projection_name, mount_point, driver, prototype)
+    VALUES (_projection_name, _mount_point, _driver, _prototype)
     RETURNING projection_id INTO _projection_id;
     RETURN _projection_id;
 END;
@@ -964,7 +968,6 @@ COMMENT ON FUNCTION projections.projector_bind_metadata_to_data(
 /*
 This function performs metadata-data binding
 */
-
 CREATE OR REPLACE FUNCTION projections.search_projections(
     current_tree_name varchar,
     search_path varchar,

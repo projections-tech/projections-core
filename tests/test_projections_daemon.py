@@ -70,8 +70,8 @@ class TestProjectionsDaemon(TestCase):
         projections_ids = []
         for i in range(1, 6):
             self.cursor.execute("""
-            INSERT INTO projections.projections (projection_name, mount_point, driver)
-            VALUES ('test_projection_{0}', '/{0}', 'test_driver_{0}')
+            INSERT INTO projections.projections (projection_name, mount_point, driver, prototype)
+            VALUES ('test_projection_{0}', '/{0}', 'test_driver_{0}', 'test')
             RETURNING projection_id
             """.format(i))
 
@@ -89,7 +89,6 @@ class TestProjectionsDaemon(TestCase):
                                                                                                      projection_id + 1)
             self.assertNotIn(improper_result, self.daemon.get_projections(),
                              msg='Checking if daemon not list misplaced projections.')
-
 
     def test_project(self):
         """
@@ -121,7 +120,7 @@ class TestProjectionsDaemon(TestCase):
         self.daemon.project('test_projection', 'tests/mnt', 'tests/projections_configs/test_metadata_operations.yaml',
                             'fs_driver')
 
-        projectors = self.daemon.projectors
+        projectors = self.daemon.projections
         projection_id = list(projectors.keys())[0]
 
         self.assertTrue(any(projectors), msg='Checking if projectors dict is not empty after projection start')
@@ -134,7 +133,7 @@ class TestProjectionsDaemon(TestCase):
 
         # Stopping projector
         self.daemon.stop('test_projection')
-        projectors = self.daemon.projectors
+        projectors = self.daemon.projections
         self.assertIsNone(projectors[projection_id]['projector_subprocess'],
                           msg='Checking if projection projector was set to None after stop.')
 
@@ -155,7 +154,7 @@ class TestProjectionsDaemon(TestCase):
         # Stopping projector
         self.daemon.stop('test_projection')
 
-        projectors = self.daemon.projectors
+        projectors = self.daemon.projections
         projection_id = list(projectors.keys())[0]
 
         projector = projectors[projection_id]['projector_subprocess']
@@ -165,7 +164,7 @@ class TestProjectionsDaemon(TestCase):
 
         self.daemon.start('test_projection')
 
-        projectors = self.daemon.projectors
+        projectors = self.daemon.projections
         projection_id = list(projectors.keys())[0]
 
         projector = projectors[projection_id]['projector_subprocess']
@@ -189,7 +188,7 @@ class TestProjectionsDaemon(TestCase):
         self.cursor.execute("""
         SELECT 1 FROM projections.projections WHERE projection_name~'test_projection';
         """)
-        is_projection_exists = self.cursor.fetchone()[0] is not None
+        is_projection_exists = self.cursor.fetchone() is None
 
         self.assertTrue(is_projection_exists,
                         msg='Checking if projection were removed properly.')
