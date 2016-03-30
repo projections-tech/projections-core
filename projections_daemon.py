@@ -31,10 +31,12 @@ from logging import config
 import os
 import sys
 import subprocess
+from lockfile import pidlockfile
 
 import Pyro4
 
 LOCK_FILE = '/var/lock/projections'
+PID_LOCK_FILE = '/var/lock/projections.pid'
 LOG_FILE = 'projections.log'
 
 # Import logging configuration from the file provided
@@ -45,10 +47,7 @@ logger = logging.getLogger('projection_daemon')
 class ProjectionsDaemon(object):
     logger = logging.getLogger('projection_daemon')
 
-    def __init__(self, pyro_daemon):
-
-        self.pyro_daemon = pyro_daemon
-
+    def __init__(self):
         # This dictionary contains mapping of projectors id`s in database to running subprocessess objects
         self.projectors = dict()
         self.logger.debug('Id of projectors dict at init: %s', id(self.projectors))
@@ -261,39 +260,27 @@ class ProjectionsDaemon(object):
         self.cursor.close()
         self.db_connection.close()
 
-    def get_pyro_daemon(self):
-        return self.pyro_daemon
-
 
 def start_daemon_listener():
     """
 
     :return:
     """
-
     # This function will be called as child process so we need to initialize loggers again
     logging.config.fileConfig('logging.cfg')
     logger = logging.getLogger('projection_daemon')
 
     pyro_daemon = Pyro4.Daemon()
 
-    projections_daemon = ProjectionsDaemon(pyro_daemon)
+    projections_daemon = ProjectionsDaemon()
     uri = pyro_daemon.register(projections_daemon)
 
     with open(LOCK_FILE, 'w') as f:
         f.write(str(uri))
         f.write('\n')
-
-    with open('/var/lock/projections.pid', 'w') as f:
-        f.write(str(os.getpid()))
-        f.write('\n')
-
-    logger.debug('Daemon_pid: %s', os.getpid())
-
     logger.info('Projections daemon is starting. URI: {}'.format(uri))
 
     pyro_daemon.requestLoop()
-
 
 def stop_daemon(signum, frame):
     """
@@ -305,20 +292,13 @@ def stop_daemon(signum, frame):
     """
     logger.info('Signal to stop daemon received. Terminating projections daemon.')
     # Terminate projections FUSE subprocesses, flush database connections, etc.
-    with open(LOCK_FILE, 'r') as f:
-        uri = f.readline()
-        projections_daemon = Pyro4.Proxy(uri)
 
-    # Attempt to stop projection using daemon
-    projections_daemon.stop_daemon()
-    # Attempt to get daemon and disable it
-    pyro_daemon = projections_daemon.get_pyro_daemon()
-    pyro_daemon.shutdown()
+    subprocess.call([sys.executable, 'daemon_cleanup.py'])
 
-    sys.exit()
+    raise SystemExit(0)
 
 
-# To start projection daemon simply type: ./projections_daemon.py
+# To start projection daemon simply type: ./projections_daemon.py -start
 # Then use projections_cli.py client to send command to running daemon.
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='DBProjector')
@@ -330,21 +310,30 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.start:
-        logger.debug('Starting daemon')
-        # Create context. For documentation see: https://www.python.org/dev/peps/pep-3143/
-        context = daemon.DaemonContext(
-            pidfile=open('/var/lock/projections.pid', 'wb'),
-            stdout=open(LOG_FILE, 'wb'),
-            stderr=sys.stdout,
-            working_directory=os.getcwd())
+        if not os.path.exists(PID_LOCK_FILE):
+            lock_file = pidlockfile.PIDLockFile(PID_LOCK_FILE)
 
-        context.signal_map = {
-            signal.SIGTERM: stop_daemon
-        }
+            logger.debug('Starting daemon')
+            # Create context. For documentation see: https://www.python.org/dev/peps/pep-3143/
+            context = daemon.DaemonContext(
+                pidfile=lock_file,
+                stdout=open(LOG_FILE, 'wb'),
+                stderr=sys.stdout,
+                working_directory=os.getcwd())
 
-        with context:
-            start_daemon_listener()
+            context.signal_map = {
+                signal.SIGTERM: stop_daemon
+            }
 
+            with context:
+                start_daemon_listener()
+        else:
+            logger.info('Daemon is already running!')
     elif args.stop:
-        with open('/var/lock/projections.pid') as pid_file:
-            logger.debug('Daemon pid: {}'.format(pid_file.readline()))
+        if os.path.exists(PID_LOCK_FILE):
+            with open(PID_LOCK_FILE) as pid_file:
+                daemon_pid = pid_file.readline()
+
+            os.kill(int(daemon_pid), 15)
+        else:
+            logger.info('Daemon is not running!')
