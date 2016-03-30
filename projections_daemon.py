@@ -249,6 +249,7 @@ class ProjectionsDaemon(object):
 
         :return:
         """
+        logger.debug('Shutting down projections and flushing database connections!')
         for projection_id, projection_data in self.projectors.items():
             projector = projection_data['projector_subprocess']
 
@@ -259,7 +260,9 @@ class ProjectionsDaemon(object):
 
         self.cursor.close()
         self.db_connection.close()
-        self.pyro_daemon.shutdown()
+
+    def get_pyro_daemon(self):
+        return self.pyro_daemon
 
 
 def start_daemon_listener():
@@ -306,7 +309,12 @@ def stop_daemon(signum, frame):
         uri = f.readline()
         projections_daemon = Pyro4.Proxy(uri)
 
+    # Attempt to stop projection using daemon
     projections_daemon.stop_daemon()
+    # Attempt to get daemon and disable it
+    pyro_daemon = projections_daemon.get_pyro_daemon()
+    pyro_daemon.shutdown()
+
     sys.exit()
 
 
