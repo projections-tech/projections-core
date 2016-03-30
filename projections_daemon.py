@@ -38,6 +38,8 @@ import Pyro4
 LOCK_FILE = '/var/lock/projections'
 PID_LOCK_FILE = '/var/lock/projections.pid'
 LOG_FILE = 'projections.log'
+# This variable is used to hold reference for daemon object then daemon starts and performed double fork
+DAEMON = None
 
 # Import logging configuration from the file provided
 logging.config.fileConfig('logging.cfg')
@@ -60,6 +62,9 @@ class ProjectionsDaemon(object):
 
         # Creating cursor, which will be used to interact with database
         self.cursor = self.db_connection.cursor()
+
+    def __del__(self):
+        self.stop_daemon()
 
     def get_projections(self):
         """
@@ -229,11 +234,11 @@ class ProjectionsDaemon(object):
 
     def search(self, projection_name, path, query):
         """
-
+        This method performs
         :param projection_name:
         :param path:
         :param query:
-        :return:
+        :return: str
         """
         logger.info('Do search')
         try:
@@ -245,8 +250,8 @@ class ProjectionsDaemon(object):
 
     def stop_daemon(self):
         """
-
-        :return:
+        This method stops current daemon projections and closes daemon database connections
+        :return: None
         """
         logger.debug('Shutting down projections and flushing database connections!')
         for projection_id, projection_data in self.projectors.items():
@@ -263,9 +268,10 @@ class ProjectionsDaemon(object):
 
 def start_daemon_listener():
     """
-
-    :return:
+    This function creates projections daemon object and registers it in PYRO daemon, which starts requests loop
+    :return: None
     """
+    global DAEMON
     # This function will be called as child process so we need to initialize loggers again
     logging.config.fileConfig('logging.cfg')
     logger = logging.getLogger('projection_daemon')
@@ -273,6 +279,9 @@ def start_daemon_listener():
     pyro_daemon = Pyro4.Daemon()
 
     projections_daemon = ProjectionsDaemon()
+
+    DAEMON = projections_daemon
+
     uri = pyro_daemon.register(projections_daemon)
 
     with open(LOCK_FILE, 'w') as f:
@@ -281,6 +290,7 @@ def start_daemon_listener():
     logger.info('Projections daemon is starting. URI: {}'.format(uri))
 
     pyro_daemon.requestLoop()
+
 
 def stop_daemon(signum, frame):
     """
@@ -292,11 +302,10 @@ def stop_daemon(signum, frame):
     """
     logger.info('Signal to stop daemon received. Terminating projections daemon.')
     # Terminate projections FUSE subprocesses, flush database connections, etc.
-
-    subprocess.call([sys.executable, 'daemon_cleanup.py'])
+    global DAEMON
+    DAEMON.stop_daemon()
 
     raise SystemExit(0)
-
 
 # To start projection daemon simply type: ./projections_daemon.py -start
 # Then use projections_cli.py client to send command to running daemon.
