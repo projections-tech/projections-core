@@ -3,24 +3,24 @@ dialect: ObjectPath
 resource_uri: http://eutils.ncbi.nlm.nih.gov
 driver_config_path: 'drivers/driver_configurations/genbank_config.yaml'
 
-root_projection_uri: 'search_query:escherichia[orgn] AND complete genome[title]:1'
+root_projection_uri: 'search_query:escherichia[orgn]:10'
 
 fasta_file_prototype: &fasta_file_prototype
   type: file
   children: None
-  name: "'sequence.fasta'"
-  uri: " $.fasta_files "
+  name: " $.content_uri "
+  uri: " join([$.IdList[0], '.fasta'], '')"
 
 gb_file_prototype: &gb_file_prototype
   type: file
   children: None
-  name: " 'sequence.gb' "
-  uri: " $.gb_files "
+  name: " $.content_uri "
+  uri: " join([$.IdList[0], '.gb'], '')"
 
 root:
   type: directory
   children:
     gb_file_prototype: *gb_file_prototype
     fasta_file_prototype: *fasta_file_prototype
-  name: " 'root_dir' "
-  uri: " 'search_query:escherichia[orgn] AND complete genome[title]:1' "
+  name: " join([$.environment.TranslationSet[0].From, $.content_uri], '_') "
+  uri: " $.IdList"

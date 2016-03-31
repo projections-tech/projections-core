@@ -18,7 +18,6 @@
 import argparse
 import copy
 import getpass
-import io
 import logging
 import logging.config
 import os
@@ -164,6 +163,7 @@ class DBProjector:
                 # Adding environment to use by prototype
                 content['environment'] = environment
                 content['context'] = context
+                content['content_uri'] = uri
 
                 # Creating tree which will be parsed by ObjectPath
                 tree = objectpath.Tree(content)
@@ -315,7 +315,7 @@ class DBProjector:
         logger.info('Got path content: %s\n', path)
 
         file_header = 3
-        resource_io = io.BytesIO(content)
+        resource_io = content
 
         return file_header, resource_io
 
