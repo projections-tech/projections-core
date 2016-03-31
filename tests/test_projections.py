@@ -148,8 +148,8 @@ class TestProjector(TestCase):
 
     def setUp(self):
         self.cursor.execute("""
-        INSERT INTO projections.projections (projection_name, mount_point, driver)
-        VALUES ('test_projection', 'None', 'test_driver')
+        INSERT INTO projections.projections (projection_name, mount_point, driver, prototype)
+        VALUES ('test_projection', 'None', 'test_driver', 'test_prototype')
         RETURNING projection_id
         """)
 
@@ -349,8 +349,8 @@ class TestProjectionVariants(TestCase):
 
     def setUp(self):
         self.cursor.execute("""
-        INSERT INTO projections.projections (projection_name, mount_point, driver)
-        VALUES ('test_projection', 'None', 'test_driver')
+        INSERT INTO projections.projections (projection_name, mount_point, driver, prototype)
+        VALUES ('test_projection', 'None', 'test_driver', 'test_prototype')
         RETURNING projection_id
         """)
         self.projection_id = self.cursor.fetchone()
@@ -464,8 +464,8 @@ class TestMetadataOperations(TestCase):
 
     def setUp(self):
         self.cursor.execute("""
-        INSERT INTO projections.projections (projection_name, mount_point, driver)
-        VALUES ('test_projection', 'None', 'test_driver')
+        INSERT INTO projections.projections (projection_name, mount_point, driver, prototype)
+        VALUES ('test_projection', 'None', 'test_driver', 'test_prototype')
         RETURNING projection_id
         """)
         self.projection_id = self.cursor.fetchone()

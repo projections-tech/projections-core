@@ -67,7 +67,6 @@ class TestProjectionsDaemon(TestCase):
         """
         Tests daemon get_projections returned list of projections correctness
         """
-        projections_ids = []
         for i in range(1, 6):
             self.cursor.execute("""
             INSERT INTO projections.projections (projection_name, mount_point, driver, prototype)
@@ -121,7 +120,18 @@ class TestProjectionsDaemon(TestCase):
                             'fs_driver')
 
         projectors = self.daemon.projections
-        projection_id = list(projectors.keys())[0]
+
+        self.cursor.callproc('projections.daemon_get_projections')
+
+        test_projection_id = None
+        for row in self.cursor:
+            # Dealing with psycopg2 inconsistency here, sometimes cursor returns ("",)
+            if len(row) == 1:
+                continue
+
+            projection_id, projection_name, mount_point, driver, projector_pid, prototype = row
+            if projection_name == 'test_projection':
+                test_projection_id = projection_id
 
         self.assertTrue(any(projectors), msg='Checking if projectors dict is not empty after projection start')
 
@@ -134,7 +144,7 @@ class TestProjectionsDaemon(TestCase):
         # Stopping projector
         self.daemon.stop('test_projection')
         projectors = self.daemon.projections
-        self.assertIsNone(projectors[projection_id]['projector_subprocess'],
+        self.assertIsNone(projectors[test_projection_id]['projector_subprocess'],
                           msg='Checking if projection projector was set to None after stop.')
 
         self.cursor.execute("""
@@ -155,9 +165,20 @@ class TestProjectionsDaemon(TestCase):
         self.daemon.stop('test_projection')
 
         projectors = self.daemon.projections
-        projection_id = list(projectors.keys())[0]
 
-        projector = projectors[projection_id]['projector_subprocess']
+        self.cursor.callproc('projections.daemon_get_projections')
+
+        test_projection_id = None
+        for row in self.cursor:
+            # Dealing with psycopg2 inconsistency here, sometimes cursor returns ("",)
+            if len(row) == 1:
+                continue
+
+            projection_id, projection_name, mount_point, driver, projector_pid, prototype = row
+            if projection_name == 'test_projection':
+                test_projection_id = projection_id
+
+        projector = projectors[test_projection_id]['projector_subprocess']
 
         self.assertIsNone(projector,
                           msg='Checking if projection projector was set to None after stop.')
@@ -165,9 +186,8 @@ class TestProjectionsDaemon(TestCase):
         self.daemon.start('test_projection')
 
         projectors = self.daemon.projections
-        projection_id = list(projectors.keys())[0]
 
-        projector = projectors[projection_id]['projector_subprocess']
+        projector = projectors[test_projection_id]['projector_subprocess']
 
         self.assertIsNotNone(projector,
                              msg='Checking if projection`s projector was set after start.')
