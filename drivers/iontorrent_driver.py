@@ -135,7 +135,18 @@ class TorrentSuiteDriver(ProjectionDriver):
         :return: content bytes
         """
         uri = self.__prepare_uri(uri)
-        return self.load_data_as_iterator(uri)
+        return LoadIonTorrentData(uri)
+
+
+class LoadIonTorrentData:
+    def __init__(self, uri):
+        self.uri = uri
+
+    def __enter__(self):
+        return self.load_data_as_iterator(self.uri)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
 
     def load_data_as_iterator(self, uri):
         r = requests.get(uri, stream=True)

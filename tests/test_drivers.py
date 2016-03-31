@@ -21,7 +21,7 @@ import logging.config
 import os
 import re
 import types
-from unittest import TestCase
+from unittest import TestCase, skip
 
 import boto3
 from moto import mock_s3
@@ -214,12 +214,15 @@ class TestTorrentSuiteDriver(TestCase):
         Tests if torrent suite driver gets contents of uri properly
         """
         uri_to_file_mapping = self.mock_structure['mock_responses']
+
         for uri in self.reference_driver_responses:
             driver_response = self.driver.get_uri_contents_as_bytes(uri)
             self.assertIsInstance(driver_response, types.GeneratorType,
                                   msg='Checking driver response type.')
 
-            driver_response = bytearray([el for el in driver_response])
+            with driver_response as response:
+                response = b''.join([el for el in response])
+
             for key in uri_to_file_mapping:
                 # Getting corresponding data file for uri from mock structure
                 if re.search(key, uri):
@@ -228,7 +231,7 @@ class TestTorrentSuiteDriver(TestCase):
 
                     with open(path_to_mock_contents_on_uri, 'rb') as m_c:
                         mock_contents_on_uri = m_c.read()
-                    self.assertEqual(mock_contents_on_uri, driver_response, msg='Checking contents on uri.')
+                    self.assertEqual(mock_contents_on_uri, response, msg='Checking contents on uri.')
 
 
 class TestGenbankDriver(TestCase):
@@ -279,6 +282,7 @@ class TestGenbankDriver(TestCase):
             self.assertEqual(reference_contents, driver_response, msg='Checking contents on uri.')
 
 
+@skip("Driver creation is on hold.")
 class TestSRADriver(TestCase):
     @classmethod
     def setUpClass(cls):

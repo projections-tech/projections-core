@@ -14,15 +14,15 @@ root_projection_uri: 'search_query:Volvox:3'
 run_prototype: &run_prototype
   type: file
   children: None
-  name:  " $.environment.resource_uri + '.sam' "
+  name:  " join([$.content_uri, '.sam'], '') "
   uri: " $.EXPERIMENT_PACKAGE_SET.EXPERIMENT_PACKAGE.RUN_SET.RUN.@accession "
 
 # This is a root prototype for projections, its context will be used as environment for children prototypes
 root:
-  type: transparent
+  type: directory
   children:
     run_prototype: *run_prototype
-  name: " $.environment.QueryTranslation "
+  name: " $.content_uri "
   uri: " $.IdList "
 
 

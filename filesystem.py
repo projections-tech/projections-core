@@ -158,8 +158,9 @@ class ProjectionFilesystem(Operations):
                 data_path = self._extend_data_path(path)
 
                 with open(data_path, 'wb') as f:
-                    for line in resource_io_iterator:
-                        f.write(line)
+                    with resource_io_iterator as resource_io:
+                        for line in resource_io:
+                            f.write(line)
 
         projection_size = os.stat(self._extend_data_path(path)).st_size
         self.projection_manager.update_projection_size_attribute(path, projection_size)

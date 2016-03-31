@@ -855,7 +855,7 @@ BEGIN
 END;
 $BODY$ LANGUAGE 'plpgsql';
 
-COMMENT ON FUNCTION projections.daemon_set_projection_projector_pid(
+COMMENT ON FUNCTION projections.daemon_add_projection(
     _projection_id bigint,
     _projector_pid bigint
     ) IS

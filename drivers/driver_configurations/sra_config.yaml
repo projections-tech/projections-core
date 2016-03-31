@@ -1,3 +1,4 @@
 ---
 # SRA driver configuration file
 email: "vsvekolkin@parseq.pro"
+samdump_path: "sratoolkit.2.5.7-ubuntu64/bin/sam-dump"

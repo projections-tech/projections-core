@@ -65,7 +65,6 @@ class FSDriver(ProjectionDriver):
         uri = os.path.join(uri)
 
         if os.path.isfile(uri):
-            with open(uri, 'rb') as f:
-                return f.read()
+            return open(uri, 'rb')
         elif os.path.isdir(uri):
             return None

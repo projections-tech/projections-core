@@ -42,7 +42,8 @@ class SRADriver(ProjectionDriver):
 
         Entrez.email = self.driver_configuration['email']
         Entrez.tool = 'sra_projection_manager'
-        self.driver_cache = {}
+
+        self.sampdump_path = self.driver_configuration['samdump_path']
 
     def get_uri_contents_as_dict(self, uri):
         """
@@ -55,61 +56,22 @@ class SRADriver(ProjectionDriver):
         if re.match(sam_uri_regex, uri):
             return {}
 
-        # Info about Biopython`s eutils: http://biopython.org/DIST/docs/tutorial/Tutorial.html#chapter:entrez
-        # Query looks as: 'query:Test_species'
-        logger.debug('Current query: %s', uri)
-        uri_parts = uri.split(':')
-        if uri not in self.driver_cache and uri_parts[0] == 'search_query':
-            # Returns esearch response dict for SRA database.
-            logger.debug('Cureent uri parts: %s', uri_parts)
-            esearch_handle = Entrez.esearch(db='sra', term=uri_parts[1], retmax=uri_parts[2])
+        if uri.startswith('search_query:'):
+            query = uri.split(':')
+
+            if len(query) < 3:
+                query.append(1)
+            esearch_handle = Entrez.esearch(db='sra', term=query[1], retmax=query[2])
+
             search_result = Entrez.read(esearch_handle)
-            # Id`s of experiment resources
-            for sra_id in search_result['IdList']:
-                # Driver accesses experiments using id`s like sra_id:1214564
-                res_uri = 'sra_id:{0}'.format(sra_id)
-                # Handler to fetch SRA database by experiment id
-                fetch_handler = Entrez.efetch(db='sra', id=sra_id)
+            search_result['IdList'] = ['sra_id:' + el for el in search_result['IdList']]
 
-                # Converts nested ordered dicts to default dicts required by ObjectPath
-                experiment = json.loads(json.dumps(xmltodict.parse(fetch_handler.read())))
-                # Setting resource uri for experiment on driver
-                experiment['resource_uri'] = res_uri
+            return dict(search_result)
+        elif uri.startswith('sra_id:'):
+            query = uri.split(':')
+            fetch_handler = Entrez.efetch(db='sra', id=query[1])
 
-                # Experiment resource contains data about runs, which contain id`s of SAM files in database
-                # Run set is most times dict, but sometimes list, treating dict as list to resolve inconsistency
-                run_set = experiment['EXPERIMENT_PACKAGE_SET']['EXPERIMENT_PACKAGE']['RUN_SET']['RUN']
-                if not isinstance(run_set, list):
-                    run_set = [run_set]
-                # Setting corrected run set field for experiment
-                experiment['EXPERIMENT_PACKAGE_SET']['EXPERIMENT_PACKAGE']['RUN_SET']['RUN'] = run_set
-                # Adding experiment resource in driver cache by uri
-                self.driver_cache[res_uri] = experiment
-
-                # Adding runs to driver cache by their accession
-                for run in run_set:
-                    self.driver_cache[run['@accession']] = run
-
-            # Adding sra_id prefix by which experiment resources will be accessed using driver cache
-            search_result['IdList'] = [''.join(['sra_id:', id]) for id in search_result['IdList']]
-            # Adding resource uri to search results meta
-            search_result['resource_uri'] = uri
-            # Converting search result into proper dict, not biopython subclass, because ObjectPath can handle only
-            # standard dicts
-            search_result = dict(search_result)
-            # Adding results of search to driver cache
-            self.driver_cache[uri] = search_result
-            return search_result
-        elif uri_parts[0] == 'sra_id':
-            # Driver accesses experiments using id`s like sra_id:1214564
-            res_uri = 'sra_id:{0}'.format(uri_parts[1])
-            # Handler to fetch SRA database by experiment id
-            fetch_handler = Entrez.efetch(db='sra', id=uri_parts[1])
-
-            # Converts nested ordered dicts to default dicts required by ObjectPath
             experiment = json.loads(json.dumps(xmltodict.parse(fetch_handler.read())))
-            # Setting resource uri for experiment on driver
-            experiment['resource_uri'] = res_uri
 
             # Experiment resource contains data about runs, which contain id`s of SAM files in database
             # Run set is most times dict, but sometimes list, treating dict as list to resolve inconsistency
@@ -118,17 +80,9 @@ class SRADriver(ProjectionDriver):
                 run_set = [run_set]
             # Setting corrected run set field for experiment
             experiment['EXPERIMENT_PACKAGE_SET']['EXPERIMENT_PACKAGE']['RUN_SET']['RUN'] = run_set
-            # Adding experiment resource in driver cache by uri
-            self.driver_cache[res_uri] = experiment
+            return dict(experiment)
 
-            # Adding runs to driver cache by their accession
-            for run in run_set:
-                self.driver_cache[run['@accession']] = run
-            return experiment
-        else:
-            return self.driver_cache[uri]
-
-    def load_uri_contents_as_bytes(self, uri):
+    def get_uri_contents_as_bytes(self, uri):
         """
         Returns stream of uri contents
         :param uri: uri of resource
@@ -140,6 +94,27 @@ class SRADriver(ProjectionDriver):
         if re.match(sam_uri_regex, uri):
             # Using subprocess.check to run sam-dump, which returns stream after loading of sam file,
             # this approach may be slow, other approaches lock script execution, need to reconsider
-            return subprocess.check_output(['./sratoolkit.2.5.4-1-ubuntu64/bin/sam-dump', uri])
+            return SamDump(self.sampdump_path, uri)
         else:
-            return json.dumps(self.driver_cache[uri]).encode()
+            return (el for el in json.dumps(self.get_uri_contents_as_dict(uri)).encode())
+
+
+class SamDump:
+    """
+    This class works as context manager for sam-damp tool.
+    """
+
+    def __init__(self, sampdump_path, uri):
+        self.sampdump_path = sampdump_path
+        self.uri = uri
+        self.sam_dump = None
+
+    def __enter__(self):
+        self.sam_dump = subprocess.Popen([self.sampdump_path, self.uri], stdout=subprocess.PIPE)
+        return self.sam_dump.stdout
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_type is None:
+            self.sam_dump.terminate()
+        self.sam_dump.terminate()
+        self.sam_dump.communicate()
