@@ -20,6 +20,7 @@ import logging
 import logging.config
 import os
 import re
+import types
 from unittest import TestCase
 
 import boto3
@@ -168,7 +169,11 @@ class TestS3Driver(TestCase):
         test_data_contents = b'S3 file projection testing data.'
         for key, exp_content in {'projects/': b'', 'projects/test_file.txt': test_data_contents}.items():
             driver_response = self.driver.get_uri_contents_as_bytes(key)
-            self.assertIsInstance(driver_response, bytes, msg='Checking driver response type.')
+
+            self.assertIsInstance(driver_response, types.GeneratorType, msg='Checking driver response type.')
+
+            driver_response = bytearray([el for el in driver_response])
+
             self.assertEqual(exp_content, driver_response,
                              msg='Checking content of object with URI: {0}'.format(key))
 
@@ -211,8 +216,10 @@ class TestTorrentSuiteDriver(TestCase):
         uri_to_file_mapping = self.mock_structure['mock_responses']
         for uri in self.reference_driver_responses:
             driver_response = self.driver.get_uri_contents_as_bytes(uri)
-            self.assertIsInstance(driver_response, bytes, msg='Checking driver response type.')
+            self.assertIsInstance(driver_response, types.GeneratorType,
+                                  msg='Checking driver response type.')
 
+            driver_response = bytearray([el for el in driver_response])
             for key in uri_to_file_mapping:
                 # Getting corresponding data file for uri from mock structure
                 if re.search(key, uri):
@@ -247,7 +254,8 @@ class TestGenbankDriver(TestCase):
         """
         for uri in self.reference_genbank_responses:
             driver_response = self.driver.get_uri_contents_as_dict(uri)
-
+            import pprint
+            pprint.pprint(driver_response)
             self.assertIsInstance(driver_response, dict, msg='Checking type of driver response.')
             self.assertDictEqual(self.reference_genbank_responses[uri],
                                  driver_response,
@@ -259,7 +267,7 @@ class TestGenbankDriver(TestCase):
         """
         for uri in self.reference_genbank_responses:
             driver_response = self.driver.get_uri_contents_as_bytes(uri)
-            self.assertIsInstance(driver_response, bytes, msg='Checking response type.')
+            self.assertIsInstance(driver_response, types.GeneratorType, msg='Checking response type.')
 
             if uri.startswith('search_query'):
                 reference_path = 'tests/mock_resources/genbank_mock_data/esearch_response.xml'
@@ -267,7 +275,7 @@ class TestGenbankDriver(TestCase):
                 reference_path = 'tests/mock_resources/genbank_mock_data/mock_contents.txt'
             with open(reference_path, 'rb') as r_f:
                 reference_contents = r_f.read()
-
+            driver_response = bytearray([el for el in driver_response])
             self.assertEqual(reference_contents, driver_response, msg='Checking contents on uri.')
 
 

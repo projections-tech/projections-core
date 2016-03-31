@@ -24,11 +24,14 @@ import re
 import urllib.request
 from urllib.parse import urljoin
 
+import requests
+
 from projections import ProjectionDriver
 
 logger = logging.getLogger('iontorrent_projection')
 
 
+# TODO rewrite this class using requests library
 class TorrentSuiteDriver(ProjectionDriver):
     def __init__(self, host_url, configuration_file_path):
         """
@@ -132,5 +135,10 @@ class TorrentSuiteDriver(ProjectionDriver):
         :return: content bytes
         """
         uri = self.__prepare_uri(uri)
-        with urllib.request.urlopen(uri) as f:
-            return f.readall()
+        return self.load_data_as_iterator(uri)
+
+    def load_data_as_iterator(self, uri):
+        r = requests.get(uri, stream=True)
+        for chunk in r.iter_content(chunk_size=1024):
+            if chunk:
+                yield chunk

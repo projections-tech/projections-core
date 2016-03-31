@@ -73,4 +73,5 @@ class S3Driver(ProjectionDriver):
         :param uri: URI string
         :return: content bytes
         """
-        return self.bucket.Object(key=uri).get()['Body'].read()
+        # TODO find a way to load bucket contents as a stream
+        return (el for el in self.bucket.Object(key=uri).get()['Body'].read(amt=1024))

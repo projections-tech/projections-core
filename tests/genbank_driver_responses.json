@@ -27,15 +27,7 @@
         "Count": "110457"
       },
       "AND"
-    ],
-    "fasta_files": [
-      "fasta:939732440"
-    ],
-    "gb_files": [
-      "gb:939732440"
-    ],
-    "resource_uri": "search_query:escherichia[orgn] AND complete genome[title]:1"
+    ]
   },
-  "fasta:939732440": {},
-  "gb:939732440": {}
+  "939732440": {}
 }

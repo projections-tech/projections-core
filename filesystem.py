@@ -143,7 +143,7 @@ class ProjectionFilesystem(Operations):
             # If the path is managed by projection manager
             # then it should place original resource on drive before opening
             if self.projection_manager.is_managing_path(path):
-                file_header, resource_io = self.projection_manager.open_resource(path)
+                file_header, resource_io_iterator = self.projection_manager.open_resource(path)
 
                 logger.debug('Opening resource at path: %s returned header: %s', path, file_header)
                 logger.info('Saving resource content to local drive')
@@ -158,7 +158,7 @@ class ProjectionFilesystem(Operations):
                 data_path = self._extend_data_path(path)
 
                 with open(data_path, 'wb') as f:
-                    for line in resource_io:
+                    for line in resource_io_iterator:
                         f.write(line)
 
         projection_size = os.stat(self._extend_data_path(path)).st_size
