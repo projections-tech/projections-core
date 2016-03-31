@@ -824,6 +824,16 @@ BEGIN
 END;
 $BODY$ LANGUAGE 'plpgsql';
 
+COMMENT ON FUNCTION projections.daemon_get_projections() IS
+    $$This function returns list of all projections in database
+        @returns: _projection_id - id of projection.
+        @returns: _projection_name - name of projection.
+        @returns: _mount_point - projection mount point,
+        @returns: _driver - name of projection`s driver.
+        @returns: _projector_pid - projectors PID.
+        @returns: _prototype - path to projections prototype --TODO replace with table entry
+    $$;
+
 
 /*
 This function adds new projection into database
@@ -845,6 +855,18 @@ BEGIN
 END;
 $BODY$ LANGUAGE 'plpgsql';
 
+COMMENT ON FUNCTION projections.daemon_set_projection_projector_pid(
+    _projection_id bigint,
+    _projector_pid bigint
+    ) IS
+    $$This function adds new projection into database.
+        @param: _projection_name - name of projection.
+        @param: _mount_point - projection mount point.
+        @param: _driver - projection`s driver.
+        @param: _prototype - projection`s prototype --TODO replace with table entry
+        @returns: id of created projection.
+    $$;
+
 
 /*
 This function sets projection`s projector PID
@@ -862,6 +884,15 @@ BEGIN
 END;
 $BODY$ LANGUAGE 'plpgsql';
 
+COMMENT ON FUNCTION projections.daemon_set_projection_projector_pid(
+    _projection_id bigint,
+    _projector_pid bigint
+    ) IS
+    $$This function sets projection`s projector PID
+        @param: _projection_name - name of projection which projector`s pid will be changed.
+        @param: _projector_pid - PID of projector, may be NULL.
+        @returns: VOID.
+    $$;
 
 /*
 This function returns projection id by projection name
@@ -881,6 +912,14 @@ BEGIN
 END;
 $BODY$ LANGUAGE 'plpgsql';
 
+COMMENT ON FUNCTION projections.get_projection_id_by_name(
+    _projection_name varchar
+    ) IS
+    $$This function returns projection id by projection name
+        @param: _projection_name - name of projection which id will be returned.
+        @returns: bigint - id of projection.
+    $$;
+
 
 /*
 This function sets projection`s projector by given name to Null
@@ -897,9 +936,17 @@ BEGIN
 END;
 $BODY$ LANGUAGE 'plpgsql';
 
+COMMENT ON FUNCTION projections.daemon_stop_projection(
+    _projection_name varchar
+    ) IS
+    $$This function sets projection`s projector by given name to Null
+        @param: _projection_name - name of projection to stop.
+        @returns: VOID.
+    $$;
+
 
 /*
-This function removes projection
+This function removes projection from projections table
 */
 CREATE OR REPLACE FUNCTION projections.daemon_remove_projection(
     _projection_name varchar
@@ -912,6 +959,14 @@ BEGIN
     DELETE FROM projections.projections WHERE projection_id=_projection_to_remove_id;
 END;
 $BODY$ LANGUAGE 'plpgsql';
+
+COMMENT ON FUNCTION projections.daemon_remove_projection(
+    _projection_name varchar
+    ) IS
+    $$This function removes projection from projections table
+        @param: _projection_name - name of projection to remove.
+        @returns: VOID.
+    $$;
 
 
 /*
@@ -958,15 +1013,14 @@ $BODY$ LANGUAGE 'plpgsql';
 COMMENT ON FUNCTION projections.projector_bind_metadata_to_data(
     current_tree_id bigint
     ) IS
-    $$This function is used to return node uri, id and st_mode for projector to use.
-
-        @param: current_tree_id - id of a projection which nodes will be checked.
+    $$This function performs metadata-data binding.
+        @param: current_tree_id - id of a projection on which to perform metadata binding
         @returns: VOID.
     $$;
 
 
 /*
-This function performs metadata-data binding
+This function performs projections search
 */
 CREATE OR REPLACE FUNCTION projections.search_projections(
     current_tree_name varchar,
@@ -1030,3 +1084,44 @@ BEGIN
     USING node_on_search_path_id;
 END;
 $BODY$ LANGUAGE 'plpgsql';
+
+COMMENT ON FUNCTION projections.search_projections(
+    current_tree_name varchar,
+    search_path varchar,
+    search_code varchar
+    ) IS
+    $$This function is used to return node uri, id and st_mode for projector to use.
+        @param: current_tree_name - name of a projections tree on which to performs search.
+        @param: search_path - path of parent node which children nodes will be filtered.
+        @search_code: search query SQL code.
+        @returns: VOID.
+    $$;
+
+
+/*
+This function checks if mount point is already occupied by another projection
+*/
+CREATE OR REPLACE FUNCTION projections.check_mount_point(
+    _mount_point varchar
+)    RETURNS bool AS
+$BODY$
+DECLARE
+_is_mount_point_occupied bool;
+BEGIN
+    SELECT EXISTS (
+        SELECT 1
+        FROM projections.projections
+        WHERE mount_point = _mount_point
+        )
+    INTO _is_mount_point_occupied;
+    RETURN _is_mount_point_occupied;
+END;
+$BODY$ LANGUAGE 'plpgsql';
+
+COMMENT ON FUNCTION projections.check_mount_point(
+    _mount_point varchar
+    ) IS
+    $$This function checks if mount point is already occupied by another projection
+        @param: _mount_point - mount point path.
+        @returns: boll - True if occupied, False otherwise.
+    $$;

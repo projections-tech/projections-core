@@ -111,9 +111,16 @@ class ProjectionsDaemon(object):
         # Fetching id of projection by it`s name
         projection_id = self.cursor.fetchone()[0]
 
+        self.cursor.callproc('projections.check_mount_point', [mount_point])
+        # Checking if mount point is occupied
+        mount_point_occupied = self.cursor.fetchone()[0]
         if projection_id is not None:
             # TODO add force flag to override this behaviour
-            return 'Projection already created!'
+            return 'Error: projection named "{}" already created!'.format(projection_name)
+        elif mount_point_occupied:
+            return 'Error: mount point "{}" is occupied, please choose another mount point!'.format(mount_point)
+        elif not os.path.exists(mount_point):
+            return 'Error: provided mount point "{}" does not exist!'.format(mount_point)
         else:
             logger.info('Creating projection with name: %s on %s using prototype: %s and driver: %s.', projection_name,
                         mount_point, prototype, driver)
@@ -155,6 +162,10 @@ class ProjectionsDaemon(object):
         if projection_id is not None:
             # Setting data required to run projection
             projection_data = self.projections[projection_id]
+            # If projection`s mount point does not exist skip projections start
+            if not projection_data['mount_point']:
+                return 'Error: projection "{}" mount point "{}" does not exist!'.format(projection_name,
+                                                                                        projection_data['mount_point'])
             # Checking if projection is already managed
             if projection_data['projector_subprocess'] is None:
                 projector = subprocess.Popen([sys.executable,
@@ -304,7 +315,7 @@ def start_daemon_listener():
     pyro_daemon = Pyro4.Daemon()
 
     projections_daemon = ProjectionsDaemon()
-
+    # Setting DAEMON global variable, which will be used to perform clean up in stop_daemon function
     DAEMON = projections_daemon
 
     uri = pyro_daemon.register(projections_daemon)
@@ -321,16 +332,14 @@ def stop_daemon(signum, frame):
     """
     This method is called when Projections daemon receives request to terminate.
     The signature of method is fixed. See: https://docs.python.org/2/library/signal.html#signal.signal
-
     :param signum: signal number
     :param frame: current stack frame
     """
     logger.info('Signal to stop daemon received. Terminating projections daemon.')
-    # Terminate projections FUSE subprocesses, flush database connections, etc.
     global DAEMON
+    # Perform daemon clean up, stopping running projections and closing daemon database connection
     DAEMON.stop_daemon()
-
-    raise SystemExit(0)
+    sys.exit()
 
 # To start projection daemon simply type: ./projections_daemon.py -start
 # Then use projections_cli.py client to send command to running daemon.
@@ -345,8 +354,9 @@ if __name__ == '__main__':
 
     if args.start:
         if not os.path.exists(PID_LOCK_FILE):
+            # Creating pid lock file which will be used by daemon context manager.
+            # This lock file is removed when daemon stops.
             lock_file = pidlockfile.PIDLockFile(PID_LOCK_FILE)
-
             logger.debug('Starting daemon')
             # Create context. For documentation see: https://www.python.org/dev/peps/pep-3143/
             context = daemon.DaemonContext(
@@ -354,20 +364,21 @@ if __name__ == '__main__':
                 stdout=open(LOG_FILE, 'wb'),
                 stderr=sys.stdout,
                 working_directory=os.getcwd())
-
+            # Define signal-action mapping
             context.signal_map = {
                 signal.SIGTERM: stop_daemon
             }
-
+            # Starting daemon
             with context:
                 start_daemon_listener()
         else:
+            # If pid lock file exists daemon is already running
             logger.info('Daemon is already running!')
     elif args.stop:
+        # If pid lock file exists daemon is running and we can send termination signal to it
         if os.path.exists(PID_LOCK_FILE):
             with open(PID_LOCK_FILE) as pid_file:
                 daemon_pid = pid_file.readline()
-
             os.kill(int(daemon_pid), 15)
         else:
             logger.info('Daemon is not running!')
