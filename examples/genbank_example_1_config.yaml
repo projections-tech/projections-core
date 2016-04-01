@@ -1,0 +1,73 @@
+# Copyright 2016  Anton Bragin, Victor Svekolkin
+#
+# This file is part of Projections.
+#
+# Projections is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Projections is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Projections.  If not, see <http://www.gnu.org/licenses/>.
+
+
+# This is prototype file for Genbank data projection. File is readed from buttom to top, starting from root node.
+---
+# Prototype microcode dialects are defined here, projections prototypes use ObjectPath (http://objectpath.org/) to
+# resolve projections hierarchy, and SQL to create data-metadata links between projections.
+dialect: ObjectPath, SQL
+# This is uri of resource which will be projected.
+resource_uri: http://eutils.ncbi.nlm.nih.gov
+# This is a path to projection drvier configuration file, it may content access credentials, driver-specific settings etc.
+driver_config_path: 'drivers/driver_configurations/genbank_config.yaml'
+
+# This is root projection URI, it consists of three parts:
+# 1) 'search_query:' - suffix, which tells driver to process query as search query
+# 2) Search query as accepted by NCBI. All query parameters and operators as described here:
+# http://www.ncbi.nlm.nih.gov/books/NBK49540/
+# 3) Number of results to return, if no nuber specified driver will return one query result
+root_projection_uri: 'search_query:escherichia[orgn]:5'
+
+# This is FASTA file prototype, corresponding for result query, it`s created similarly to GB file prototype, by adding
+# ".fasta" extension to prototype URI. This prototype differs from
+fasta_file_prototype: &fasta_file_prototype
+  type: file
+  children: None
+  name: " $.content_uri "
+  # Here we define prototype metadata link. Metadata is defined using SQL microcode and is assigned to projection after
+  # projection tree is completed. Code describes single node on tree which abides query conditions.
+  # Here, code states that metadata node is a node where node name is equal to current projection name and it`s extension is
+  # ".gb". This effectively binds GB files to their corresponding FASTA files.
+  meta_link:
+  - " regexp_replace(nodes.node_name, '.gb', '') = regexp_replace(current_node.node_name, '.fasta', '') "
+  uri: " join([$.IdList[0], '.fasta'], '')"
+
+# This is GB file prototype, it`s link created by resoloving environment which is avaliable by the URI resolved in
+# upper level. File extension is appended complete prototype URI, driver will resolve it accordingly. Name of prototype
+# is reolved using prototype context, here it is setted as prototype uri, using field avaliable for every prototype -
+# "content_uri"
+gb_file_prototype: &gb_file_prototype
+  type: file
+  children: None
+  name: " $.content_uri "
+  uri: " join([$.IdList[0], '.gb'], '')"
+
+# This is root projection node definition. By convention, it must be named "root". By resolving it`s URI code we create
+# list of URI`s for associated Genbank entries.
+root:
+  # Type of root node. Directory contains other projections.
+  type: directory
+  # This is a dictionary of children prototypes for current prototype.
+  children:
+    # Here we add an anchors for lower level prototypes.
+    gb_file_prototype: *gb_file_prototype
+    fasta_file_prototype: *fasta_file_prototype
+  # This field encodes how node name is defined from node "content" field.
+  name: " join([$.environment.TranslationSet[0].From, $.content_uri], '_') "
+  # This field defines how URI is assigned to projections.
+  uri: " $.IdList"

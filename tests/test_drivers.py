@@ -92,9 +92,9 @@ class TestFsDriver(TestCase):
 
         for path in dirs_paths:
             with self.driver.get_uri_contents_as_bytes(path) as driver_response:
-                response = driver_response
-
-            self.assertIsNone(response, msg='Checking dir contents.')
+                response = driver_response.read()
+            self.assertEqual(b'', response,
+                             msg='Checking dir contents.')
 
         # Checking driver responses for files uri`s
         files_paths = [os.path.join('tests/test_dir', path)

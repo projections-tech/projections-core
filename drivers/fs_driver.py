@@ -20,6 +20,7 @@
 import logging
 import logging.config
 import os
+import io
 
 from projections import ProjectionDriver
 
@@ -77,7 +78,9 @@ class FSLoadData:
             self.io = open(self.uri, 'rb')
             return self.io
         elif os.path.isdir(self.uri):
-            return None
+            self.io = io.BytesIO(b'')
+            return self.io
+
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.io is not None:

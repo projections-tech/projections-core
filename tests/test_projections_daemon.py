@@ -23,6 +23,7 @@ import logging.config
 import subprocess
 import time
 from unittest import TestCase
+import os
 
 import psycopg2
 
@@ -158,6 +159,9 @@ class TestProjectionsDaemon(TestCase):
         """
         Tests if daemon correctly starts underlying Projector subprocess
         """
+        if os.path.ismount('tests/mnt'):
+            raise OSError('Mount point tests/mnt is busy, please unmount it to contionue tests!')
+
         self.daemon.project('test_projection', 'tests/mnt', 'tests/projections_configs/test_metadata_operations.yaml',
                             'fs_driver')
 

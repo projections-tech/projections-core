@@ -52,6 +52,7 @@ class GenbankDriver(ProjectionDriver):
             logger.debug('Current query: %s', query)
             if len(query) < 3:
                 query.append(1)
+
             # Info about Biopython`s eutils: http://biopython.org/DIST/docs/tutorial/Tutorial.html#chapter:entrez
             # Returns esearch response dict.
             esearch_handle = Entrez.esearch(db='nucleotide', term=query[1], retmax=query[2])
