@@ -47,12 +47,14 @@ fasta_file_prototype: &fasta_file_prototype
   - " regexp_replace(nodes.node_name, '.gb', '') = regexp_replace(current_node.node_name, '.fasta', '') "
   uri: " join([$.IdList[0], '.fasta'], '')"
 
-# This is GB file prototype, it`s link created by resoloving environment which is avaliable by the URI resolved in
-# upper level. File extension is appended complete prototype URI, driver will resolve it accordingly. Name of prototype
-# is reolved using prototype context, here it is setted as prototype uri, using field avaliable for every prototype -
-# "content_uri"
+# This is GB file prototype, it`s link created by resolving environment which is avaliable by the URI resolved in
+# upper level. File extension is appended to complete prototype URI, driver will resolved accordingly. Name of prototype
+# is resolved using prototypes context, here it is setted as prototype uri, using field avaliable for every prototype -
+# "content_uri".
 gb_file_prototype: &gb_file_prototype
+  # This is a prototype of a file projection.
   type: file
+  # File nodes does not have children nodes, so this field is setted to None
   children: None
   name: " $.content_uri "
   uri: " join([$.IdList[0], '.gb'], '')"
@@ -62,9 +64,10 @@ gb_file_prototype: &gb_file_prototype
 root:
   # Type of root node. Directory contains other projections.
   type: directory
-  # This is a dictionary of children prototypes for current prototype.
+  # This is a dictionary of children prototypes for current prototype. Children are inserted using children projection
+  # name and YAML anchor alias (http://yaml.org/spec/1.2/spec.html#id2785586).
   children:
-    # Here we add an anchors for lower level prototypes.
+    # Here we add an lower level prototypes as a children.
     gb_file_prototype: *gb_file_prototype
     fasta_file_prototype: *fasta_file_prototype
   # This field encodes how node name is defined from node "content" field.
