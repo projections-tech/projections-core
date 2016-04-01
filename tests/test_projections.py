@@ -80,8 +80,24 @@ class TestDriver(ProjectionDriver):
         assert False is True, 'Test driver can\'t handle resource request, aborting!'
 
     def get_uri_contents_as_bytes(self, uri):
-        return b'Mock resource contents.'
+        return TestDriverLoadData(uri)
 
+
+class TestDriverLoadData:
+    """
+    Data loading context manager for test driver
+    """
+
+    def __init__(self, uri):
+        self.uri = uri
+        self.io = None
+
+    def __enter__(self):
+        self.io = BytesIO(b'Mock resource contents.')
+        return self.io
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.io.close()
 
 class TestPrototypeDeserializer(TestCase):
     def setUp(self):
@@ -313,10 +329,15 @@ class TestProjector(TestCase):
         """
         paths_list = self._list_projections()
         for path in paths_list:
-            header, bytes_stream = self.projector.open_resource(path)
+            header, context_manager = self.projector.open_resource(path)
 
-            self.assertIsInstance(bytes_stream, BytesIO, msg='Checks if projector returns BytesIO object.')
-            self.assertEqual(b'Mock resource contents.', bytes_stream.read(), msg='Check resource contents.')
+            self.assertIsInstance(context_manager, TestDriverLoadData,
+                                  msg='Checks if projector returns driver context manager.')
+
+            with context_manager as manager:
+                path_data = manager.read()
+
+            self.assertEqual(b'Mock resource contents.', path_data, msg='Check resource contents.')
 
             self.assertIsInstance(header, int, msg='Check header type.')
             self.assertEqual(3, header, msg='Check header value.')

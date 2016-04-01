@@ -135,10 +135,10 @@ class TorrentSuiteDriver(ProjectionDriver):
         :return: content bytes
         """
         uri = self.__prepare_uri(uri)
-        return LoadIonTorrentData(uri)
+        return LoadTorrentSuiteData(uri)
 
 
-class LoadIonTorrentData:
+class LoadTorrentSuiteData:
     def __init__(self, uri):
         self.uri = uri
 

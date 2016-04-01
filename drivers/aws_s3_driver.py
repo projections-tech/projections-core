@@ -17,6 +17,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Projections.  If not, see <http://www.gnu.org/licenses/>.
 
+import io
 import logging
 import logging.config
 
@@ -73,5 +74,19 @@ class S3Driver(ProjectionDriver):
         :param uri: URI string
         :return: content bytes
         """
+        return S3DataLoader(self.bucket, uri)
+
+
+class S3DataLoader:
+    def __init__(self, bucket, uri):
+        self.uri = uri
+        self.bucket = bucket
+        self.io = None
+
+    def __enter__(self):
         # TODO find a way to load bucket contents as a stream
-        return (el for el in self.bucket.Object(key=uri).get()['Body'].read(amt=1024))
+        self.io = io.BytesIO(self.bucket.Object(key=self.uri).get()['Body'].read())
+        return self.io
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.io.close()

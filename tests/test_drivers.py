@@ -20,7 +20,6 @@ import logging
 import logging.config
 import os
 import re
-import types
 from unittest import TestCase, skip
 
 import boto3
@@ -91,10 +90,11 @@ class TestFsDriver(TestCase):
                       for path in os.listdir('tests/test_dir')
                       if os.path.isdir(os.path.join('tests/test_dir', path))]
 
-        dir_response_contents = None
         for path in dirs_paths:
-            self.assertEqual(dir_response_contents, self.driver.get_uri_contents_as_bytes(path),
-                             msg='Checking dir contents.')
+            with self.driver.get_uri_contents_as_bytes(path) as driver_response:
+                response = driver_response
+
+            self.assertIsNone(response, msg='Checking dir contents.')
 
         # Checking driver responses for files uri`s
         files_paths = [os.path.join('tests/test_dir', path)
@@ -104,9 +104,16 @@ class TestFsDriver(TestCase):
         for path in files_paths:
             # Reading reference file from test_dir
             with open(path, 'rb') as tested_file:
-                file_response_contents = tested_file.read()
-            self.assertIsInstance(file_response_contents, bytes, msg='Checking driver response type.')
-            self.assertEqual(file_response_contents, self.driver.get_uri_contents_as_bytes(path),
+                reference_file_response_contents = tested_file.read()
+
+            driver_response = self.driver.get_uri_contents_as_bytes(path)
+            from drivers.fs_driver import FSLoadData
+            self.assertIsInstance(driver_response, FSLoadData, msg='Checking driver response type.')
+
+            with driver_response as f:
+                file_response_contents = f.read()
+
+            self.assertEqual(reference_file_response_contents, file_response_contents,
                              msg='Checking file contents.')
 
 
@@ -170,11 +177,13 @@ class TestS3Driver(TestCase):
         for key, exp_content in {'projects/': b'', 'projects/test_file.txt': test_data_contents}.items():
             driver_response = self.driver.get_uri_contents_as_bytes(key)
 
-            self.assertIsInstance(driver_response, types.GeneratorType, msg='Checking driver response type.')
+            from drivers.aws_s3_driver import S3DataLoader
+            self.assertIsInstance(driver_response, S3DataLoader, msg='Checking driver response type.')
 
-            driver_response = bytearray([el for el in driver_response])
+            with driver_response as response:
+                response = response.read()
 
-            self.assertEqual(exp_content, driver_response,
+            self.assertEqual(exp_content, response,
                              msg='Checking content of object with URI: {0}'.format(key))
 
 
@@ -217,7 +226,10 @@ class TestTorrentSuiteDriver(TestCase):
 
         for uri in self.reference_driver_responses:
             driver_response = self.driver.get_uri_contents_as_bytes(uri)
-            self.assertIsInstance(driver_response, types.GeneratorType,
+
+            from drivers.iontorrent_driver import LoadTorrentSuiteData
+
+            self.assertIsInstance(driver_response, LoadTorrentSuiteData,
                                   msg='Checking driver response type.')
 
             with driver_response as response:
@@ -257,32 +269,43 @@ class TestGenbankDriver(TestCase):
         """
         for uri in self.reference_genbank_responses:
             driver_response = self.driver.get_uri_contents_as_dict(uri)
-            import pprint
-            pprint.pprint(driver_response)
+
             self.assertIsInstance(driver_response, dict, msg='Checking type of driver response.')
             self.assertDictEqual(self.reference_genbank_responses[uri],
                                  driver_response,
-                                 msg='Checking response content.')
+                                 msg='Checking response content on uri:{}.'.format(uri))
 
     def test_get_uri_contents_as_bytes(self):
         """
         Tests if driver correctly returns uri contents
         """
-        for uri in self.reference_genbank_responses:
+        for uri in ['939732440.fasta', '939732440.json']:
             driver_response = self.driver.get_uri_contents_as_bytes(uri)
-            self.assertIsInstance(driver_response, types.GeneratorType, msg='Checking response type.')
 
-            if uri.startswith('search_query'):
-                reference_path = 'tests/mock_resources/genbank_mock_data/esearch_response.xml'
-            else:
+            if uri.endswith('.json'):
+                reference_path = 'tests/mock_resources/genbank_mock_data/mock_json.json'
+                from io import BytesIO
+                self.assertIsInstance(driver_response, BytesIO, msg='Checking response type.')
+                with driver_response as response:
+                    response = b''.join([el for el in response])
+                    response = json.loads(response.decode())
+                with open(reference_path, 'r') as r_f:
+                    reference_contents = json.load(r_f)
+                self.assertEqual(reference_contents, response, msg='Checking contents on uri: {}.'.format(uri))
+
+            elif uri.endswith('.fasta'):
                 reference_path = 'tests/mock_resources/genbank_mock_data/mock_contents.txt'
-            with open(reference_path, 'rb') as r_f:
-                reference_contents = r_f.read()
-            driver_response = bytearray([el for el in driver_response])
-            self.assertEqual(reference_contents, driver_response, msg='Checking contents on uri.')
+                from drivers.genbank_driver import GenbankDataLoader
+                self.assertIsInstance(driver_response, GenbankDataLoader, msg='Checking response type.')
+                with open(reference_path, 'rb') as r_f:
+                    reference_contents = r_f.read()
+                logging.debug('Checking uri: %s', uri)
+                with driver_response as response:
+                    response = b''.join([el for el in response])
+                self.assertEqual(reference_contents, response, msg='Checking contents on uri: {}.'.format(uri))
 
 
-@skip("Driver creation is on hold.")
+@skip("Driver creation is on hold due to sam-dump data loading difficulties.")
 class TestSRADriver(TestCase):
     @classmethod
     def setUpClass(cls):

@@ -17,6 +17,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Projections.  If not, see <http://www.gnu.org/licenses/>.
 
+import io
+import json
 import logging
 import logging.config
 import os
@@ -53,7 +55,8 @@ class GenbankDriver(ProjectionDriver):
             # Info about Biopython`s eutils: http://biopython.org/DIST/docs/tutorial/Tutorial.html#chapter:entrez
             # Returns esearch response dict.
             esearch_handle = Entrez.esearch(db='nucleotide', term=query[1], retmax=query[2])
-            return dict(Entrez.read(esearch_handle))
+            result = dict(Entrez.read(esearch_handle))
+            return result
         else:
             esearch_handle = Entrez.esearch(db='nucleotide', term=uri, retmax=1)
             return dict(Entrez.read(esearch_handle))
@@ -67,19 +70,35 @@ class GenbankDriver(ProjectionDriver):
         query, query_type = os.path.splitext(query)
 
         logger.debug('Loading query: %s', query)
-        if query_type == '.json':
-            return (el for el in Entrez.esearch(db='nuccore', term=query[1], retmax=query[2]).read().encode())
-        elif query_type == '.gb':
-            # Returns query gb file bytes iterator
-            return self.load_data_from_genbank(query, 'gb')
-        elif query_type == '.fasta':
-            # Returns query fasta file bytes iterator
-            return self.load_data_from_genbank(query, 'fasta')
 
-    def load_data_from_genbank(self, req_id, ret_mode):
+        if query_type == '.json':
+            result = self.get_uri_contents_as_dict('search_query:' + query)
+            res_json = json.dumps(result).encode()
+            return io.BytesIO(res_json)
+        else:
+            return GenbankDataLoader(query, query_type)
+
+
+class GenbankDataLoader:
+    def __init__(self, query, data_type):
+        self.query = query
+        self.data_type = data_type
+
+    def __enter__(self):
+        if self.data_type == '.gb':
+            # Returns query gb file bytes iterator
+            return self._load_data_from_genbank(self.query, 'gb')
+        elif self.data_type == '.fasta':
+            # Returns query fasta file bytes iterator
+            return self._load_data_from_genbank(self.query, 'fasta')
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
+    def _load_data_from_genbank(self, req_id, ret_type):
         url = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi' \
               '?db=nucleotide&id={acc}&rettype={ret_type}&retmode=text"'.format(acc=req_id,
-                                                                                ret_type=ret_mode)
+                                                                                ret_type=ret_type)
         r = requests.get(url, stream=True)
         for chunk in r.iter_content(chunk_size=1024):
             if chunk:

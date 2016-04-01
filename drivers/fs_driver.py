@@ -64,7 +64,21 @@ class FSDriver(ProjectionDriver):
         """
         uri = os.path.join(uri)
 
-        if os.path.isfile(uri):
-            return open(uri, 'rb')
-        elif os.path.isdir(uri):
+        return FSLoadData(uri)
+
+
+class FSLoadData:
+    def __init__(self, uri):
+        self.uri = uri
+        self.io = None
+
+    def __enter__(self):
+        if os.path.isfile(self.uri):
+            self.io = open(self.uri, 'rb')
+            return self.io
+        elif os.path.isdir(self.uri):
             return None
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.io is not None:
+            self.io.close()

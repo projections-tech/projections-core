@@ -311,12 +311,12 @@ class DBProjector:
 
         node_id, uri, node_on_path_st_mode = self.cursor.fetchone()
 
-        content_iterator = self.projection_driver.get_uri_contents_as_bytes(uri)
+        content_context_manager = self.projection_driver.get_uri_contents_as_bytes(uri)
         logger.info('Got path content: %s\n', path)
 
         file_header = 3
 
-        return file_header, content_iterator
+        return file_header, content_context_manager
 
     def update_projection_size_attribute(self, path, projection_size):
         """
