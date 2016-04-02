@@ -56,23 +56,17 @@ class DBProjector:
         # Initializing projection driver
         self.projection_driver = projection_driver
 
-        database_host = os.environ.get['PROJECTIONS_DATABASE_PORT_5432_TCP_ADDR']
+        database_host = os.environ.get('PROJECTIONS_DATABASE_PORT_5432_TCP_ADDR')
         database_port = '5432'
         user_name = 'projections_admin'
         user_password = 'projections_password'
 
         # Opening connection with database
-        self.db_connection = psycopg2.connect(
-            """
-            dbname=projections_database
-            user={user_name}
-            password={user_password}
-            port={database_port}
-            user_password={user_password}
-            """.format(user_name=user_name,
-                       user_password=user_password,
-                       database_host=database_host,
-                       database_port=database_port))
+        self.db_connection = psycopg2.connect(database="projections_database",
+                                              user=user_name,
+                                              password=user_password,
+                                              host=database_host,
+                                              port=database_port)
 
         # Setting connection mode of connection
         self.db_connection.autocommit = False

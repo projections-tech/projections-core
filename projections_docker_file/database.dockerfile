@@ -16,13 +16,18 @@ RUN apt-get update && apt-get install -y \
     postgresql-client-9.4 \
     postgresql-contrib-9.4
 
+RUN mkdir /source
+
 ADD projections.sql /source
+
+WORKDIR /source
 
 USER postgres
 
 RUN    /etc/init.d/postgresql start &&\
     psql --command "CREATE USER projections_admin WITH SUPERUSER PASSWORD 'projections_password';" &&\
-    createdb -O projections_admin projections_admin && createdb -O projections_admin projections_database
+    createdb -O projections_admin projections_admin && createdb -O projections_admin projections_database && \
+    psql projections_database -f projections.sql
 
 # Adjust PostgreSQL configuration so that remote connections to the
 # database are possible.

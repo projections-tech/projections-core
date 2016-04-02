@@ -143,7 +143,7 @@ class TestProjector(TestCase):
         cls.logger = logging.getLogger('test_projector')
 
         # Initializing database connection which will be used during tests
-        database_host = os.environ.get['PROJECTIONS_DATABASE_PORT_5432_TCP_ADDR']
+        database_host = os.environ.get('PROJECTIONS_DATABASE_PORT_5432_TCP_ADDR')
         database_port = '5432'
         user_name = 'projections_admin'
         user_password = 'projections_password'
@@ -364,7 +364,7 @@ class TestProjectionVariants(TestCase):
         cls.logger = logging.getLogger('test_projector')
 
         # Initializing database connection which will be used during tests
-        database_host = os.environ.get['PROJECTIONS_DATABASE_PORT_5432_TCP_ADDR']
+        database_host = os.environ.get('PROJECTIONS_DATABASE_PORT_5432_TCP_ADDR')
         database_port = '5432'
         user_name = 'projections_admin'
         user_password = 'projections_password'
@@ -494,7 +494,7 @@ class TestMetadataOperations(TestCase):
         cls.logger = logging.getLogger('test_projector')
 
         # Initializing database connection which will be used during tests
-        database_host = os.environ.get['PROJECTIONS_DATABASE_PORT_5432_TCP_ADDR']
+        database_host = os.environ.get('PROJECTIONS_DATABASE_PORT_5432_TCP_ADDR')
         database_port = '5432'
         user_name = 'projections_admin'
         user_password = 'projections_password'
