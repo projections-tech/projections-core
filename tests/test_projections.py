@@ -15,10 +15,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Projections.  If not, see <http://www.gnu.org/licenses/>.
 
-import getpass
 import json
 import logging
 import logging.config
+import os
 import re
 from io import BytesIO
 from unittest import TestCase
@@ -143,8 +143,23 @@ class TestProjector(TestCase):
         cls.logger = logging.getLogger('test_projector')
 
         # Initializing database connection which will be used during tests
+        database_host = os.environ.get['PROJECTIONS_DATABASE_PORT_5432_TCP_ADDR']
+        database_port = '5432'
+        user_name = 'projections_admin'
+        user_password = 'projections_password'
+
+        # Opening connection with database
         cls.db_connection = psycopg2.connect(
-            "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
+            """
+            dbname=projections_database
+            user={user_name}
+            password={user_password}
+            port={database_port}
+            user_password={user_password}
+            """.format(user_name=user_name,
+                       user_password=user_password,
+                       database_host=database_host,
+                       database_port=database_port))
         # Creating cursor, which will be used to interact with database
         cls.cursor = cls.db_connection.cursor()
 
@@ -349,8 +364,23 @@ class TestProjectionVariants(TestCase):
         cls.logger = logging.getLogger('test_projector')
 
         # Initializing database connection which will be used during tests
+        database_host = os.environ.get['PROJECTIONS_DATABASE_PORT_5432_TCP_ADDR']
+        database_port = '5432'
+        user_name = 'projections_admin'
+        user_password = 'projections_password'
+
+        # Opening connection with database
         cls.db_connection = psycopg2.connect(
-            "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
+            """
+            dbname=projections_database
+            user={user_name}
+            password={user_password}
+            port={database_port}
+            user_password={user_password}
+            """.format(user_name=user_name,
+                       user_password=user_password,
+                       database_host=database_host,
+                       database_port=database_port))
         # Creating cursor, which will be used to interact with database
         cls.cursor = cls.db_connection.cursor()
 
@@ -464,8 +494,23 @@ class TestMetadataOperations(TestCase):
         cls.logger = logging.getLogger('test_projector')
 
         # Initializing database connection which will be used during tests
+        database_host = os.environ.get['PROJECTIONS_DATABASE_PORT_5432_TCP_ADDR']
+        database_port = '5432'
+        user_name = 'projections_admin'
+        user_password = 'projections_password'
+
+        # Opening connection with database
         cls.db_connection = psycopg2.connect(
-            "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
+            """
+            dbname=projections_database
+            user={user_name}
+            password={user_password}
+            port={database_port}
+            user_password={user_password}
+            """.format(user_name=user_name,
+                       user_password=user_password,
+                       database_host=database_host,
+                       database_port=database_port))
         # Creating cursor, which will be used to interact with database
         cls.cursor = cls.db_connection.cursor()
 

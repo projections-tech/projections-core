@@ -18,7 +18,6 @@
 # along with Projections.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
-import getpass
 import signal
 
 import psycopg2
@@ -53,9 +52,24 @@ class ProjectionsDaemon(object):
         # This dictionary contains mapping of projectors id`s in database to projections parameters
         self.projections = dict()
 
+        database_host = os.environ.get['PROJECTIONS_DATABASE_PORT_5432_TCP_ADDR']
+        database_port = '5432'
+        user_name = 'projections_admin'
+        user_password = 'projections_password'
+
+
         # Opening connection with database
         self.db_connection = psycopg2.connect(
-            "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
+            """
+            dbname=projections_database
+            user={user_name}
+            password={user_password}
+            port={database_port}
+            user_password={user_password}
+            """.format(user_name=user_name,
+                       user_password=user_password,
+                       database_host=database_host,
+                       database_port=database_port))
 
         # Setting connection mode of connection
         self.db_connection.autocommit = False
