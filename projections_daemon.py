@@ -157,7 +157,7 @@ class ProjectionsDaemon(object):
             # Registering projector in database
             self.cursor.callproc("projections.daemon_set_projection_projector_pid", [projection_id, projector.pid])
             self.db_connection.commit()
-            return 'Projection {} created and started!'.format(projection_name)
+            return 'Projection "{}" created and started!'.format(projection_name)
 
     def start(self, projection_name):
         """
@@ -226,11 +226,11 @@ class ProjectionsDaemon(object):
                 # Updating projection projector`s pid accordingly
                 self.cursor.callproc('projections.daemon_stop_projection', [projection_name])
                 self.db_connection.commit()
-                return 'Stopped projection: {}'.format(projection_name)
+                return 'Stopped projection: "{}".'.format(projection_name)
             else:
                 return 'Projection is already stopped!'
         else:
-            return 'There is no projection named {}'.format(projection_name)
+            return 'There is no projection named "{}"'.format(projection_name)
 
     def remove_projection(self, projection_name):
         """
