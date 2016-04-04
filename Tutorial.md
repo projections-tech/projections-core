@@ -301,10 +301,9 @@ Let`s look at actual prototype file, and how it is unfolded into projections ste
 [ObjectPath query language](http://objectpath.org/) and SQL is used to bind metadata to data.
 
 Before prototypes definition comes header, header ends with root_resource_uri from which projection will bes started:
-```
----
-# Prototype microcode dialects are defined here, projections prototypes use ObjectPath (http://objectpath.org/) to
-# resolve projections hierarchy, and SQL to create data-metadata links between projections.
+
+``` YAML
+# Prototype microcode dialects are defined here.
 dialect: ObjectPath, SQL
 # This is uri of resource which will be projected.
 resource_uri: http://eutils.ncbi.nlm.nih.gov
@@ -312,10 +311,10 @@ resource_uri: http://eutils.ncbi.nlm.nih.gov
 driver_config_path: 'drivers/driver_configurations/genbank_config.yaml'
 
 # This is root projection URI, it consists of three parts:
-# 1) 'search_query:' - suffix, which tells driver to process query as search query
+# 1) 'search_query:' suffix, which tells driver to process query as search query
 # 2) Search query as accepted by NCBI. All query parameters and operators as described here:
 # http://www.ncbi.nlm.nih.gov/books/NBK49540/
-# 3) Number of results to return, if no nuber specified driver will return one query result
+# 3) Number of results to return, if no number specified driver will return one query result
 root_projection_uri: 'search_query:escherichia[orgn]:5'
 ```
 
@@ -343,7 +342,7 @@ This prototype unfolds into directories which correspond to search query.
 Secondly we define GB file prototype, notice how prototype name contains anchor "&gb_file_prototype", it was used before 
 in root prototype:
 
-```
+``` YAML
 # This is GB file prototype, it`s link created by resoloving environment which is avaliable by the URI resolved in
 # upper level. File extension is appended to complete prototype URI, driver will resolve it accordingly. Name of prototype
 # is resolved using prototype context, here it is setted as prototype uri, using field avaliable for every prototype -
@@ -358,7 +357,7 @@ gb_file_prototype: &gb_file_prototype
 
 Third prototype is FASTA file prototype:
 
-```
+``` YAML
 # This is FASTA file prototype, corresponding for result query, it`s created similarly to GB file prototype, by adding
 # ".fasta" extension to prototype URI. This prototype differs from GB prototype by extension, added to link.
 fasta_file_prototype: &fasta_file_prototype
