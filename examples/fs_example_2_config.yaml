@@ -1,0 +1,87 @@
+# Copyright 2016  Anton Bragin, Victor Svekolkin
+#
+# This file is part of Projections.
+#
+# Projections is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Projections is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Projections.  If not, see <http://www.gnu.org/licenses/>.
+
+---
+dialect: ObjectPath
+resource_uri: None
+driver_config_path: "drivers/driver_configurations/fs_config.yaml"
+
+root_projection_uri: 'tests/test_dir'
+
+
+bed_projection: &bed_projection
+  type: file
+  children: None
+  name: " $.name "
+  uri: " $.children[@.type is 'file' and @.extension is '.bed'].resource_uri "
+
+vcf_projection: &vcf_projection
+  type: file
+  children: None
+  name: " $.name "
+  uri: " $.children[@.type is 'file' and @.extension is '.vcf'].resource_uri "
+
+bam_projection: &bam_projection
+  type: file
+  children: None
+  # This code performs metadata binding on same level
+  meta_link:
+    - " nodes.node_name ~ regexp_replace(current_node.node_name, '.bam', '') AND nodes.node_name != current_node.node_name "
+  name: " $.name "
+  uri: " $.children[@.type is 'file' and @.extension is '.bam'].resource_uri "
+
+json_projection: &json_projection
+  type: file
+  children: None
+  name: " $.name "
+  uri: " $.children[@.type is 'file' and @.extension is '.json'].resource_uri "
+
+fasta_projection: &fasta_projection
+  type: file
+  children: None
+  # This code performs metadata binding on lower level
+  meta_link:
+    - " nodes.node_path[2] ~ concat('_', substring(current_node.node_name, '\\d+'), '$') AND nodes.node_name ~ '.vcf' AND nodes.node_type != 'DIR'"
+  name: " $.name "
+  uri: " $.children[@.type is 'file' and @.extension is '.fasta'].resource_uri "
+
+rerun_dir_projection: &rerun_dir_projection
+  type: directory
+  children:
+    vcf_projection: *vcf_projection
+    bed_projection: *bed_projection
+  name: " $.name "
+  uri: " $.children[@.type is 'dir'].resource_uri "
+
+sample_dir_projection: &sample_dir_projection
+  type: directory
+  children:
+    rerun_dir_projection: *rerun_dir_projection
+    vcf_projection: *vcf_projection
+    bed_projection: *bed_projection
+  name: " $.name "
+  uri: " $.children[@.type is 'dir'].resource_uri "
+
+root:
+  type: directory
+  children:
+    bam_projection: *bam_projection
+    fasta_projection: *fasta_projection
+    json_projection: *json_projection
+    sample_dir_projection: *sample_dir_projection
+  name: " $.name "
+  uri: " 'tests/test_dir' "

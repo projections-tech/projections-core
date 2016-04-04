@@ -33,8 +33,10 @@ driver_config_path: 'drivers/driver_configurations/genbank_config.yaml'
 # 3) Number of results to return, if no nuber specified driver will return one query result
 root_projection_uri: 'search_query:escherichia[orgn]:5'
 
+# Prototypes definition
+
 # This is FASTA file prototype, corresponding for result query, it`s created similarly to GB file prototype, by adding
-# ".fasta" extension to prototype URI. This prototype differs from
+# ".fasta" extension to prototype URI. This prototype differs from GB prototype by extension, added to link.
 fasta_file_prototype: &fasta_file_prototype
   type: file
   children: None
@@ -48,8 +50,8 @@ fasta_file_prototype: &fasta_file_prototype
   uri: " join([$.IdList[0], '.fasta'], '')"
 
 # This is GB file prototype, it`s link created by resoloving environment which is avaliable by the URI resolved in
-# upper level. File extension is appended complete prototype URI, driver will resolve it accordingly. Name of prototype
-# is reolved using prototype context, here it is setted as prototype uri, using field avaliable for every prototype -
+# upper level. File extension is appended to complete prototype URI, driver will resolve it accordingly. Name of prototype
+# is resolved using prototype context, here it is setted as prototype uri, using field avaliable for every prototype -
 # "content_uri"
 gb_file_prototype: &gb_file_prototype
   type: file

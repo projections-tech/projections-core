@@ -189,29 +189,19 @@ Now, using command like "ls -R mount/", or simply moving to directory using naut
 ```
 mount/:
 escherichia[orgn]_1013076717  escherichia[orgn]_1013076742  escherichia[orgn]_1013076809  escherichia[orgn]_1013077104  escherichia[orgn]_1013077116
-```
 
-```
 mount/escherichia[orgn]_1013076717:
 1013076717.fasta  1013076717.gb
-```
 
-```
 mount/escherichia[orgn]_1013076742:
 1013076742.fasta  1013076742.gb
-```
 
-```
 mount/escherichia[orgn]_1013076809:
 1013076809.fasta  1013076809.gb
-```
 
-```
 mount/escherichia[orgn]_1013077104:
 1013077104.fasta  1013077104.gb
-```
 
-```
 mount/escherichia[orgn]_1013077116:
 1013077116.fasta  1013077116.gb
 ```
@@ -271,3 +261,121 @@ As we move to next tutorial part, projection "genbank_example" is no longer need
 ```
 
 Which will stop and remove "genbank_example" projection. We also can check this using "ps" function.
+
+###Prototypes structure
+As were briefly mentioned above, projections are created using prototype files, which describe projection logical 
+structure. Projection itself is a tree, with nodes corresponding to projected resource elements, like query result was
+folder in example above. To create projection nodes tree we define projection prototypes tree - nodes of these tree
+hold rules which define how to create current projection node basing on context of upstream projection nodes.
+
+All prototypes share this basic structure:
+
+```
+root_projection_uri -> root -> prototype_definition
+```
+
+Where: 
+
+- "root_projection_uri" - is root URI for whole projection. In genbank example this was "escherichia" search query. This
+uri creates context for all downstream nodes. In some sense this is projection created without prototype by user.
+- "root" - root projection creates first level of a projections tree using rules stored in it\`s prototypes. URI\`s of 
+these new nodes serve as context for lower level nodes and so on to next prototype definition.
+
+Each prototype have it`s own environment which consist of three fields:
+
+- environment - metadata associated with upper level projection, using code stored in prototype projection URI as resolved from this field. 
+- content - metadata of projection at present URI, from this environment prototype resolves projection name. Field "content_uri" is added to this metadata.
+- context - metadata of all upstream nodes.
+
+Each prototype in prototypes tree have three fields that describe it: URI, Name and Meta_links:
+
+-"URI" - this field holds code, using which URI of projection will be resolved from prototype`s environment.
+
+-"Name" - this field holds code, using wich Name ofprojection is resolved, according to it`s content.
+
+-"Meta_links" - this field holds dictionary of link names and link codes, which define data-metadata binding in projection. This action is perfromed after projection tree is complete.
+
+Let`s look at actual prototype file, and how it is unfolded into projections step by step 
+(file "genbank_example_config.yaml" in "examples/" dir, we read it from bottom to top). Pototype file is written in 
+[YAML format](http://www.yaml.org/spec/1.2/spec.html), URI an Name microcodes use 
+[ObjectPath query language](http://objectpath.org/) and SQL is used to bind metadata to data.
+
+Before prototypes definition comes header, header ends with root_resource_uri from which projection will bes started:
+```
+---
+# Prototype microcode dialects are defined here, projections prototypes use ObjectPath (http://objectpath.org/) to
+# resolve projections hierarchy, and SQL to create data-metadata links between projections.
+dialect: ObjectPath, SQL
+# This is uri of resource which will be projected.
+resource_uri: http://eutils.ncbi.nlm.nih.gov
+# This is a path to projection drvier configuration file, it may content access credentials, driver-specific settings etc.
+driver_config_path: 'drivers/driver_configurations/genbank_config.yaml'
+
+# This is root projection URI, it consists of three parts:
+# 1) 'search_query:' - suffix, which tells driver to process query as search query
+# 2) Search query as accepted by NCBI. All query parameters and operators as described here:
+# http://www.ncbi.nlm.nih.gov/books/NBK49540/
+# 3) Number of results to return, if no nuber specified driver will return one query result
+root_projection_uri: 'search_query:escherichia[orgn]:5'
+```
+
+At first comes root prototype:
+
+``` YAML
+# This is root projection node definition. By convention, it must be named "root". By resolving it`s URI code we create
+# list of URI`s for associated Genbank entries.
+root:
+  # Type of root node. Directory contains other projections.
+  type: directory
+  # This is a dictionary of children prototypes for current prototype.
+  children:
+    # Here we add an aliases for lower level prototypes.
+    gb_file_prototype: *gb_file_prototype
+    fasta_file_prototype: *fasta_file_prototype
+  # This field encodes how node name is defined from node "content" field we join query name and URI of query.
+  name: " join([$.environment.TranslationSet[0].From, $.content_uri], '_') "
+  # This field defines how URI is assigned to projections.
+  uri: " $.IdList"
+```
+
+This prototype unfolds into directories which correspond to search query.
+
+Secondly we define GB file prototype, notice how prototype name contains anchor "&gb_file_prototype", it was used before 
+in root prototype:
+
+```
+# This is GB file prototype, it`s link created by resoloving environment which is avaliable by the URI resolved in
+# upper level. File extension is appended to complete prototype URI, driver will resolve it accordingly. Name of prototype
+# is resolved using prototype context, here it is setted as prototype uri, using field avaliable for every prototype -
+# "content_uri"
+gb_file_prototype: &gb_file_prototype
+  type: file
+  # File prototype cannot have children prototypes by definition.
+  children: None
+  name: " $.content_uri "
+  uri: " join([$.IdList[0], '.gb'], '')"
+```
+
+Third prototype is FASTA file prototype:
+
+```
+# This is FASTA file prototype, corresponding for result query, it`s created similarly to GB file prototype, by adding
+# ".fasta" extension to prototype URI. This prototype differs from GB prototype by extension, added to link.
+fasta_file_prototype: &fasta_file_prototype
+  type: file
+  children: None
+  name: " $.content_uri "
+  # Here we define prototype metadata link. Metadata is defined using SQL microcode and is assigned to projection after
+  # projection tree is completed. Code describes single node on tree which abides query conditions.
+  # Here, code states that metadata node is a node where node name is equal to current projection name and it`s extension is
+  # ".gb". This effectively binds GB files to their corresponding FASTA files.
+  meta_link:
+  - " regexp_replace(nodes.node_name, '.gb', '') = regexp_replace(current_node.node_name, '.fasta', '') "
+  uri: " join([$.IdList[0], '.fasta'], '')"
+```
+
+You may notice, that presented prototype order is reversed, this is due to alias cannot be created before anchor. Root
+node have no anchors attached, and is in lowest position in file.
+
+
+
