@@ -17,15 +17,15 @@
 # You should have received a copy of the GNU General Public License
 # along with Projections.  If not, see <http://www.gnu.org/licenses/>.
 
-import getpass
 import logging
 import logging.config
+import os
 import subprocess
 import time
 from unittest import TestCase
-import os
 
 import psycopg2
+import yaml
 
 from projections_daemon import ProjectionsDaemon
 
@@ -36,8 +36,20 @@ class TestProjectionsDaemon(TestCase):
         cls.logger = logging.getLogger('test_projections_logger')
 
         # Initializing database connection which will be used during tests
-        cls.db_connection = psycopg2.connect(
-            "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
+        with open('database_connection_config.yaml') as y_f:
+            database_connection_parameters = yaml.safe_load(y_f)
+
+        database_host = database_connection_parameters['database_host']
+        database_port = database_connection_parameters['database_port']
+        user_name = database_connection_parameters['user_name']
+        user_password = database_connection_parameters['user_password']
+
+        # Opening connection with database
+        cls.db_connection = psycopg2.connect(database="projections_database",
+                                             user=user_name,
+                                             password=user_password,
+                                             host=database_host,
+                                             port=database_port)
         # Creating cursor, which will be used to interact with database
         cls.cursor = cls.db_connection.cursor()
 

@@ -1,0 +1,5 @@
+---
+database_host: "localhost"
+database_port: "48620"
+user_name: "projections_admin"
+user_password: "projections_password"

@@ -26,6 +26,7 @@ import types
 import objectpath
 import psycopg2
 import psycopg2.extras
+import yaml
 
 from filesystem import ProjectionFilesystem
 from fuse import FUSE
@@ -56,10 +57,13 @@ class DBProjector:
         # Initializing projection driver
         self.projection_driver = projection_driver
 
-        database_host = os.environ.get('PROJECTIONS_DATABASE_PORT_5432_TCP_ADDR')
-        database_port = '5432'
-        user_name = 'projections_admin'
-        user_password = 'projections_password'
+        with open('database_connection_config.yaml') as y_f:
+            database_connection_parameters = yaml.safe_load(y_f)
+
+        database_host = database_connection_parameters['database_host']
+        database_port = database_connection_parameters['database_port']
+        user_name = database_connection_parameters['user_name']
+        user_password = database_connection_parameters['user_password']
 
         # Opening connection with database
         self.db_connection = psycopg2.connect(database="projections_database",

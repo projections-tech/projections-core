@@ -34,6 +34,8 @@ from lockfile import pidlockfile
 
 import Pyro4
 
+import yaml
+
 LOCK_FILE = '/var/lock/projections'
 PID_LOCK_FILE = '/var/lock/projections.pid'
 LOG_FILE = 'projections.log'
@@ -52,11 +54,13 @@ class ProjectionsDaemon(object):
         # This dictionary contains mapping of projectors id`s in database to projections parameters
         self.projections = dict()
 
-        database_host = os.environ.get('PROJECTIONS_DATABASE_PORT_5432_TCP_ADDR')
-        database_port = '5432'
-        user_name = 'projections_admin'
-        user_password = 'projections_password'
+        with open('database_connection_config.yaml') as y_f:
+            database_connection_parameters = yaml.safe_load(y_f)
 
+        database_host = database_connection_parameters['database_host']
+        database_port = database_connection_parameters['database_port']
+        user_name = database_connection_parameters['user_name']
+        user_password = database_connection_parameters['user_password']
 
         # Opening connection with database
         self.db_connection = psycopg2.connect(database="projections_database",
@@ -365,7 +369,7 @@ if __name__ == '__main__':
             # Creating pid lock file which will be used by daemon context manager.
             # This lock file is removed when daemon stops.
             lock_file = pidlockfile.PIDLockFile(PID_LOCK_FILE)
-            logger.debug('Starting daemon')
+            logger.info('Starting projections daemon!')
             # Create context. For documentation see: https://www.python.org/dev/peps/pep-3143/
             context = daemon.DaemonContext(
                 pidfile=lock_file,
@@ -381,12 +385,14 @@ if __name__ == '__main__':
                 start_daemon_listener()
         else:
             # If pid lock file exists daemon is already running
-            logger.info('Daemon is already running!')
+            logger.info('Projections daemon is already running!')
     elif args.stop:
         # If pid lock file exists daemon is running and we can send termination signal to it
         if os.path.exists(PID_LOCK_FILE):
+            logger.info('Stoppping projections daemon!')
             with open(PID_LOCK_FILE) as pid_file:
                 daemon_pid = pid_file.readline()
             os.kill(int(daemon_pid), 15)
+            logger.info('Projections daemon is stopped!')
         else:
-            logger.info('Daemon is not running!')
+            logger.info('Projections daemon is not running!')
