@@ -1,0 +1,70 @@
+# Copyright 2016  Anton Bragin, Victor Svekolkin
+#
+# This file is part of Projections.
+#
+# Projections is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Projections is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Projections.  If not, see <http://www.gnu.org/licenses/>.
+
+# This prototype is for flat filesystem projection.File is readed from buttom to top, starting from root node.
+---
+# Prototype microcode dialects are defined here, projections prototypes use ObjectPath (http://objectpath.org/) to
+# resolve projections hierarchy, and SQL to create data-metadata links between projections.
+dialect: ObjectPath, SQL
+# This is uri of resource which will be projected. Since it is local filesystem, it is set to None.
+resource_uri: None
+# This is a path to projection drvier configuration file, it may content access credentials, driver-specific settings etc.
+driver_config_path: "drivers/driver_configurations/fs_config.yaml"
+# This is root projection URI, for filesystem projection it is path to dir which will be projected.
+root_projection_uri: 'tests/test_dir'
+
+bed_projection: &bed_projection
+  type: file
+  children: None
+  name: " join([$.environment.name, $.name], '_') "
+  uri: " $.children[@.type is 'file' and @.extension is '.bed'].resource_uri "
+
+vcf_projection: &vcf_projection
+  type: file
+  children: None
+  name: " join([$.environment.name, $.name], '_') "
+  uri: " $.children[@.type is 'file' and @.extension is '.vcf'].resource_uri "
+
+# Files prototypes are grouped here.
+
+sample_dir_projection: &sample_dir_projection
+  type: transparent
+  children:
+    vcf_projection: *vcf_projection
+    bed_projection: *bed_projection
+  # Name of projection is defined from it`s content
+  name: " $.name "
+  # Object path allows use of selectors, here we select URI`s of object with field 'type' equal to 'dir'.
+  uri: " $.children[@.type is 'dir'].resource_uri "
+
+# This two projections "sample" and rerun correspond to directories. Feature to notice here: children nodes contain same
+# prototypes definition for VCF and BED files. Their creation code and environment structures are equal, we can reuse this
+# prototypes definitions.
+
+
+# This is root projection node definition. By convention, it must be named "root". By resolving it`s URI code we create
+# list of URI`s for associated Genbank entries.
+root:
+  # Type of root node. Directory contains other projections.
+  # In filsystem projection context, this is a representation of a directory.
+  type: directory
+  # This is a dictionary of children prototypes for current prototype. Children are inserted using children projection
+  # name and YAML anchor alias (http://yaml.org/spec/1.2/spec.html#id2785586).
+  children:
+    sample_dir_projection: *sample_dir_projection
+  name: " $.name "
+  uri: " 'tests/test_dir' "

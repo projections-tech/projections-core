@@ -17,7 +17,6 @@
 
 import argparse
 import copy
-import getpass
 import logging
 import logging.config
 import os
@@ -27,6 +26,7 @@ import types
 import objectpath
 import psycopg2
 import psycopg2.extras
+import yaml
 
 from filesystem import ProjectionFilesystem
 from fuse import FUSE
@@ -57,9 +57,20 @@ class DBProjector:
         # Initializing projection driver
         self.projection_driver = projection_driver
 
+        with open('database_connection_config.yaml') as y_f:
+            database_connection_parameters = yaml.safe_load(y_f)
+
+        database_host = database_connection_parameters['database_host']
+        database_port = database_connection_parameters['database_port']
+        user_name = database_connection_parameters['user_name']
+        user_password = database_connection_parameters['user_password']
+
         # Opening connection with database
-        self.db_connection = psycopg2.connect(
-            "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
+        self.db_connection = psycopg2.connect(database="projections_database",
+                                              user=user_name,
+                                              password=user_password,
+                                              host=database_host,
+                                              port=database_port)
 
         # Setting connection mode of connection
         self.db_connection.autocommit = False
@@ -181,7 +192,7 @@ class DBProjector:
                     continue
                 else:
                     current_parent_id = parent_id
-
+                logger.debug('Not skipped!')
                 prototype_types_binding = {
                     'file': 'REG',
                     'directory': 'DIR'

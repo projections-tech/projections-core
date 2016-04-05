@@ -856,8 +856,10 @@ END;
 $BODY$ LANGUAGE 'plpgsql';
 
 COMMENT ON FUNCTION projections.daemon_add_projection(
-    _projection_id bigint,
-    _projector_pid bigint
+    _projection_name varchar,
+    _mount_point varchar,
+    _driver varchar,
+    _prototype varchar --temporary, until prototypes are stored in database
     ) IS
     $$This function adds new projection into database.
         @param: _projection_name - name of projection.

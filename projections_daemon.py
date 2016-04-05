@@ -18,7 +18,6 @@
 # along with Projections.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
-import getpass
 import signal
 
 import psycopg2
@@ -34,6 +33,8 @@ import subprocess
 from lockfile import pidlockfile
 
 import Pyro4
+
+import yaml
 
 LOCK_FILE = '/var/lock/projections'
 PID_LOCK_FILE = '/var/lock/projections.pid'
@@ -53,9 +54,20 @@ class ProjectionsDaemon(object):
         # This dictionary contains mapping of projectors id`s in database to projections parameters
         self.projections = dict()
 
+        with open('database_connection_config.yaml') as y_f:
+            database_connection_parameters = yaml.safe_load(y_f)
+
+        database_host = database_connection_parameters['database_host']
+        database_port = database_connection_parameters['database_port']
+        user_name = database_connection_parameters['user_name']
+        user_password = database_connection_parameters['user_password']
+
         # Opening connection with database
-        self.db_connection = psycopg2.connect(
-            "dbname=projections_database user={user_name}".format(user_name=getpass.getuser()))
+        self.db_connection = psycopg2.connect(database="projections_database",
+                                              user=user_name,
+                                              password=user_password,
+                                              host=database_host,
+                                              port=database_port)
 
         # Setting connection mode of connection
         self.db_connection.autocommit = False
@@ -145,7 +157,7 @@ class ProjectionsDaemon(object):
             # Registering projector in database
             self.cursor.callproc("projections.daemon_set_projection_projector_pid", [projection_id, projector.pid])
             self.db_connection.commit()
-            return 'Projection {} created and started!'.format(projection_name)
+            return 'Projection "{}" created and started!'.format(projection_name)
 
     def start(self, projection_name):
         """
@@ -214,11 +226,11 @@ class ProjectionsDaemon(object):
                 # Updating projection projector`s pid accordingly
                 self.cursor.callproc('projections.daemon_stop_projection', [projection_name])
                 self.db_connection.commit()
-                return 'Stopped projection: {}'.format(projection_name)
+                return 'Stopped projection: "{}".'.format(projection_name)
             else:
                 return 'Projection is already stopped!'
         else:
-            return 'There is no projection named {}'.format(projection_name)
+            return 'There is no projection named "{}"'.format(projection_name)
 
     def remove_projection(self, projection_name):
         """
@@ -357,7 +369,7 @@ if __name__ == '__main__':
             # Creating pid lock file which will be used by daemon context manager.
             # This lock file is removed when daemon stops.
             lock_file = pidlockfile.PIDLockFile(PID_LOCK_FILE)
-            logger.debug('Starting daemon')
+            logger.info('Starting projections daemon!')
             # Create context. For documentation see: https://www.python.org/dev/peps/pep-3143/
             context = daemon.DaemonContext(
                 pidfile=lock_file,
@@ -373,12 +385,14 @@ if __name__ == '__main__':
                 start_daemon_listener()
         else:
             # If pid lock file exists daemon is already running
-            logger.info('Daemon is already running!')
+            logger.info('Projections daemon is already running!')
     elif args.stop:
         # If pid lock file exists daemon is running and we can send termination signal to it
         if os.path.exists(PID_LOCK_FILE):
+            logger.info('Stoppping projections daemon!')
             with open(PID_LOCK_FILE) as pid_file:
                 daemon_pid = pid_file.readline()
             os.kill(int(daemon_pid), 15)
+            logger.info('Projections daemon is stopped!')
         else:
-            logger.info('Daemon is not running!')
+            logger.info('Projections daemon is not running!')
