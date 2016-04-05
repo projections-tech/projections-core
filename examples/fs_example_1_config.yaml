@@ -15,13 +15,16 @@
 # You should have received a copy of the GNU General Public License
 # along with Projections.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
+# This is prototype file for filesystem projection. File is readed from buttom to top, starting from root node.
 ---
-dialect: ObjectPath
+# Prototype microcode dialects are defined here, projections prototypes use ObjectPath (http://objectpath.org/) to
+# resolve projections hierarchy, and SQL to create data-metadata links between projections.
+dialect: ObjectPath, SQL
+# This is uri of resource which will be projected. Since it is local filesystem, it is set to None.
 resource_uri: None
+# This is a path to projection drvier configuration file, it may content access credentials, driver-specific settings etc.
 driver_config_path: "drivers/driver_configurations/fs_config.yaml"
-
+# This is root projection URI, for filesystem projection it is path to dir which will be projected.
 root_projection_uri: 'tests/test_dir'
 
 
@@ -40,9 +43,9 @@ vcf_projection: &vcf_projection
 bam_projection: &bam_projection
   type: file
   children: None
-  # This code performs metadata binding on same level
+  # This SQL code performs metadata binding on same level. Here we exploit
   meta_link:
-    - " nodes.node_name ~ regexp_replace(current_node.node_name, '.bam', '') AND nodes.node_name != current_node.node_name "
+    - " regexp_replace(nodes.node_name, '.json', '') = regexp_replace(current_node.node_name, '.bam', '') AND nodes.node_name != current_node.node_name "
   name: " $.name "
   uri: " $.children[@.type is 'file' and @.extension is '.bam'].resource_uri "
 
@@ -53,17 +56,27 @@ json_projection: &json_projection
   uri: " $.children[@.type is 'file' and @.extension is '.json'].resource_uri "
 
 fasta_projection: &fasta_projection
+  # This is a prototype of a file projection.
   type: file
+  # File nodes does not have children nodes, so this field is setted to None
   children: None
-  # This code performs metadata binding on lower level
+  # This SQL code performs metadata binding on lower level. Here we search for projection which directory contains
+  # number present in current projection name (e.g. using regex 'fasta_file_4' turns into '_4$') and node_name contains
+  # '.vcf' as extension.
   meta_link:
-    - " nodes.node_path[2] ~ concat('_', substring(current_node.node_name, '\\d+'), '$') AND nodes.node_name ~ '.vcf' AND nodes.node_type != 'DIR'"
+    - " nodes.node_path[2] ~ concat('_', substring(current_node.node_name, '\\d+'), '$') AND nodes.node_name ~ '.vcf$' AND nodes.node_type != 'DIR'"
   name: " $.name "
+  # Object path allows use of selectors, here we select URI`s of object with field 'type' equal to 'file' and it`s
+  # "field" extension equal to '.fasta'.
   uri: " $.children[@.type is 'file' and @.extension is '.fasta'].resource_uri "
+
+# Files prototypes are grouped here.
+
 
 rerun_dir_projection: &rerun_dir_projection
   type: directory
   children:
+    # Here we add VCF and BED prototypes to "rerun" dir
     vcf_projection: *vcf_projection
     bed_projection: *bed_projection
   name: " $.name "
@@ -72,15 +85,30 @@ rerun_dir_projection: &rerun_dir_projection
 sample_dir_projection: &sample_dir_projection
   type: directory
   children:
+    # Here we add "rerun" directory as children directory for "sample" dir and reuse same VCF and BED files prototypes.
     rerun_dir_projection: *rerun_dir_projection
     vcf_projection: *vcf_projection
     bed_projection: *bed_projection
+  # Name of projection is defined from it`s content
   name: " $.name "
+  # Object path allows use of selectors, here we select URI`s of object with field 'type' equal to 'dir'.
   uri: " $.children[@.type is 'dir'].resource_uri "
 
+# This two projections "sample" and rerun correspond to directories. Feature to notice here: children nodes contain same
+# prototypes definition for VCF and BED files. Their creation code and environment structures are equal, we can reuse this
+# prototypes definitions.
+
+
+# This is root projection node definition. By convention, it must be named "root". By resolving it`s URI code we create
+# list of URI`s for associated Genbank entries.
 root:
+  # Type of root node. Directory contains other projections.
+  # In filsystem projection context, this is a representation of a directory.
   type: directory
+  # This is a dictionary of children prototypes for current prototype. Children are inserted using children projection
+  # name and YAML anchor alias (http://yaml.org/spec/1.2/spec.html#id2785586).
   children:
+    # Here we add an lower level prototypes as a children.
     bam_projection: *bam_projection
     fasta_projection: *fasta_projection
     json_projection: *json_projection
