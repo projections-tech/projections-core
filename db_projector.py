@@ -348,7 +348,7 @@ class DBProjector:
         self.db_connection.commit()
 
 
-def main(projection_id, mount_point, prototype, driver, restart):
+def main(projection_name, projection_id, mount_point, prototype, driver, restart):
     # TODO consider driver addition from config file
     from drivers.aws_s3_driver import S3Driver
     from drivers.fs_driver import FSDriver
@@ -365,11 +365,11 @@ def main(projection_id, mount_point, prototype, driver, restart):
     }
 
     mount_root, mount_point_name = os.path.split(mount_point)
-    data_directory = os.path.join(mount_root, '.' + mount_point_name)
+    data_directory = os.path.join(mount_root, '.projections_contents', projection_name, mount_point_name)
 
     # Saving data to hidden directory near mount point
     if not os.path.exists(data_directory):
-        os.mkdir(data_directory)
+        os.makedirs(data_directory)
 
     projection_filesystem = ProjectionFilesystem(mount_point, data_directory)
 
@@ -393,6 +393,9 @@ def main(projection_id, mount_point, prototype, driver, restart):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='DBProjector')
 
+    parser.add_argument('-p_n', '--projection_name', required=True,
+                        help='Id of a projection to be created (required).')
+
     parser.add_argument('-p_id', '--projection_id', required=True,
                         help='Id of a projection to be created (required).')
     parser.add_argument('-m', '--mount_point', required=True,
@@ -406,4 +409,4 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    main(args.projection_id, args.mount_point, args.prototype, args.driver, args.restart)
+    main(args.projection_name, args.projection_id, args.mount_point, args.prototype, args.driver, args.restart)

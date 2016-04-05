@@ -31,6 +31,7 @@ import os
 import sys
 import subprocess
 from lockfile import pidlockfile
+import shutil
 
 import Pyro4
 
@@ -143,6 +144,7 @@ class ProjectionsDaemon(object):
             # Starting projector subprocess and passing projection parameters to it
             projector = subprocess.Popen([sys.executable,
                                           'db_projector.py',
+                                          '-p_n', projection_name,
                                           '-p_id', str(projection_id),
                                           '-m', mount_point,
                                           '-p', prototype,
@@ -182,6 +184,7 @@ class ProjectionsDaemon(object):
             if projection_data['projector_subprocess'] is None:
                 projector = subprocess.Popen([sys.executable,
                                               'db_projector.py',
+                                              '-p_n', projection_name,
                                               '-p_id', str(projection_id),
                                               '-m', projection_data['mount_point'],
                                               '-p', projection_data['prototype_path'],
@@ -248,6 +251,11 @@ class ProjectionsDaemon(object):
                 # TODO add flag to force remove projection
                 logger.debug('Projection %s is currently running, stopping it!', projection_name)
                 self.stop(projection_name)
+
+                # Removing fetched projections data
+                projection_data_dir = os.path.join('.projections_contents', projection_name)
+                if os.path.exists(projection_data_dir):
+                    shutil.rmtree(projection_data_dir)
 
             self.cursor.callproc('projections.daemon_remove_projection', [projection_name])
             self.db_connection.commit()

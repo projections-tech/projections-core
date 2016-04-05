@@ -377,11 +377,46 @@ fasta_file_prototype: &fasta_file_prototype
 You may notice, that presented prototype order is reversed, this is due to alias cannot be created before anchor. Root
 node have no anchors attached, and is in lowest position in file.
 
-#### Selectors in prototypes
+#### Selectors in prototype definitions
+During projection creation we are able to filter which resources to project using selectors in microcode. 
 To illustrate selectors, let`s start another projection, this time we will project local filesystem contents:
 
 ```
-$ ./projections_cli.py project -n fs2 -m mount -p examples/fs_example_2_config.yaml -d fs_driver
+$ ./projections_cli.py project -n fs_example_1 -m mount -p examples/fs_example_1_config.yaml -d fs_driver
 ```
 
+Let`s examine projection configuration file "examples/fs_example_1_config.yaml". Root uri for this projection 
+is "tests/test_dir" - this URI corresponds to test directory in demo folder, we can check if projection is created 
+correctly comparing result with it. Root projection resembles Genbank root projection, and contains 4 children prototypes, 
+one of them is directory prototype "samples", take a closer look of it`s URI:
 
+``` YAML
+uri: " $.children[@.type is 'dir'].resource_uri "
+```
+
+URI object path resolution code means following:"For node in root`s children ("$.children part"), select node`s resource URI (".resource_uri" part) 
+if node`s type is 'dir'(code in square brackets)". This was example of selector to filter root`s node children according their environment 
+fields values. Driver fetches environment according to root URI for "samples" directory, fetches content from URI resolved 
+from environment using ObjectPath code using this content "samples" name is set. Children nodes for "samples" will have 
+their environment uri as "samples" resolved URI.
+
+Root prototype have other prototypes, we will look at fasta_prototype, other files selectors are similiar:
+
+```
+uri: " $.children[@.type is 'file' and @.extension is '.fasta'].resource_uri "
+```
+
+This code means following: "For node in sample prototype`s children, select URI of node which type is 'file' and node extension 
+is .fasta". ObjectPath also allows use of other helper functions in selectors, reader is encouraged to read it`s 
+[documentation](http://objectpath.org/reference.html).
+
+#### Transparent projections
+Before we have only encountered two types of prototypes: directory and file. There are some cases when we need to flatten 
+complex nested resource structure into more managable structure. In this case we have prototype type called: transparent prototype.
+
+Let`s create projection to illustrate transparent prototypes capabilities. Firstly we remove old filsystem example 
+projection to free up mount point (or we can create new mount point and project second example into it):
+
+```
+./projections_cli.py rm 
+```
