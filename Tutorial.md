@@ -1,11 +1,11 @@
-#Projections Tutorial
+# Projections Tutorial
 
 This tutorial covers Projections meta filesystem basic concepts and use.
 
-##Installation
-###Requirements
+## Installation
+### Requirements
 This demo was tested on Ubuntu 15.04 x64 (in order to run Docker), newer versions are compatible too.
-###Installation instructions
+### Installation instructions
 1) In this step Docker is set up, in order to run projections database container, if Docker is already installed on 
 system user may skip this step. In order to perform Docker installation, firstly user should update APT package index:
 
@@ -52,8 +52,8 @@ After this step user need to clone demo using git "clone" command:
 $ git clone https://github.com/projections-tech/projections-core.git
 ```
 
-If user works in, for example "home" directory, when demo will be cloned into "~/projections-core" directory. 
-In order to perform next operations user need`s to change directory into cloned directory:
+If user works in, for example, "home" directory, when demo will be cloned into "~/projections-core" directory. 
+In order to perform next operations user have to change directory into cloned directory:
 
 ```
 $ cd ~/projections-core
@@ -72,11 +72,11 @@ In order to start projections database container following command is used:
 $ docker run -d -p 48620:5432 --name projections_database projections_database
 ```
 
-Here, parameter "-p 48621:5432" binds database container port 5432 to port 48261 on host. 
+Here, parameter "-p 48620:5432" binds database container port 5432 to port 48260 on host. 
 
-*WARNING! It is assumed that port 48261 is not busy on host, otherwise user must specify desired port manually.*
+*WARNING! It is assumed that port 48260 is not busy on host, otherwise user must specify desired port manually.*
 
-4) Final step is to create python virtual environment in which demo will run and start it. If user does`t have 
+4) Final step is to create python virtual environment in which demo will run and start it. If user doesn`t have 
 virtualenv installed, installation performed using following command:
 
 ```
@@ -95,7 +95,7 @@ When this command is finished the demo setup is complete. In order to exit demo 
 $ deactivate
 ```
 
-In order to reenter environment following command is entered from projections demo directory:
+In order to reenter environment following command is entered from projections-core directory:
 
 ```
 $ source projections_demo/bin/activate
@@ -119,8 +119,8 @@ In order to remove projections database image from system user needs to type:
 $ docker rmi projections_database
 ```
 
-##Projections usage
-###Starting projections daemon
+## Projections usage
+### Starting projections daemon
 ***Note!*** *In following examples it is assumed that projections demo where installed into ~/projections-core.*
 
 On it`s most basic level, projection - is filesystem representation of various heterogeneous resources.
@@ -151,11 +151,11 @@ Daemon is intended to work indefinitely, managing users projections and it`s wor
 
 Now, with projections daemon started, let`s jump right to action.
 
-###Basic projections usage
+### Basic projections usage
 As stated earlier projection is representation of various resources. These resources may include, for example, contents 
 of some remote filesystem, data from scientific resources like NCBI Genbank, results of sequencing run and even local 
 filesystem contents.
-####Creating projection
+#### Creating projection
 Let`s for example, project genbank query as set of filesystem objects. To do this, we issue following command to 
 projections daemon command line interface:
 
@@ -206,8 +206,8 @@ mount/escherichia[orgn]_1013077116:
 1013077116.fasta  1013077116.gb
 ```
 
-Query projection is now created, now we can open files in projections subdirectories using our text editor of choice or perform data analysis.
-####Listing projections
+Query projection is now created, now we can open files in projections subdirectories using our text editor of choice or perform some data analysis.
+#### Listing projections
 Following command is used to list available projections:
 
 ```
@@ -224,7 +224,7 @@ Here we can see that this is first projection created in database, hence id is 1
 earlier, projection mount point is mount/ and driver is genbank driver. Projector PID is id of projector process which 
 currently performs projection in directory mount, it will differ from example and set to None when we stop projection.
 
-####Stopping and starting projections
+#### Stopping and starting projections
 After we checked that projections is fully created and works, let`s perform projection stop using this command:
 
 ```
@@ -253,7 +253,7 @@ $ ./projection_cli.py start -n genbank_example
 
 Which will restart projection.
 
-####Removing projections
+#### Removing projections
 As we move to next tutorial part, projection "genbank_example" is no longer needed, we can remove it using "rm" command:
 
 ```
@@ -262,7 +262,8 @@ As we move to next tutorial part, projection "genbank_example" is no longer need
 
 Which will stop and remove "genbank_example" projection. We also can check this using "ps" function.
 
-###Prototypes structure
+### Prototypes structure
+
 As were briefly mentioned above, projections are created using prototype files, which describe projection logical 
 structure. Projection itself is a tree, with nodes corresponding to projected resource elements, like query result was
 folder in example above. To create projection nodes tree we define projection prototypes tree - nodes of these tree
@@ -300,7 +301,7 @@ Let`s look at actual prototype file, and how it is unfolded into projections ste
 [YAML format](http://www.yaml.org/spec/1.2/spec.html), URI an Name microcodes use 
 [ObjectPath query language](http://objectpath.org/) and SQL is used to bind metadata to data.
 
-Before prototypes definition comes header, header ends with root_resource_uri from which projection will bes started:
+Before prototypes definition comes header, header ends with root_resource_uri from which projection will bes started, we can try any root uri which acts like NCBI search query (for example search for 'Homo Sapiens[orgn] AND Tumor'):
 
 ``` YAML
 # Prototype microcode dialects are defined here.
@@ -376,5 +377,11 @@ fasta_file_prototype: &fasta_file_prototype
 You may notice, that presented prototype order is reversed, this is due to alias cannot be created before anchor. Root
 node have no anchors attached, and is in lowest position in file.
 
+#### Selectors in prototypes
+To illustrate selectors, let`s start another projection, this time we will project local filesystem contents:
+
+```
+$ ./projections_cli.py project -n fs2 -m mount -p examples/fs_example_2_config.yaml -d fs_driver
+```
 
 
