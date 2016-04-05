@@ -396,7 +396,7 @@ uri: " $.children[@.type is 'dir'].resource_uri "
 ```
 
 URI object path resolution code means following:"For node in root`s children ("$.children part"), select node`s resource URI (".resource_uri" part) 
-if node`s type is 'dir'(code in square brackets)". This was example of selector to filter root`s node children according their environment 
+if node type is 'dir'(code in square brackets)". This was example of selector to filter root node children according their environment 
 fields values. Driver fetches environment according to root URI for "samples" directory, fetches content from URI resolved 
 from environment using ObjectPath code using this content "samples" name is set. Children nodes for "samples" will have 
 their environment uri as "samples" resolved URI.
@@ -407,7 +407,7 @@ Root prototype have other prototypes, we will look at fasta_prototype, other fil
 uri: " $.children[@.type is 'file' and @.extension is '.fasta'].resource_uri "
 ```
 
-This code means following: "For node in sample prototype`s children, select URI of node which type is 'file' and node extension 
+This code means following: "For node in sample prototype children, select URI of node which type is 'file' and node extension 
 is .fasta". ObjectPath also allows use of other helper functions in selectors, reader is encouraged to read it`s 
 [documentation](http://objectpath.org/reference.html).
 
@@ -598,7 +598,7 @@ This command will return (order is not preserved):
 
 Here we access JSON using PostgreSQL (JSON operators)[http://www.postgresql.org/docs/9.4/static/functions-json.html].
 
-And we query nodes which metadata nodes extension is "json" using link metadata contents:
+And we can query nodes which metadata nodes extension is "json" using link metadata contents:
 
 ```
 $ ./projections_cli.py search --projection_name fs_example_1 --path '/' --query "nodes.node_id IN (SELECT head_node_id FROM links WHERE metadata_content->>'name'~'json')"
@@ -613,3 +613,5 @@ This command will return:
 /test_dir/bam_file_1.bam
 /test_dir/bam_file_5.bam
 ```
+
+Here we accessed metadata content of nodes, and filtered them basing on metadata "name" field.
