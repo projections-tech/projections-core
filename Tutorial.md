@@ -385,7 +385,7 @@ To illustrate selectors, let`s start another projection, this time we will proje
 $ ./projections_cli.py project -n fs_example_1 -m mount -p examples/fs_example_1_config.yaml -d fs_driver
 ```
 
-Let`s examine projection configuration file "examples/fs_example_1_config.yaml". Root uri for this projection 
+Now we should examine projection configuration file "examples/fs_example_1_config.yaml". Root uri for this projection 
 is "tests/test_dir" - this URI corresponds to test directory in demo folder, we can check if projection is created 
 correctly comparing result with it. Root projection resembles Genbank root projection, and contains 4 children prototypes, 
 one of them is directory prototype "samples", take a closer look of it`s URI:
@@ -412,11 +412,45 @@ is .fasta". ObjectPath also allows use of other helper functions in selectors, r
 
 #### Transparent projections
 Before we have only encountered two types of prototypes: directory and file. There are some cases when we need to flatten 
-complex nested resource structure into more managable structure. In this case we have prototype type called: transparent prototype.
+complex nested resource structure into more manageable structure. In this case we have prototype type called: transparent prototype.
 
-Let`s create projection to illustrate transparent prototypes capabilities. Firstly we remove old filsystem example 
-projection to free up mount point (or we can create new mount point and project second example into it):
+Let`s create projection to illustrate transparent prototypes capabilities. Firstly we remove old filesystem projection example 
+to free up mount point (or we can create new mount point and project second example into it):
 
 ```
-./projections_cli.py rm 
+$ ./projections_cli.py rm -n fs_example_1
 ```
+
+Now we create example flat projection:
+
+```
+$ ./projections_cli.py project -n fs_example_2 -m mount -p examples/fs_example_2_config.yaml -d fs_driver
+```
+
+After projection initialization we will see this structure using "ls -R mount":
+
+```
+mount/:
+test_dir
+
+mount/test_dir:
+sample_1_bed_file.bed  sample_2_bed_file.bed  sample_3_bed_file.bed  sample_4_bed_file.bed  sample_5_bed_file.bed
+sample_1_vcf_file.vcf  sample_2_vcf_file.vcf  sample_3_vcf_file.vcf  sample_4_vcf_file.vcf  sample_5_vcf_file.vcf
+```
+
+In projection configuration file on path "examples/fs_example_2_config.yaml" we can see that "sample" prototype 
+definition is not so different from "sample" prototype of previous example. Apart from rerun directory prototype, 
+excluded for brevity only "type" field is different. Children nodes too have change only a bit, but this is 
+important change in field "name" of "fasta" prototype, for example:
+
+```
+name: " join([$.environment.name, $.name], '_') "
+```
+
+Here, projection name is joined using "sample" directory name and "fasta" file name. This step is essential to avoid 
+names collision on one level of projection, **there must be no equal paths in one projection**.
+
+#### Binding metadata
+
+Metadata - data relations in projections meta filesystem are defined as links between projection nodes. Each link has 
+it`s head node (node which will be annotated with metadata) and tail node (node which is metadata for head node).  

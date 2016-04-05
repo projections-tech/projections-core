@@ -36,12 +36,16 @@ bed_projection: &bed_projection
 vcf_projection: &vcf_projection
   type: file
   children: None
+  # Projection name is constructed using upstream directory name and current node`s name. It`s important to avoid
+  # name collisions since they aren`t allowed
   name: " join([$.environment.name, $.name], '_') "
   uri: " $.children[@.type is 'file' and @.extension is '.vcf'].resource_uri "
 
 # Files prototypes are grouped here.
 
 sample_dir_projection: &sample_dir_projection
+  # Transparent projection only passes it`s environment to it`s children nodes, but not created in parent tree itself.
+  # Children projection nodes inherit this projection parent node as parent, thus projection "flatenning" is achieved
   type: transparent
   children:
     vcf_projection: *vcf_projection
@@ -50,11 +54,6 @@ sample_dir_projection: &sample_dir_projection
   name: " $.name "
   # Object path allows use of selectors, here we select URI`s of object with field 'type' equal to 'dir'.
   uri: " $.children[@.type is 'dir'].resource_uri "
-
-# This two projections "sample" and rerun correspond to directories. Feature to notice here: children nodes contain same
-# prototypes definition for VCF and BED files. Their creation code and environment structures are equal, we can reuse this
-# prototypes definitions.
-
 
 # This is root projection node definition. By convention, it must be named "root". By resolving it`s URI code we create
 # list of URI`s for associated Genbank entries.
