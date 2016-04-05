@@ -97,7 +97,7 @@ def _create_args_parser():
                                            help='List drivers for resources projection registered in the system.')
 
     parser_search = subparsers.add_parser('search', help='Search projections metadata.')
-    parser_search.add_argument('-p', '--path', required=False, help='Limit search to specified path.')
+    parser_search.add_argument('-p', '--path', required=True, help='Limit search to specified path.')
     parser_search.add_argument('-q', '--query', required=True, help='Search objects conforming to the query.')
     parser_search.add_argument('-n', '--projection_name', required=True,
                                help='Name of a projection where to search.')

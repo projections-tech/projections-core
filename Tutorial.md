@@ -450,7 +450,165 @@ name: " join([$.environment.name, $.name], '_') "
 Here, projection name is joined using "sample" directory name and "fasta" file name. This step is essential to avoid 
 names collision on one level of projection, **there must be no equal paths in one projection**.
 
-#### Binding metadata
+#### Binding metadata and performing search
 
 Metadata - data relations in projections meta filesystem are defined as links between projection nodes. Each link has 
-it`s head node (node which will be annotated with metadata) and tail node (node which is metadata for head node).  
+it`s head node (node which will be annotated with metadata) and tail node (node which is metadata for head node), 
+metadata contents for this link is JSON representation of tail node contents.
+ 
+Now we once again free up our mount point:
+
+```
+$ ./projections_cli.py rm -n fs_example_2
+```
+
+And recreate filesystem projection from example 1:
+
+```
+$ ./projections_cli.py project -n fs_example_1 -m mount -p examples/fs_example_1_config.yaml -d fs_driver
+```
+
+Let`s see how metadata where binded in filesystem example 1 file, for "fasta" file prototype:
+
+```
+meta_link:
+    - " nodes.node_path[2] ~ concat('sample_', substring(current_node.node_name, '\\d+')) AND nodes.node_name ~ '.vcf$'"
+```
+
+Metadata links are created after projection tree is completed, since node on every level of tree structure can be 
+metadata node for current node. Links are defined using SQL query language, current query translates to: "select node 
+from projection tree nodes where node path second element contains string "sample_" with digit suffix from current node 
+and node name contains '.vcf' extension". This query binds vcf files in lower level. Each query corresponds to WHERE SQL 
+clause, with WHERE operator omitted and two nodes present: "current node", node on current prototype and "node" - node 
+in projection nodes including current node. Table called "nodes" is available as context for link query, each link code 
+must return only one node, these columns are available:
+
+- "node_id" - id of a node in projection.
+
+- "parent_id" - id of nodes parent.
+
+- "node_name" - name of node.
+
+- "node_path" - path to node from rood as list, root node does not have name.
+
+- "node_type" - type of node, "REG" - file, or "DIR" - directory.
+
+- "metadata_content" - metadata contents of node.
+
+Here`s example of link for data binding on same level for "bam" prototype:
+
+```
+meta_link:
+- " regexp_replace(nodes.node_name, '.json', '') = regexp_replace(current_node.node_name, '.bam', '_metadata') "
+```
+
+This query translates to "select node where name is equal to current node and contains '.json' as extension".
+
+After metadata is binded, we can perform search in projection, fetching all projections BAM files:
+
+```
+$ ./projections_cli.py search --projection_name fs_example_1 --path '/' --query "nodes.node_name ~ '.bam'"
+```
+
+Where command arguments are:
+
+- "search" - command to daemon to perform search.
+
+- "--projection_name" - name of projection on which to perform search. Shorthand is "-n".
+
+- "--path" - path on projection on which to perform search, in example we choose root "/", but it can be anywhere 
+on projection, if path exists. Shorthand is "-p"
+
+- "--query" - SQL code of query with which to filter nodes. Query: "nodes.node_name ~ '.bam'" translates to:"Select all 
+nodes where node name contains .bam". Shorthand is '-q'.
+
+When done, this command returns list of found nodes paths on mount dir(order is not preserved):
+
+```
+/test_dir/bam_file_2.bam
+/test_dir/bam_file_4.bam
+/test_dir/bam_file_5.bam
+/test_dir/bam_file_1.bam
+/test_dir/bam_file_3.bam
+```
+
+Search queries on projections uses context different from metadata-data binding queries. Since we perform search on path, 
+nodes table is table of children nodes on given path, with all columns retained. We illustrate it by performing search of subdirectories on path "/test_dir/sample_1":
+
+```
+$ ./projections_cli.py search --projection_name fs_example_1 --path '/test_dir/sample_1' --query "nodes.node_type = 'DIR'"
+```
+
+This command will return output:
+
+```
+/test_dir/sample_1/rerun
+```
+
+Also, since metadata is already binded to data, new context is created - table "links" which contains following columns:
+
+- "head_node_id" - id of head, data, node in nodes table.
+
+- "tail_node_id" - id of tail, metadata, node in nodes table.
+
+- "metadata_content" - metadata content of tail node.
+
+Now, with this table, we can perform search using node links, here we fetch all nodes that is metadata:
+
+```
+$ ./projections_cli.py search --projection_name fs_example_1 --path '/' --query "nodes.node_id IN (SELECT tail_node_id FROM links) "
+```
+
+This query will give output (order is not preserved):
+
+```
+/test_dir/bam_file_1_metadata.json
+/test_dir/bam_file_2_metadata.json
+/test_dir/bam_file_4_metadata.json
+/test_dir/bam_file_5_metadata.json
+/test_dir/bam_file_3_metadata.json
+/test_dir/sample_1/rerun/vcf_file.vcf
+/test_dir/sample_3/rerun/vcf_file.vcf
+/test_dir/sample_2/rerun/vcf_file.vcf
+/test_dir/sample_4/rerun/vcf_file.vcf
+```
+
+Node metadata contents is accessible from nodes table for node, and links table link metadata content as metadata for node.
+Firstly we filter nodes according to their own metadata content, seach for all VCF files in projection:
+
+```
+$ ./projections_cli.py search --projection_name fs_example_1 --path '/' --query "nodes.metadata_content->>'name'~'vcf' "
+```
+
+This command will return (order is not preserved):
+
+```
+/test_dir/sample_5/rerun/vcf_file.vcf
+/test_dir/sample_5/vcf_file.vcf
+/test_dir/sample_3/rerun/vcf_file.vcf
+/test_dir/sample_1/vcf_file.vcf
+/test_dir/sample_3/vcf_file.vcf
+/test_dir/sample_2/rerun/vcf_file.vcf
+/test_dir/sample_2/vcf_file.vcf
+/test_dir/sample_4/rerun/vcf_file.vcf
+/test_dir/sample_1/rerun/vcf_file.vcf
+/test_dir/sample_4/vcf_file.vcf
+```
+
+Here we access JSON using PostgreSQL (JSON operators)[http://www.postgresql.org/docs/9.4/static/functions-json.html].
+
+And we query nodes which metadata nodes extension is "json" using link metadata contents:
+
+```
+$ ./projections_cli.py search --projection_name fs_example_1 --path '/' --query "nodes.node_id IN (SELECT head_node_id FROM links WHERE metadata_content->>'name'~'json')"
+```
+
+This command will return:
+
+```
+/test_dir/bam_file_4.bam
+/test_dir/bam_file_3.bam
+/test_dir/bam_file_2.bam
+/test_dir/bam_file_1.bam
+/test_dir/bam_file_5.bam
+```

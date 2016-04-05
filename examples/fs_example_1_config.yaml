@@ -43,9 +43,9 @@ vcf_projection: &vcf_projection
 bam_projection: &bam_projection
   type: file
   children: None
-  # This SQL code performs metadata binding on same level. Here we exploit
+  # This SQL code performs metadata binding on same level.
   meta_link:
-    - " regexp_replace(nodes.node_name, '.json', '') = regexp_replace(current_node.node_name, '.bam', '') AND nodes.node_name != current_node.node_name "
+    - " regexp_replace(nodes.node_name, '.json', '') = regexp_replace(current_node.node_name, '.bam', '_metadata') "
   name: " $.name "
   uri: " $.children[@.type is 'file' and @.extension is '.bam'].resource_uri "
 
@@ -64,7 +64,7 @@ fasta_projection: &fasta_projection
   # number present in current projection name (e.g. using regex 'fasta_file_4' turns into '_4$') and node_name contains
   # '.vcf' as extension.
   meta_link:
-    - " nodes.node_path[2] ~ concat('_', substring(current_node.node_name, '\\d+'), '$') AND nodes.node_name ~ '.vcf$' AND nodes.node_type != 'DIR'"
+    - " nodes.node_path[2] ~ concat('sample_', substring(current_node.node_name, '\\d+')) AND nodes.node_name ~ '.vcf$' "
   name: " $.name "
   # Object path allows use of selectors, here we select URI`s of object with field 'type' equal to 'file' and it`s
   # "field" extension equal to '.fasta'.
