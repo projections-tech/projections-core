@@ -105,15 +105,29 @@ class SamDump:
     """
 
     def __init__(self, sampdump_path, uri):
+        """
+        Initialize manager with path to sam-dump and uri to fetch
+        :param sampdump_path: path to sam-dump str
+        :param uri: uri to fetch str
+        :return: None
+        """
         self.sampdump_path = sampdump_path
         self.uri = uri
         self.sam_dump = None
 
     def __enter__(self):
+        """
+        Return iterator over sam-dump subprocess stdout
+        :return: stdout iterator
+        """
         self.sam_dump = subprocess.Popen([self.sampdump_path, self.uri], stdout=subprocess.PIPE)
         return self.sam_dump.stdout
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        """
+        On exit terminate sam-dump process
+        :return: None
+        """
         if exc_type is None:
             self.sam_dump.terminate()
         self.sam_dump.terminate()

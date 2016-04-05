@@ -81,11 +81,24 @@ class GenbankDriver(ProjectionDriver):
 
 
 class GenbankDataLoader:
+    """
+    Genbank driver download manager
+    """
     def __init__(self, query, data_type):
+        """
+        Initialize manager with query and data type
+        :param query: query string
+        :param data_type: type of data to load str
+        :return: None
+        """
         self.query = query
         self.data_type = data_type
 
     def __enter__(self):
+        """
+        Return stream of query result
+        :return: requests stream iterator
+        """
         if self.data_type == '.gb':
             # Returns query gb file bytes iterator
             return self._load_data_from_genbank(self.query, 'gb')
@@ -96,9 +109,15 @@ class GenbankDataLoader:
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
 
-    def _load_data_from_genbank(self, req_id, ret_type):
+    def _load_data_from_genbank(self, query_id, ret_type):
+        """
+        Load query and return iterator over it`s contents
+        :param query_id: id of query str
+        :param ret_type: type of data to return
+        :return: chunk bytes
+        """
         url = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi' \
-              '?db=nucleotide&id={acc}&rettype={ret_type}&retmode=text"'.format(acc=req_id,
+              '?db=nucleotide&id={acc}&rettype={ret_type}&retmode=text"'.format(acc=query_id,
                                                                                 ret_type=ret_type)
         r = requests.get(url, stream=True)
         for chunk in r.iter_content(chunk_size=1024):

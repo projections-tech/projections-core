@@ -139,16 +139,33 @@ class TorrentSuiteDriver(ProjectionDriver):
 
 
 class LoadTorrentSuiteData:
+    """
+    TorrentSuite download context manager
+    """
     def __init__(self, uri):
+        """
+        Initialize manager with uri to fetch
+        :param uri: uri to fetch str
+        :return: None
+        """
         self.uri = uri
 
     def __enter__(self):
+        """
+        Return iterator over uri contents
+        :return: requests stream iterator
+        """
         return self.load_data_as_iterator(self.uri)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
 
     def load_data_as_iterator(self, uri):
+        """
+        Load data on uri as stream
+        :param uri: uri to fetch str
+        :return: chunk bytes
+        """
         r = requests.get(uri, stream=True)
         for chunk in r.iter_content(chunk_size=1024):
             if chunk:

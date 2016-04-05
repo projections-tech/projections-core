@@ -156,8 +156,9 @@ As stated earlier projection is representation of various resources. These resou
 of some remote filesystem, data from scientific resources like NCBI Genbank, results of sequencing run and even local 
 filesystem contents.
 #### Creating projection
-Let`s for example, project genbank query as set of filesystem objects. To do this, we issue following command to 
-projections daemon command line interface:
+Let`s for example, project genbank query as set of filesystem objects. To start projection creation, please enter your 
+email, in order to have access to NCBI resources, in genbank driver configuration in "drivers/driver_configurations/genbank_config.yaml". 
+After entering our email, we issue following command to projections daemon command line interface:
 
 ```
 $ ./projections_cli.py project --projection_name=genbank_example --mount_point=mount --driver=genbank_driver --prototype=examples/genbank_example_1_config.yaml

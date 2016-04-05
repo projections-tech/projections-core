@@ -17,10 +17,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Projections.  If not, see <http://www.gnu.org/licenses/>.
 
+import io
 import logging
 import logging.config
 import os
-import io
 
 from projections import ProjectionDriver
 
@@ -69,11 +69,23 @@ class FSDriver(ProjectionDriver):
 
 
 class FSLoadData:
+    """
+    FSDriver download context manager
+    """
     def __init__(self, uri):
+        """
+        Initialize context manager with uri to fetch
+        :param uri: uri of object to load str
+        :return: None
+        """
         self.uri = uri
         self.io = None
 
     def __enter__(self):
+        """
+        This method returns stream of uri contents
+        :return: uri contents BytesIO
+        """
         if os.path.isfile(self.uri):
             self.io = open(self.uri, 'rb')
             return self.io
@@ -83,5 +95,9 @@ class FSLoadData:
 
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        """
+        This method closes context manager io when loading is done.
+        :return: None
+        """
         if self.io is not None:
             self.io.close()

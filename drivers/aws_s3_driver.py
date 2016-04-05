@@ -78,15 +78,32 @@ class S3Driver(ProjectionDriver):
 
 
 class S3DataLoader:
+    """
+    S3 driver download context manager
+    """
     def __init__(self, bucket, uri):
+        """
+        Initialize driver with bucket and uri
+        :param bucket: bucket name from which to fetch data str
+        :param uri: uri of object to download str
+        :return: BytesIO object of data contents
+        """
         self.uri = uri
         self.bucket = bucket
         self.io = None
 
     def __enter__(self):
+        """
+        This method loads data from uri and return it`s stream
+        :return: BytesIO object
+        """
         # TODO find a way to load bucket contents as a stream
         self.io = io.BytesIO(self.bucket.Object(key=self.uri).get()['Body'].read())
         return self.io
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        """
+        This method closes context manager io.
+        :return: None
+        """
         self.io.close()
