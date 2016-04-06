@@ -129,7 +129,13 @@ We begin our tutorial by starting projections daemon. In projections meta filesy
 relationships between projectors - individual processes, which create resource projections and projection database - 
 projections persistent storage.
 
-Work with the daemon is quite simple, we can start it using following command:
+To test daemon we create directory on which we mount our projections:
+
+```
+mkdir mount
+```
+
+Working with the daemon is quite simple, we can start it using following command:
 
 ```
 $ ./projections_daemon.py -start
