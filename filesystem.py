@@ -1,16 +1,25 @@
-#!/usr/bin/env python3
-
-__author__ = 'abragin'
+#    Copyright 2016  Anton Bragin, Victor Svekolkin
+#
+#    This file is part of Projections.
+#
+#    Projections is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Projections is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with Projections.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
 import logging.config
 import os
-import stat
-import sys
-import time
-from fuse import FUSE, FuseOSError, Operations
 
-from projections import Projection
+from fuse import Operations
 
 logger = logging.getLogger('projection_filesystem')
 
@@ -49,7 +58,9 @@ class ProjectionFilesystem(Operations):
         # If attributes belong to projection manager than return
         if self.projection_manager.is_managing_path(path):
             attributes = self.projection_manager.get_attributes(path)
+
             logger.debug('Projection attributes received: %s', attributes)
+
             if attributes:
                 return attributes
 
@@ -60,7 +71,7 @@ class ProjectionFilesystem(Operations):
             logger.debug('Data stats received: %s', st)
             return dict((key, getattr(st, key)) for key in ('st_atime', 'st_ctime', 'st_gid', 'st_mode',
                                                             'st_mtime', 'st_nlink', 'st_size', 'st_uid'))
-        # If nobody manages this path than raise exception
+        # If nobody manages this path then raise exception
         raise RuntimeWarning('Resource on {} have no associated attributes'.format(path))
 
     def readdir(self, path, fh):
@@ -129,9 +140,11 @@ class ProjectionFilesystem(Operations):
     def open(self, path, flags):
         logger.info('Opening file on path: %s with flags: %s', path, flags)
         if not os.path.exists(self._extend_data_path(path)):
-            # If the path is managed by projection manager than it should place original resource on drive before opening
+            # If the path is managed by projection manager
+            # then it should place original resource on drive before opening
             if self.projection_manager.is_managing_path(path):
-                file_header, resource_io = self.projection_manager.open_resource(path)
+                file_header, resource_io_iterator = self.projection_manager.open_resource(path)
+
                 logger.debug('Opening resource at path: %s returned header: %s', path, file_header)
                 logger.info('Saving resource content to local drive')
                 # Create folder if not exists
@@ -145,7 +158,12 @@ class ProjectionFilesystem(Operations):
                 data_path = self._extend_data_path(path)
 
                 with open(data_path, 'wb') as f:
-                    f.write(resource_io.read())
+                    with resource_io_iterator as resource_io:
+                        for line in resource_io:
+                            f.write(line)
+
+        projection_size = os.stat(self._extend_data_path(path)).st_size
+        self.projection_manager.update_projection_size_attribute(path, projection_size)
 
         # Opening real file that was created
         return os.open(self._extend_data_path(path), flags)
@@ -154,8 +172,7 @@ class ProjectionFilesystem(Operations):
         logging.info('Removing node on path: %s', path)
 
         if self.projection_manager.is_managing_path(path):
-            logging.debug('Path is projection, do nothing')
-            return None
+            return self.projection_manager.remove_projection(path)
 
         full_path = self._extend_data_path(path)
         return os.rmdir(full_path)
@@ -168,24 +185,3 @@ class ProjectionFilesystem(Operations):
                 self.projection_manager.remove_resource(path)
 
             return os.unlink(data_path)
-
-
-def main(mountpoint, data_folder, foregrount=True):
-    # Specify FUSE mount options as **kwargs here. For value options use value=True form, e.g. nonempty=True
-    # For complete list of options see: http://blog.woralelandia.com/2012/07/16/fuse-mount-options/
-    fuse = FUSE(ProjectionFilesystem(mountpoint, data_folder), mountpoint, foreground=foregrount)
-    return fuse
-
-
-if __name__ == '__main__':
-
-    script_dir = os.path.dirname(os.path.realpath(__file__))
-    logging.config.fileConfig(os.path.join(script_dir, 'logging.cfg'))
-
-    # TODO: replace with argparse
-    # Get mount point from args
-    if len(sys.argv) != 3:
-        print('usage: %s <mountpoint> <data folder>' % sys.argv[0])
-        exit(1)
-
-    main(sys.argv[1], sys.argv[2])

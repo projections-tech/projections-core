@@ -1,8 +1,8 @@
 {
     "mock_resource_uri": "http://eutils.ncbi.nlm.nih.gov",
-    "mock_data_path": "tests/mock_resource/genbank_mock_data",
+    "mock_data_path": "tests/mock_resources/genbank_mock_data",
     "mock_responses": {
-        "/entrez/eutils/esearch.fcgi?.*": "esearch_response.xml",
-        "/entrez/eutils/efetch.fcgi?.*": "mock_contents.txt"
+      "/entrez/eutils/esearch.fcgi\\?.*": "esearch_response.xml",
+      "/entrez/eutils/efetch.fcgi\\?.*": "mock_contents.txt"
     }
 }

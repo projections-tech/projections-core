@@ -18,35 +18,5 @@
 # along with Projections.  If not, see <http://www.gnu.org/licenses/>.
 
 ---
-dialect: python
-resource_uri: test.com
-driver_config_path: "tests/driver_configurations/fs_config.yaml"
-
-root_projection_uri: 'test_uri'
-
-bam_file: &bam_file
-  type: file
-  children: None
-  name: "test_vcf.vcf"
-  uri: "[environment['data_bam']]"
-
-vcf_file: &vcf_file
-  type: file
-  children: None
-  name: "test_bam.bam"
-  uri: "[environment['data_vcf']]"
-
-results: &results
-  type: directory
-  children:
-    bam_file: *bam_file
-    vcf_file: *vcf_file
-  name: "results_dir"
-  uri: "environment['results']"
-
-root:
-  type: directory
-  children:
-    results : *results
-  name: "root_dir"
-  uri: "[object[\"uri\"] for object in environment]"
+# SRA driver configuration file
+email: "vsvekolkin@parseq.pro"

@@ -1,17 +1,26 @@
-__author__ = 'abragin'
+#    Copyright 2016  Anton Bragin, Victor Svekolkin
+#
+#    This file is part of Projections.
+#
+#    Projections is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Projections is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with Projections.  If not, see <http://www.gnu.org/licenses/>.
 
-import copy
-import io
-import json
 import logging
+import logging.config
 import os
 import pprint
-import stat
 import threading
-import time
-import types
 
-import objectpath
 import yaml
 
 # Import logging configuration from the file provided
@@ -154,126 +163,6 @@ class Node(object):
         return pprint.pformat([n.get_path() for n in self.get_tree_nodes()])
 
 
-class Projection(object):
-    """
-    Class for holding projection data.
-
-    This is designed to be implementation independent.
-    The objects of the class should be logically immutable.
-
-    The purpose of class objects is to store data related to filesystem object representation (name, type and size)
-        and mapping of path to resource uri.
-    """
-
-    def __init__(self, name, uri, type=stat.S_IFDIR, size=4096):
-        """
-        Create projection object.
-
-        :param name: name of projection
-        :param uri: resource identifier projection is pointing to
-        :param type: type of filesystem object. Current implementation supports S_IFDIR and S_IFREG only.
-        :param size: size of filesystem object in bytes.
-        """
-        self.name = name
-        self.uri = uri
-        self.type = type
-        # Should be nonzero to trigger projection object reading
-        self.size = size
-        self.metadata_uri = None
-
-    def __str__(self):
-        return 'Projection from {} to {}'.format(self.uri, self.name)
-
-
-class ProjectionTree(Node):
-    """
-    Class for holding tree-like projection structure.
-    """
-
-    def __init__(self, p_name, p_uri, p_parent=None, p_type=stat.S_IFDIR, p_size=4096, driver=None):
-        super().__init__(name=p_name, data=Projection(name=p_name, uri=p_uri, type=p_type, size=p_size))
-        self.parent = p_parent
-        self.driver = driver
-
-    def get_projection(self, path):
-        """
-        Get projection for a path provided.
-        :param path: path the projection resides on
-        :return: projection or None
-        """
-        node_on_path = self.find_node_by_path(path)
-        return node_on_path.data if node_on_path else None
-
-    def is_managing_path(self, path):
-        if self.get_projection(path):
-            return True
-        else:
-            return False
-
-    def get_projections_on_path(self, path):
-        """
-        Get list of projections on path
-        :param path: path string
-        :return: list of Projection objects
-        """
-        logger.info('Requesting projections for path: %s', path)
-        node = self.find_node_by_path(path)
-        projections = [n.data.name for n in node.get_children()]
-        logger.info('Returning projections: %s', projections)
-        return projections
-
-    def get_attributes(self, path):
-        """
-        Get attributes of projection on given path
-        """
-
-        assert self.get_projection(path) is not None
-
-        projection = self.get_projection(path)
-
-        now = time.time()
-        attributes = dict()
-
-        # Set projection attributes
-
-        # This is implementation specific and should be binded to projector data
-        attributes['st_atime'] = now
-        # This may be implemented as last projection cashing time is casing is enabled
-        attributes['st_mtime'] = now
-        # On Unix this is time for metadata modification we can use the same conception
-        attributes['st_ctime'] = now
-        # If this is projection the size is zero
-        attributes['st_size'] = projection.size
-        # Set type to link anf grant full access to everyone
-        attributes['st_mode'] = (projection.type | 0o0777)
-        # Set number of hard links to 0
-        attributes['st_nlink'] = 0
-        # Set id as inode number.
-        attributes['st_ino'] = 1
-
-        return attributes
-
-    def open_resource(self, path):
-        """
-        Opens resource on path and returns it`s header and contents stream
-        :param path path string
-        :return file_header
-        :return resource_io
-        """
-        projection_on_path = self.get_projection(path)
-        uri = projection_on_path.uri
-
-        content = self.driver.get_uri_contents_as_bytes(uri)
-        logger.info('Got path content: %s\n', path)
-
-        projection_on_path.size = len(content)
-
-        file_header = 3
-        resource_io = io.BytesIO(content)
-
-        return file_header, resource_io
-
-
 class ProjectionPrototype(Node):
     """
     The class objects describe nodes in projection logical structure.
@@ -291,8 +180,8 @@ class ProjectionPrototype(Node):
         # Initialize Node class, passing current object in Node data field
         super().__init__(name, self)
         self.parent = parent
-
         self.type = type
+        self.meta_link = []
         # TODO: consider logical synchronization of name and uri
         # Dialect specific description that is used as a generator for projection uri's
         self.uri = None
@@ -321,7 +210,8 @@ class PrototypeDeserializer(object):
         Initialize class, passing path to YAML configuration file
         """
         yaml_stream = self.read_yaml_file(data_path)
-        self.prototype_tree, self.resource_uri, self.root_projection_uri = self.read_projections(yaml_stream)
+        self.prototype_tree, self.resource_uri, self.root_projection_uri, self.driver_config_path = self.read_projections(
+            yaml_stream)
 
     def get_prototypes_tree(self, yaml_dict, parent=None):
         """
@@ -334,6 +224,9 @@ class PrototypeDeserializer(object):
         pp.name = yaml_dict['name']
         pp.uri = yaml_dict['uri']
         pp.parent = parent
+        if 'meta_link' in yaml_dict:
+            pp.meta_link = yaml_dict['meta_link']
+
         if isinstance(yaml_dict['children'], dict):
             pp.children = {x[0]: self.get_prototypes_tree(x[1], parent=pp) for x in yaml_dict['children'].items()}
             return pp
@@ -356,7 +249,12 @@ class PrototypeDeserializer(object):
         """
         with yaml_stream:
             yaml_dict = yaml.safe_load(yaml_stream)
-        return self.get_prototypes_tree(yaml_dict['root']), yaml_dict['resource_uri'], yaml_dict['root_projection_uri']
+
+        resource_uri = yaml_dict['resource_uri']
+        root_projection_uri = yaml_dict['root_projection_uri']
+        driver_config_path = yaml_dict['driver_config_path']
+
+        return self.get_prototypes_tree(yaml_dict['root']), resource_uri, root_projection_uri, driver_config_path
 
 
 class ProjectionDriver(object):
@@ -364,155 +262,13 @@ class ProjectionDriver(object):
     Object that has get_uri_content(uri) method returning array of Python dictionaries.
     """
 
+    def read_config(self, config_path):
+        # Opening driver configuration
+        with open(config_path) as yaml_stream:
+            return yaml.safe_load(yaml_stream)
+
     def get_uri_contents_as_dict(self, uri):
         raise NotImplemented('Implement metadata retrieval from some projection backend.')
 
     def get_uri_contents_as_bytes(self, uri):
         raise NotImplemented('Implement data stream retrieval from some projection backend.')
-
-
-class Projector:
-    """
-    Class that creates Projection objects and assembles them in ProjectionTree object using Prototypes object.
-    """
-
-    def __init__(self, driver, root_projection_uri, prototype_tree):
-        """
-        :param driver: instance of ProjectionDriver
-        :param prototype_tree: tree of ProjectionPrototype objects to build projection upon
-        """
-        assert isinstance(driver, ProjectionDriver), 'Check that driver object is subclass of ProjectionDriver'
-        self.driver = driver
-        # Initializing projection tree with root projection.
-        self.projection_tree = ProjectionTree(p_name='/', p_uri=root_projection_uri, driver=driver)
-        self.create_projection_tree({'/': prototype_tree}, self.projection_tree)
-
-    def fetch_context(self, uri):
-        """
-        Used to fetch contents of uri in microcode
-        :param uri: URI string
-        :return: uri contents
-        """
-        return self.driver.get_uri_contents_as_dict(uri)
-
-    def create_projection_tree(self, prototypes, projection_tree):
-        """
-        Creates projection tree for a given collection of prototypes.
-
-        Method signature is influenced by recursion implementation and is subject to change.
-
-        :param prototypes: collection of prototypes that are attached to parent projection's prototype
-        :param projection_tree: projection tree to extend. Should not be None
-        :return: void. The provided projection tree object expected to be used.
-        """
-        logger.info('Creating projection tree with a prototypes: %s starting from: %s',
-                    prototypes, projection_tree.data)
-        # Dictionaries that act as a evaluation context for projections. environment is available for both directory and
-        # file prototypes, while content for directory prototypes only
-        environment = None
-        content = None
-
-        metadata_uri = projection_tree.data.uri
-
-        path = os.path
-
-        # This is environment in which projections are created (parent_projection content)
-        # TODO: in many cases it means double request to parent projection resource so it should be optimized
-        # We don`t want to change driver contents, hence we made deep copy of dict
-        environment = copy.deepcopy(self.driver.get_uri_contents_as_dict(projection_tree.data.uri))
-
-        logger.info('Starting prototype creation in the context of resource with uri: %s', projection_tree.data.uri)
-
-        # For every prototype in collection try to create corresponding projections
-        for key, prototype in prototypes.items():
-            # Set current prototype context to current environment for children node to use
-            prototype.context = environment
-            # Get context of current node from contexts of parent nodes
-            context = prototype.get_context()
-            context = context[::-1]
-
-            logger.info('Creating projections for a prototype: %s', prototype)
-            # Adding context of upper level prototypes for lower level projections to use
-            environment['context'] = context
-
-            # Creating tree of environment contents which will be parsed by ObjectPath
-            tree = objectpath.Tree(environment)
-            URIs = tree.execute(prototype.uri)
-
-            # Object path sometimes returns generator if user uses selectors, for consistency expand it using
-            # list comprehension
-            if isinstance(URIs, types.GeneratorType):
-                URIs = [el for el in URIs]
-            # Treating URIs as list for consistency
-            if not isinstance(URIs, list):
-                URIs = [URIs]
-            logger.info('Prototype %s has projections on URIs: %s', prototype, URIs)
-
-            # We get projection URIs based on environment and prototype properties
-            # Every URI corresponds to projection object
-            for uri in URIs:
-                if prototype.type == 'metadata':
-                    # Metadata must be valid JSON file, in other case do conversion
-                    environment['file_metadata'] = json.loads(self.driver.get_uri_contents_as_bytes(uri).decode())
-
-                # Get content for a projection
-                # We don`t want to change driver contents, hence we made deep copy
-                content = copy.deepcopy(self.driver.get_uri_contents_as_dict(uri))
-                logger.debug('ENV: %s, CONTENT: %s', environment, content)
-
-                # Adding environment to use by prototype
-                content['environment'] = environment
-                content['context'] = context
-                content['resource_uri'] = uri
-
-                # Creating tree which will be parsed by ObjectPath
-                tree = objectpath.Tree(content)
-                name = tree.execute(prototype.name)
-                # If prototype is metadata use it`s name as file meta evaluation context
-
-                if prototype.type == 'metadata':
-                    # Object path sometimes returns generator if user uses selectors, for consistency expand it using
-                    # list comprehension
-
-                    if isinstance(name, types.GeneratorType):
-                        name = [el for el in name]
-
-                    # If name is empty list then stop projection tree creation and continue to next prototype
-                    if len(name) == 0:
-                        continue
-
-                # Object path sometimes returns generator if user uses selectors, for consistency expand it using
-                # list comprehension
-                if isinstance(name, types.GeneratorType):
-                    name = [el for el in name]
-
-                child_tree = ProjectionTree(p_name=name, p_uri=uri)
-                # Setting projection metadata URI
-                child_tree.data.metadata_uri = metadata_uri
-
-                # Add newly created projection to projection tree if prototype is not transparent or metadata
-                if prototype.type != 'transparent' and prototype.type != 'metadata':
-                    projection_tree.add_child(child_tree)
-                    logger.info('Projection created: %s', child_tree)
-
-                if prototype.type == 'directory':
-                    # If prototype has children, continue tree building
-                    if prototype.children:
-                        logger.info('Starting attached prototype projection creation for prototype: %s with children: %s',
-                                    prototype, prototype.children)
-                        self.create_projection_tree(prototype.children, child_tree)
-
-                elif prototype.type == 'transparent' or prototype.type == 'metadata':
-                    # If projection is transparent or metadata, continue prototype tree building passing parent
-                    # projection tree and evaluated uri of prototype to it. This behaviour allows to build flat
-                    # projections there all prototypes are on one level due to passed common parent projection
-                    if prototype.children:
-                        projection_tree.data.uri = child_tree.data.uri
-                        self.create_projection_tree(prototype.children, projection_tree)
-
-                elif prototype.type == 'file':
-                    # NOTE: content variable is not accessible during file projection creation!
-                    # This is the point where metadata can be extracted from the file
-                    #   but file content should be accessed in this case
-                    child_tree.data.type = stat.S_IFREG
-                    child_tree.data.size = 1
