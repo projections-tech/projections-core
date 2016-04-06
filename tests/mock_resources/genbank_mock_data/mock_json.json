@@ -1,0 +1,30 @@
+{
+  "Count": "282",
+  "IdList": [
+    "939732440"
+  ],
+  "QueryTranslation": "\"Escherichia\"[Organism] AND complete genome[title]",
+  "RetMax": "1",
+  "RetStart": "0",
+  "TranslationSet": [
+    {
+      "To": "\"Escherichia\"[Organism]",
+      "From": "escherichia[orgn]"
+    }
+  ],
+  "TranslationStack": [
+    {
+      "Field": "Organism",
+      "Explode": "Y",
+      "Term": "\"Escherichia\"[Organism]",
+      "Count": "1533767"
+    },
+    {
+      "Field": "title",
+      "Explode": "N",
+      "Term": "complete genome[title]",
+      "Count": "110457"
+    },
+    "AND"
+  ]
+}

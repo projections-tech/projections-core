@@ -1,262 +1,106 @@
-__author__ = 'abragin'
+#    Copyright 2016  Anton Bragin, Victor Svekolkin
+#
+#    This file is part of Projections.
+#
+#    Projections is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Projections is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with Projections.  If not, see <http://www.gnu.org/licenses/>.
 
+import json
 import logging
 import logging.config
 import re
-import stat
-import json
+from io import BytesIO
+from unittest import TestCase
 
-from unittest import TestCase, skip
+import psycopg2
+import yaml
 
-from projections import Node, ProjectionPrototype, Projector, Projection, ProjectionTree, ProjectionDriver, PrototypeDeserializer
+from db_projector import DBProjector
+from drivers.fs_driver import FSDriver
+from projections import ProjectionPrototype, ProjectionDriver, PrototypeDeserializer
 
 # Import logging configuration from the file provided
 logging.config.fileConfig('logging.cfg')
-logger = logging.getLogger('test_projections')
 
 
+# TODO implement this class as mock from unittest library
 class TestDriver(ProjectionDriver):
     """
-    This class does not perform actual testing. It's providing test data and may be replaces with mock object.
+    This class does not perform actual testing. It's providing test data and may be replaced with mock object.
     """
 
+    def __init__(self):
+        self.logger = logging.getLogger('test_driver')
+
     def get_uri_contents_as_dict(self, uri):
-        logger.info('Requesting content for uri: %s', uri)
+        self.logger.debug('Requesting content for uri: %s', uri)
 
         if not uri:
-            logger.info('Returning empty array')
+            self.logger.debug('Returning empty array')
             return []
 
         if uri == 'experiments':
             with open('tests/json/experiments.json') as f:
                 content = json.load(f)
-            logger.info('Returning content for uri: %s, content: %s', uri, content)
+            self.logger.debug('Returning content for uri: %s, content: %s', uri, content)
             return content
 
         match = re.match('experiments/(\d+)', uri)
         if match:
             id = match.groups()[0]
-            logger.info('Requesting experiment data with id: %s', id)
+            self.logger.debug('Requesting experiment data with id: %s', id)
             with open('tests/json/experiment_{}.json'.format(id)) as f:
                 content = json.load(f)
-            logger.info('Returning content for uri: %s, content: %s', uri, content)
+            self.logger.debug('Returning content for uri: %s, content: %s', uri, content)
             return content
 
         match = re.match('results/(\d+)', uri)
         if match:
             id = match.groups()[0]
-            logger.info('Requesting result data with id: %s', id)
+            self.logger.debug('Requesting result data with id: %s', id)
             return {'id': id, 'content': 'Result of some experiment',
                     'filesystempath': '/tmp/result_{}'.format(id), 'data': 'data/{}.bam'.format(id)}
 
         match = re.match('data/(\d+).bam', uri)
         if match:
             id = match.groups()[0]
-            logger.info('Requesting result data with id: %s', id)
-            return {'meta':"This is BAM file"}
+            self.logger.debug('Requesting result data with id: %s', id)
+            return {'meta': "This is BAM file"}
 
         assert False is True, 'Test driver can\'t handle resource request, aborting!'
 
-
-class TestProjector(TestCase):
-
-    def test_create_projection_tree(self):
-        """
-        Testing projection tree creation with projection prototypes.
-
-        """
-        experiment_prototype = ProjectionPrototype('directory')
-        experiment_prototype.name = " replace($.displayName, ' ', '_') "
-        experiment_prototype.uri = ' $.objects.uri '
-
-        result_prototype = ProjectionPrototype('directory')
-        result_prototype.name = " split($.filesystempath, '/')[-1] "
-        result_prototype.uri = " $.results "
-
-        bam_prototype = ProjectionPrototype('file')
-        bam_prototype.name = " split($.environment.data, '/')[-1] "
-        bam_prototype.uri = " $.data "
-
-        result_prototype.parent = experiment_prototype
-        experiment_prototype.children[result_prototype.name] = result_prototype
-        bam_prototype.parent = result_prototype
-        result_prototype.children[bam_prototype.name] = bam_prototype
-
-        projector = Projector(TestDriver(), 'experiments', experiment_prototype)
-
-        dir_paths = ['/', '/experiment_0', '/experiment_1', '/experiment_2',
-                 '/experiment_1/result_1', '/experiment_1/result_2',
-                 '/experiment_2/result_3', '/experiment_2/result_4', '/experiment_2/result_5']
-
-        created_projections = [n.get_path() for n in projector.projection_tree.get_tree_nodes()]
-        logger.info('Created projections: %s', created_projections)
-        for dir_path in dir_paths:
-            logger.info('Checking projection on path: %s', dir_path)
-
-            self.assertTrue(dir_path in created_projections, 'Check that projection exists')
-
-            projection = projector.projection_tree.get_projection(dir_path)
-
-            self.assertTrue(projection.type == stat.S_IFDIR, 'Check that this is a directory projection')
-
-        file_paths = ['/experiment_1/result_1/1.bam', '/experiment_1/result_2/2.bam',
-                      '/experiment_2/result_3/3.bam', '/experiment_2/result_4/4.bam', '/experiment_2/result_5/5.bam']
-
-        for file_path in file_paths:
-            logger.info('Checking file projection on path: %s', file_path)
-            self.assertTrue(file_path in created_projections, 'Check that projection exists')
-            projection = projector.projection_tree.get_projection(file_path)
-            self.assertTrue(projection.type == stat.S_IFREG, 'Check that this is a file projection')
+    def get_uri_contents_as_bytes(self, uri):
+        return TestDriverLoadData(uri)
 
 
-class TestNode(TestCase):
+class TestDriverLoadData:
+    """
+    Data loading context manager for test driver
+    """
 
-    def setUp(self):
-        self.tree = Node(name='/')
+    def __init__(self, uri):
+        self.uri = uri
+        self.io = None
 
-        self.first_level_names = []
-        self.second_level_names = []
-        self.third_level_names = []
+    def __enter__(self):
+        self.io = BytesIO(b'Mock resource contents.')
+        return self.io
 
-        for i in range(3):
-            f_name = '{0}'.format(i)
-            self.first_level_names.append(f_name)
-            first_level = Node(name=f_name)
-            self.tree.add_child(first_level)
-            for j in range(3):
-                s_name = '{0}.{1}'.format(i, j)
-                self.second_level_names.append(s_name)
-                second_level = Node(s_name)
-                first_level.add_child(second_level)
-                for k in range(3):
-                    t_name = '{0}.{1}.{2}'.format(i, j, k)
-                    self.third_level_names.append(t_name)
-                    third_level = Node(name=t_name)
-                    second_level.add_child(third_level)
-
-    def test_get_parent_nodes(self):
-        """
-        Tests Tree get_parent_nodes
-        """
-        # Checking get_parent_nodes for root node which is empty list
-        self.assertListEqual([], self.tree.get_parent_nodes())
-
-        for first_level_child in self.tree.get_children():
-            self.assertListEqual(['/'],
-                                 [n.name for n in first_level_child.get_parent_nodes()],
-                                 msg='Checking path to first level nodes of a tree')
-
-            for second_level_child in first_level_child.get_children():
-                self.assertListEqual(['/', first_level_child.name],
-                                 [n.name for n in second_level_child.get_parent_nodes()],
-                                 msg='Checking path to second level nodes of a tree')
-
-                for third_level_child in second_level_child.get_children():
-                    self.assertListEqual(['/', first_level_child.name, second_level_child.name],
-                                     [n.name for n in third_level_child.get_parent_nodes()],
-                                     msg='Checking path to third level nodes of a tree')
-
-    def test_get_path(self):
-        """
-        Tests correctness of path returned by get path method
-        """
-        expected_node_paths = ['/', '/0', '/0/0.0', '/0/0.0/0.0.0', '/0/0.0/0.0.1', '/0/0.0/0.0.2',
-                               '/0/0.1', '/0/0.1/0.1.0', '/0/0.1/0.1.1', '/0/0.1/0.1.2', '/0/0.2',
-                               '/0/0.2/0.2.0', '/0/0.2/0.2.1', '/0/0.2/0.2.2', '/1', '/1/1.0', '/1/1.0/1.0.0',
-                               '/1/1.0/1.0.1', '/1/1.0/1.0.2', '/1/1.1', '/1/1.1/1.1.0', '/1/1.1/1.1.1',
-                               '/1/1.1/1.1.2', '/1/1.2', '/1/1.2/1.2.0', '/1/1.2/1.2.1', '/1/1.2/1.2.2',
-                               '/2', '/2/2.0', '/2/2.0/2.0.0', '/2/2.0/2.0.1', '/2/2.0/2.0.2', '/2/2.1',
-                               '/2/2.1/2.1.0', '/2/2.1/2.1.1', '/2/2.1/2.1.2', '/2/2.2', '/2/2.2/2.2.0',
-                               '/2/2.2/2.2.1', '/2/2.2/2.2.2']
-
-        for n in self.tree.get_tree_nodes():
-            self.assertIn(n.get_path(), expected_node_paths, msg='Checking node path: {0}'.format(n.get_path()))
-
-    def test_get_children(self):
-        """
-        Checks get_children method of Tree
-        """
-        for first_level_child in self.tree.get_children():
-            self.assertIn(first_level_child.name, self.first_level_names,
-                          msg='Checking name to first level nodes of a tree')
-
-            for j, second_level_child in enumerate(first_level_child.get_children()):
-                self.assertIn(second_level_child.name, self.second_level_names,
-                              msg='Checking name to second level nodes of a tree')
-
-                for k, third_level_child in enumerate(second_level_child.get_children()):
-                    self.assertIn(third_level_child.name, self.third_level_names,
-                                  msg='Checking name to third level nodes of a tree')
-
-    def test_find_node_by_path(self):
-        """
-        Checks if node is on path using Tree find_node_by_path method
-        """
-        tree = Node(name='/')
-        node_1 = Node(name='experiments')
-        node_1_1 = Node(name='a')
-        node_1_2 = Node(name='b')
-        node_2 = Node(name='results')
-        node_2_1 = Node(name='a')
-        node_2_2 = Node(name='b')
-
-        tree.add_child(node_1)
-        node_1.add_child(node_2)
-        node_1.add_child(node_1_1)
-        node_1.add_child(node_1_2)
-        node_2.add_child(node_2_1)
-        node_2.add_child(node_2_2)
-
-        path_to_node_name_dict = {'/': '/', '/experiments': 'experiments', '/experiments/results': 'results',
-                                  '/experiments/a': 'a', '/experiments/b': 'b', '/experiments/results/a': 'a',
-                                  '/experiments/results/b': 'b'}
-
-        for path, node_name in path_to_node_name_dict.items():
-            node_by_path = tree.find_node_by_path(path)
-            self.assertTrue(node_by_path.name == node_name,
-                            msg='Checking if node is on path: {0}'.format(path))
-
-        # Test find node by path starting not from root node
-        path = '/experiments/results'
-        node_by_path = node_1.find_node_by_path(path)
-        self.assertTrue(node_by_path.name == 'results',
-                        msg='Checking if node: {0} is on path: {1}'.format(node_by_path.name, path))
-
-        path = '/results/a'
-        node_by_path = node_2.find_node_by_path(path)
-        self.assertTrue(node_by_path.name == 'a',
-                        msg='Checking if node: {0} is on path: {1}'.format(node_by_path.name, path))
-
-    def test_node_removal_by_path(self):
-        """
-        Checks node removal from tree by node path
-        """
-        tree = Node(name='/')
-        node_1 = Node(name='experiments')
-        node_1_1 = Node(name='a')
-        node_1_2 = Node(name='b')
-        node_2 = Node(name='results')
-        node_2_1 = Node(name='a')
-        node_2_2 = Node(name='b')
-
-        tree.add_child(node_1)
-        node_1.add_child(node_2)
-        node_1.add_child(node_1_1)
-        node_1.add_child(node_1_2)
-        node_2.add_child(node_2_1)
-        node_2.add_child(node_2_2)
-
-        all_paths = ['/experiments', '/experiments/a', '/experiments/b',
-                     '/experiments/results', '/experiments/results/a', '/experiments/results/b']
-
-        for node_path in all_paths:
-            tree.remove_node_by_path(node_path)
-            self.assertNotIn(node_path, [n.get_path() for n in tree.get_tree_nodes()],
-                             msg='Checking if node {0} is no in tree nodes list.')
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.io.close()
 
 
 class TestPrototypeDeserializer(TestCase):
-
     def setUp(self):
         self.deserializer = PrototypeDeserializer('tests/test_projection_config.yaml')
 
@@ -269,7 +113,8 @@ class TestPrototypeDeserializer(TestCase):
         test_nodes_list = [n for n in root_prototype.get_tree_nodes()]
         for n in test_nodes_list:
             self.assertIsInstance(n, ProjectionPrototype,
-                                  msg='Checking if object: {0} is instance of ProjectionPrototype'.format(root_prototype))
+                                  msg='Checking if object: {0} is instance of ProjectionPrototype'.format(
+                                          root_prototype))
         # Test correctness of "name" fields of nodes
         expected_names = ['root_dir', 'results_dir', 'test_bam.bam', 'test_vcf.vcf']
         test_names = [n.name for n in root_prototype.get_tree_nodes()]
@@ -287,3 +132,459 @@ class TestPrototypeDeserializer(TestCase):
         expected_types = ['directory', 'directory', 'file', 'file']
         test_pre_order_uri = [n.type for n in root_prototype.get_tree_nodes()]
         self.assertListEqual(expected_types, test_pre_order_uri, msg='Checking if prototypes types are correct.')
+
+
+class TestProjector(TestCase):
+    """
+    Tests DBProjector projection tree building
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.logger = logging.getLogger('test_projector')
+
+        # Initializing database connection which will be used during tests
+        with open('database_connection_config.yaml') as y_f:
+            database_connection_parameters = yaml.safe_load(y_f)
+
+        database_host = database_connection_parameters['database_host']
+        database_port = database_connection_parameters['database_port']
+        user_name = database_connection_parameters['user_name']
+        user_password = database_connection_parameters['user_password']
+
+        # Opening connection with database
+        cls.db_connection = psycopg2.connect(database="projections_database",
+                                             user=user_name,
+                                             password=user_password,
+                                             host=database_host,
+                                             port=database_port)
+        # Creating cursor, which will be used to interact with database
+        cls.cursor = cls.db_connection.cursor()
+
+        cls.cursor.execute(" DELETE FROM projections.projections WHERE projection_name='test_projection'; ")
+        cls.db_connection.commit()
+
+        cls.projection_driver = TestDriver()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.cursor.execute(" DELETE FROM projections.projections WHERE projection_name='test_projection'; ")
+        cls.db_connection.commit()
+
+        # Closing cursor and connection
+        cls.cursor.close()
+        cls.db_connection.close()
+
+    def setUp(self):
+        self.cursor.execute("""
+        INSERT INTO projections.projections (projection_name, mount_point, driver, prototype)
+        VALUES ('test_projection', 'None', 'test_driver', 'test_prototype')
+        RETURNING projection_id
+        """)
+
+        self.projection_id = self.cursor.fetchone()
+        self.db_connection.commit()
+
+        projection_settings = PrototypeDeserializer('tests/projections_configs/test_projection.yaml')
+
+        self.projector = DBProjector(self.projection_id,
+                                     self.projection_driver,
+                                     projection_settings.prototype_tree,
+                                     projection_settings.root_projection_uri)
+
+    def tearDown(self):
+        # Clean up previous test entries in db
+        self.cursor.execute(" DELETE FROM projections.projections WHERE projection_name='test_projection'; ")
+        self.db_connection.commit()
+
+    def _list_projections(self):
+        """
+        This function is used to return list of projections paths from tree table
+        :returns: list of strings
+        """
+        self.cursor.execute("""
+        SELECT join_path(node_path, node_name)
+        FROM projections.projection_nodes
+        WHERE tree_id=%s
+        """, (self.projection_id))
+
+        return [row[0] for row in self.cursor]
+
+    def test_db_build_tree(self):
+        """
+        Testing projection tree creation with projection prototypes.
+        """
+
+        dir_paths = ['/', '/experiment_0', '/experiment_1', '/experiment_2',
+                     '/experiment_1/result_1', '/experiment_1/result_2',
+                     '/experiment_2/result_3', '/experiment_2/result_4', '/experiment_2/result_5']
+
+        created_projections = self._list_projections()
+
+        self.logger.debug('Created projections: %s', created_projections)
+        for dir_path in dir_paths:
+            self.logger.debug('Checking projection on path: %s', dir_path)
+
+            self.assertIn(dir_path, created_projections, 'Check that projection exists')
+
+            projection_stats = self.projector.get_attributes(dir_path)
+            self.logger.debug('Proj stats: %s', projection_stats)
+            self.assertEqual(projection_stats['st_mode'], 16895, 'Check that this is a directory projection')
+
+        file_paths = ['/experiment_1/result_1/1.bam', '/experiment_1/result_2/2.bam',
+                      '/experiment_2/result_3/3.bam', '/experiment_2/result_4/4.bam', '/experiment_2/result_5/5.bam']
+
+        for file_path in file_paths:
+            self.logger.debug('Checking file projection on path: %s', file_path)
+            self.assertIn(file_path, created_projections, 'Check that projection exists')
+
+            projection_stats = self.projector.get_attributes(file_path)
+
+            self.assertTrue(projection_stats['st_mode'] == 33279, 'Check that this is a file projection')
+
+    def test_remove_projection(self):
+        """
+        Tests projection deletion correctness
+        """
+        # Removing entire directory
+        self.projector.remove_projection('/experiment_1')
+
+        current_projections = self._list_projections()
+
+        removed_projections = ['/experiment_1', '/experiment_1/result_1',
+                               '/experiment_1/result_1/1.bam', '/experiment_1/result_2',
+                               '/experiment_1/result_2/2.bam']
+
+        # Checking if projections where removed properly
+        for removed_projection in removed_projections:
+            self.assertNotIn(removed_projection, current_projections, 'Checking directory deletion')
+
+        # Testing leaf projections removal
+        projections_to_remove = ['/experiment_2/result_4/4.bam', '/experiment_2/result_5/5.bam']
+        # Removing leaf projections
+        for path in projections_to_remove:
+            self.projector.remove_projection(path)
+
+        current_projections = self._list_projections()
+
+        for path in projections_to_remove:
+            self.assertNotIn(path, current_projections, 'Checking file deletion')
+
+    def test_move_projection(self):
+        """
+        Tests projections move correctness
+        """
+        # Moving dir experiment_1 into dir experiment_2
+        self.projector.move_projection('/experiment_1', '/experiment_2')
+
+        current_projections = self._list_projections()
+
+        moved_dir_paths = ['/experiment_2/experiment_1', '/experiment_2/experiment_1/result_2',
+                           '/experiment_2/experiment_1/result_1',
+                           '/experiment_2/experiment_1/result_2/2.bam',
+                           '/experiment_2/experiment_1/result_1/1.bam']
+        for path in moved_dir_paths:
+            self.assertIn(path, current_projections, 'Checing node move')
+
+    def test_is_managing_path(self):
+        """
+        Test if projection manager reports projection managment status properly.
+        """
+        projection_paths = ['/', '/experiment_0', '/experiment_1', '/experiment_2',
+                            '/experiment_1/result_1', '/experiment_1/result_2',
+                            '/experiment_2/result_3', '/experiment_2/result_4',
+                            '/experiment_2/result_5', '/experiment_1/result_1/1.bam',
+                            '/experiment_1/result_2/2.bam', '/experiment_2/result_3/3.bam',
+                            '/experiment_2/result_4/4.bam', '/experiment_2/result_5/5.bam']
+        for path in projection_paths:
+            self.assertTrue(self.projector.is_managing_path(path), msg='Testing if projector manages path.')
+
+    def test_get_attributes(self):
+        """
+        Tests if projector reports correct projections attributes
+        """
+        created_projections = self._list_projections()
+        for path in created_projections:
+            self.cursor.execute("""
+            SELECT st_atime, st_mtime, st_ctime, st_size, st_mode, st_nlink, st_ino
+            FROM projections.get_projection_node_attributes(%s, %s)
+            """, (self.projection_id, path))
+
+            for row in self.cursor:
+                st_atime, st_mtime, st_ctime, st_size, st_mode, st_nlink, st_ino = row
+                # Checking attributes type correctness
+                self.assertIsInstance(st_atime, int, msg='Checking projection st_atime attribute type.')
+                self.assertIsInstance(st_mtime, int, msg='Checking projection st_mtime attribute type.')
+                self.assertIsInstance(st_ctime, int, msg='Checking projection st_ctime attribute type.')
+                self.assertIsInstance(st_size, int, msg='Checking projection st_size attribute type.')
+                self.assertIsInstance(st_nlink, int, msg='Checking projection st_nlink attribute type.')
+                self.assertIsInstance(st_ino, int, msg='Checking projection st_ino attribute type.')
+                self.assertIsInstance(st_mode, str, msg='Checking projection st_mode attribute type.')
+                # Checking if attributes returned correctly
+                self.assertEqual(st_size, 1, msg='Checkin projection st_size attribute value.')
+                self.assertEqual(st_nlink, 0, msg='Checkin projection st_nlink attribute value.')
+                self.assertEqual(st_ino, 1, msg='Checkin projection st_ino attribute value.')
+
+    def test_get_projections_on_path(self):
+        """
+        Tests if projector correctly returns projections on path
+        """
+        self.assertEqual(set(['experiment_0', 'experiment_1', 'experiment_2']),
+                         set(self.projector.get_projections_on_path('/')),
+                         msg='Checking get_projections_on_path on dir path.')
+
+        self.assertListEqual([], self.projector.get_projections_on_path('/experiment_1/result_2/2.bam'),
+                             msg='Checking get_projections_on_path on file path.')
+
+    def test_open_resource(self):
+        """
+        Tests if projector opens resources properly
+        """
+        paths_list = self._list_projections()
+        for path in paths_list:
+            header, context_manager = self.projector.open_resource(path)
+
+            self.assertIsInstance(context_manager, TestDriverLoadData,
+                                  msg='Checks if projector returns driver context manager.')
+
+            with context_manager as manager:
+                path_data = manager.read()
+
+            self.assertEqual(b'Mock resource contents.', path_data, msg='Check resource contents.')
+
+            self.assertIsInstance(header, int, msg='Check header type.')
+            self.assertEqual(3, header, msg='Check header value.')
+
+
+class TestProjectionVariants(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.logger = logging.getLogger('test_projector')
+
+        # Initializing database connection which will be used during tests
+        with open('database_connection_config.yaml') as y_f:
+            database_connection_parameters = yaml.safe_load(y_f)
+
+        database_host = database_connection_parameters['database_host']
+        database_port = database_connection_parameters['database_port']
+        user_name = database_connection_parameters['user_name']
+        user_password = database_connection_parameters['user_password']
+
+        # Opening connection with database
+        cls.db_connection = psycopg2.connect(database="projections_database",
+                                             user=user_name,
+                                             password=user_password,
+                                             host=database_host,
+                                             port=database_port)
+        # Creating cursor, which will be used to interact with database
+        cls.cursor = cls.db_connection.cursor()
+
+        cls.cursor.execute(" DELETE FROM projections.projections WHERE projection_name='test_projection'; ")
+        cls.db_connection.commit()
+
+        cls.projection_driver = TestDriver()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.cursor.execute(" DELETE FROM projections.projections WHERE projection_name='test_projection'; ")
+        cls.db_connection.commit()
+
+        # Closing cursor and connection
+        cls.cursor.close()
+        cls.db_connection.close()
+
+    def setUp(self):
+        self.cursor.execute("""
+        INSERT INTO projections.projections (projection_name, mount_point, driver, prototype)
+        VALUES ('test_projection', 'None', 'test_driver', 'test_prototype')
+        RETURNING projection_id
+        """)
+        self.projection_id = self.cursor.fetchone()
+        self.db_connection.commit()
+
+    def tearDown(self):
+        # Clean up previous test entries in db
+        self.cursor.execute(" DELETE FROM projections.projections WHERE projection_name='test_projection'; ")
+        self.db_connection.commit()
+
+    def _list_projections(self):
+        """
+        This function is used to return list of projections paths from tree table
+        :returns: list of strings
+        """
+        self.cursor.execute("""
+        SELECT join_path(node_path, node_name)
+        FROM projections.projection_nodes
+        WHERE tree_id=%s
+        """, (self.projection_id,))
+
+        return [row[0] for row in self.cursor]
+
+    def test_transparent_projection_creation(self):
+        """
+        Tests use of transparent projections
+        """
+
+        projection_settings = PrototypeDeserializer('tests/projections_configs/test_transaprent_projection_config.yaml')
+
+        projector = DBProjector(self.projection_id,
+                                self.projection_driver,
+                                projection_settings.prototype_tree,
+                                projection_settings.root_projection_uri)
+
+        expected_projections = ['/', '/result_1_1.bam', '/result_2_2.bam',
+                                '/result_3_3.bam', '/result_4_4.bam', '/result_5_5.bam']
+
+        created_projections = self._list_projections()
+
+        self.assertEqual(set(expected_projections), set(created_projections),
+                         msg='Checking transparent projections creation.')
+
+    def test_projection_filtration(self):
+        """
+        Tests projection filtration on prototype microcode level
+        """
+
+        projection_settings = PrototypeDeserializer('tests/projections_configs/test_projection_filtration_config.yaml')
+
+        projector = DBProjector(self.projection_id,
+                                self.projection_driver,
+                                projection_settings.prototype_tree,
+                                projection_settings.root_projection_uri)
+
+        expected_projections = ['/', '/experiment_1', '/experiment_1/result_1', '/experiment_1/result_1/1.bam',
+                                '/experiment_1/result_2', '/experiment_1/result_2/2.bam']
+
+        created_projections = self._list_projections()
+
+        self.assertEqual(set(expected_projections), set(created_projections),
+                         msg='Checking projection filtration.')
+
+    def test_non_root_resource_projection(self):
+        """
+        Tests non root resource projection creation
+        """
+        projection_settings = PrototypeDeserializer('tests/projections_configs/test_non_root_projection.yaml')
+
+        projector = DBProjector(self.projection_id,
+                                self.projection_driver,
+                                projection_settings.prototype_tree,
+                                projection_settings.root_projection_uri)
+
+        expected_projections = ['/', '/result_1', '/result_1/1.bam', '/result_2', '/result_2/2.bam']
+
+        created_projections = self._list_projections()
+
+        self.assertEqual(set(expected_projections), set(created_projections),
+                         msg='Checking non root resource projection creation.')
+
+
+class TestMetadataOperations(TestCase):
+    """
+    Tests DBProjector projection tree building
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.logger = logging.getLogger('test_projector')
+
+        # Initializing database connection which will be used during tests
+        with open('database_connection_config.yaml') as y_f:
+            database_connection_parameters = yaml.safe_load(y_f)
+
+        database_host = database_connection_parameters['database_host']
+        database_port = database_connection_parameters['database_port']
+        user_name = database_connection_parameters['user_name']
+        user_password = database_connection_parameters['user_password']
+
+        # Opening connection with database
+        cls.db_connection = psycopg2.connect(database="projections_database",
+                                             user=user_name,
+                                             password=user_password,
+                                             host=database_host,
+                                             port=database_port)
+        # Creating cursor, which will be used to interact with database
+        cls.cursor = cls.db_connection.cursor()
+
+        cls.cursor.execute(" DELETE FROM projections.projections WHERE projection_name='test_projection'; ")
+        cls.db_connection.commit()
+
+        cls.projection_driver = TestDriver()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.cursor.execute(" DELETE FROM projections.projections WHERE projection_name='test_projection'; ")
+        cls.db_connection.commit()
+
+        # Closing cursor and connection
+        cls.cursor.close()
+        cls.db_connection.close()
+
+    def setUp(self):
+        self.cursor.execute("""
+        INSERT INTO projections.projections (projection_name, mount_point, driver, prototype)
+        VALUES ('test_projection', 'None', 'test_driver', 'test_prototype')
+        RETURNING projection_id
+        """)
+        self.projection_id = self.cursor.fetchone()
+        self.db_connection.commit()
+
+        projection_settings = PrototypeDeserializer('tests/projections_configs/test_metadata_operations.yaml')
+
+        projection_driver = FSDriver(projection_settings.root_projection_uri, projection_settings.driver_config_path)
+
+        self.projector = DBProjector(self.projection_id,
+                                     projection_driver,
+                                     projection_settings.prototype_tree,
+                                     projection_settings.root_projection_uri)
+
+    def tearDown(self):
+        # Clean up previous test entries in db
+        self.cursor.execute(" DELETE FROM projections.projections WHERE projection_name='test_projection'; ")
+        self.db_connection.commit()
+
+    def _list_projections(self):
+        """
+        This function is used to return list of projections paths from tree table
+        :returns: list of strings
+        """
+        self.cursor.execute("""
+        SELECT join_path(node_path, node_name)
+        FROM projections.projection_nodes
+        WHERE tree_id=%s
+        """, (self.projection_id,))
+
+        return [row[0] for row in self.cursor]
+
+    def test_metadata_binding(self):
+        """
+        Tests metadata-data binding process.
+        """
+        # Loading data-metadata name pairs
+        self.cursor.execute("""
+        WITH parents AS (
+        SELECT projections.projection_links.tail_node_id as meta_id,
+                projections.projection_links.head_node_id as parent_id,
+                projections.projection_nodes.node_name as parent_name
+        FROM projections.projection_nodes, projections.projection_links
+        WHERE projections.projection_nodes.node_id = projections.projection_links.head_node_id
+        )
+        SELECT parents.parent_name, projections.projection_nodes.node_name
+        FROM projections.projection_nodes, parents
+        WHERE projections.projection_nodes.node_id = parents.meta_id
+        """)
+
+        parent_meta_pairs = [row for row in self.cursor]
+
+        for row in parent_meta_pairs:
+            parent_name, metadata_name = row
+            self.logger.debug('Parent_name: %s Meta_name: %s', parent_name, metadata_name)
+            if parent_name.endswith('.bam'):
+                parent_name = parent_name.replace('.bam', '')
+                metadata_name = metadata_name.replace('_metadata.json', '')
+                self.assertEqual(parent_name, metadata_name, msg='Checking correctness of BAM metadata binding.')
+            elif parent_name.endswith('.fasta'):
+                self.assertEqual('fasta_file_.fasta', re.sub('\d+', '', parent_name),
+                                 msg='Checking if parent node is fasta file.')
+                self.assertEqual('vcf_file.vcf', metadata_name,
+                                 msg='Checking if meta node is vcf file.')

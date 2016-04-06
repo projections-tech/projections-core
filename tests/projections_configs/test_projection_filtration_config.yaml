@@ -1,0 +1,44 @@
+#    Copyright 2016  Anton Bragin, Victor Svekolkin
+#
+#    This file is part of Projections.
+#
+#    Projections is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Projections is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with Projections.  If not, see <http://www.gnu.org/licenses/>.
+
+---
+dialect: python
+resource_uri: test.com
+driver_config_path: "drivers/driver_configurations/test_config.yaml"
+
+root_projection_uri: 'experiments'
+
+bam_file: &bam_file
+  type: file
+  children: None
+  name: "split($.environment.data, '/')[-1]"
+  uri: " $.data "
+
+result: &result
+  type: directory
+  children:
+    bam_file: *bam_file
+  name: "split($.filesystempath, '/')[-1]"
+  uri: "$.results"
+
+root:
+  type: directory
+  children:
+    result: *result
+  name: "replace($.displayName, ' ', '_')"
+  # Filters experiments according to their name
+  uri: "$.objects['1' in @.displayName and True].uri"
