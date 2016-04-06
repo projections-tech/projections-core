@@ -114,7 +114,7 @@ class TestPrototypeDeserializer(TestCase):
         for n in test_nodes_list:
             self.assertIsInstance(n, ProjectionPrototype,
                                   msg='Checking if object: {0} is instance of ProjectionPrototype'.format(
-                                      root_prototype))
+                                          root_prototype))
         # Test correctness of "name" fields of nodes
         expected_names = ['root_dir', 'results_dir', 'test_bam.bam', 'test_vcf.vcf']
         test_names = [n.name for n in root_prototype.get_tree_nodes()]

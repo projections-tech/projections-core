@@ -211,7 +211,7 @@ class PrototypeDeserializer(object):
         """
         yaml_stream = self.read_yaml_file(data_path)
         self.prototype_tree, self.resource_uri, self.root_projection_uri, self.driver_config_path = self.read_projections(
-            yaml_stream)
+                yaml_stream)
 
     def get_prototypes_tree(self, yaml_dict, parent=None):
         """

@@ -84,6 +84,7 @@ class GenbankDataLoader:
     """
     Genbank driver download manager
     """
+
     def __init__(self, query, data_type):
         """
         Initialize manager with query and data type

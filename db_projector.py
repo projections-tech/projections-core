@@ -192,7 +192,7 @@ class DBProjector:
                     continue
                 else:
                     current_parent_id = parent_id
-                logger.debug('Not skipped!')
+
                 prototype_types_binding = {
                     'file': 'REG',
                     'directory': 'DIR'

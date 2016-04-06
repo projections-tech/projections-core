@@ -142,6 +142,7 @@ class LoadTorrentSuiteData:
     """
     TorrentSuite download context manager
     """
+
     def __init__(self, uri):
         """
         Initialize manager with uri to fetch

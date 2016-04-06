@@ -151,9 +151,9 @@ class ProjectionsDaemon(object):
                                           '-d', driver], stdout=subprocess.DEVNULL)
             # Adding projector to projectors
             self.projections[projection_id] = {'projector_subprocess': projector,
-                                              'mount_point': mount_point,
-                                              'prototype_path': prototype,
-                                              'driver': driver}
+                                               'mount_point': mount_point,
+                                               'prototype_path': prototype,
+                                               'driver': driver}
 
             logger.debug('Projector PID: %s', projector.pid)
             # Registering projector in database
@@ -361,6 +361,7 @@ def stop_daemon(signum, frame):
     DAEMON.stop_daemon()
     sys.exit()
 
+
 # To start projection daemon simply type: ./projections_daemon.py -start
 # Then use projections_cli.py client to send command to running daemon.
 if __name__ == '__main__':
@@ -380,10 +381,10 @@ if __name__ == '__main__':
             logger.info('Starting projections daemon!')
             # Create context. For documentation see: https://www.python.org/dev/peps/pep-3143/
             context = daemon.DaemonContext(
-                pidfile=lock_file,
-                stdout=open(LOG_FILE, 'wb'),
-                stderr=sys.stdout,
-                working_directory=os.getcwd())
+                    pidfile=lock_file,
+                    stdout=open(LOG_FILE, 'wb'),
+                    stderr=sys.stdout,
+                    working_directory=os.getcwd())
             # Define signal-action mapping
             context.signal_map = {
                 signal.SIGTERM: stop_daemon

@@ -81,6 +81,7 @@ class S3DataLoader:
     """
     S3 driver download context manager
     """
+
     def __init__(self, bucket, uri):
         """
         Initialize driver with bucket and uri

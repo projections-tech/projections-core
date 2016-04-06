@@ -72,6 +72,7 @@ class FSLoadData:
     """
     FSDriver download context manager
     """
+
     def __init__(self, uri):
         """
         Initialize context manager with uri to fetch
@@ -92,7 +93,6 @@ class FSLoadData:
         elif os.path.isdir(self.uri):
             self.io = io.BytesIO(b'')
             return self.io
-
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         """

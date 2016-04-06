@@ -17,9 +17,9 @@ RUN apt-get update && apt-get install -y \
 
 RUN mkdir /source
 
-ADD sql/projections.sql /source
+ADD sql/projections.sql /source/
 
-WORKDIR /source
+WORKDIR /source/
 
 USER postgres
 

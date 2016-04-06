@@ -184,6 +184,7 @@ class TestProjectionsDaemon(TestCase):
 
         self.cursor.callproc('projections.daemon_get_projections')
 
+        self.logger.debug("Row")
         test_projection_id = None
         for row in self.cursor:
             # Dealing with psycopg2 inconsistency here, sometimes cursor returns ("",)
@@ -191,6 +192,7 @@ class TestProjectionsDaemon(TestCase):
                 continue
 
             projection_id, projection_name, mount_point, driver, projector_pid, prototype = row
+            self.logger.debug(projection_id)
             if projection_name == 'test_projection':
                 test_projection_id = projection_id
 
@@ -248,7 +250,8 @@ class TestProjectionsDaemon(TestCase):
         self.logger.debug('Search results: %s', search_result)
         self.assertEqual(reference_result, set(search_result), msg='Checking if search returned proper results.')
 
-        reference_result = {'/test_dir/bam_file_1.bam', '/test_dir/bam_file_2.bam', '/test_dir/bam_file_3.bam'}
+        reference_result = {'/test_dir/bam_file_1.bam', '/test_dir/bam_file_2.bam', '/test_dir/bam_file_3.bam',
+                            '/test_dir/bam_file_4.bam', '/test_dir/bam_file_5.bam'}
         # Check search based on metadata contents
         search_result = self.daemon.search('test_projection', '/',
                                            query="""
@@ -256,9 +259,9 @@ class TestProjectionsDaemon(TestCase):
                                             AND nodes.node_id
                                                 IN (SELECT head_node_id
                                                     FROM links
-                                                    WHERE metadata_content->'size'='23')
+                                                    WHERE metadata_content->>'name'~'json$')
                                            """)
-        self.logger.debug('Search results: %s', search_result)
+        self.logger.info('Search results: %s', search_result)
         self.assertEqual(reference_result, set(search_result), msg='Checking if search returned proper results.')
 
         for i in range(1, 6):
