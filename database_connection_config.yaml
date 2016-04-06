@@ -15,7 +15,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Projections.  If not, see <http://www.gnu.org/licenses/>.
 
+# This configuration file contains projections database connection parameters and credentials.
+# This file is used by projections daemon, projector, and projections tests.
 ---
-# SRA driver configuration file
-email: "vsvekolkin@parseq.pro"
-samdump_path: "sratoolkit.2.5.7-ubuntu64/bin/sam-dump"
+database_host: "localhost"
+database_port: "48620"
+user_name: "projections_admin"
+user_password: "projections_password"

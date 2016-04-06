@@ -21,10 +21,6 @@ from argparse import ArgumentParser
 
 __author__ = 'abragin'
 
-import argparse
-import random
-import string
-
 import Pyro4
 from Pyro4.errors import CommunicationError
 
@@ -39,7 +35,7 @@ from Pyro4.errors import CommunicationError
 LOCK_FILE = '/var/lock/projections'
 
 # Maps CLI commands to daemon methods.
-# Simplifies API by removing command aliases. If no mapping is provided subperser is used as a method name.
+# Simplifies API by removing command aliases. If no mapping is provided superuser is used as a method name.
 COMMAND_METHOD_MAPPING = {
     'ps': 'get_projections',
     'projections': 'get_projections',
@@ -49,6 +45,7 @@ COMMAND_METHOD_MAPPING = {
     'rm': 'remove_projection',
     'rmp': 'remove_prototype'
 }
+
 
 def _create_args_parser():
     """
@@ -76,34 +73,37 @@ def _create_args_parser():
                                 help='Folder in a system to mount projection to. '
                                      'Should exists and be empty (the latter is subject to change in future releases).')
     parser_project.add_argument('-p', '--prototype', required=True,
-                            help='Path to prototype file to create projection for.')
+                                help='Path to prototype file to create projection for.')
     parser_project.add_argument('-d', '--driver', required=True,
-                        help='Name of the driver to use with projection')
+                                help='Name of the driver to use with projection')
 
     parser_start = subparsers.add_parser('start', help='Start projection.')
     parser_start.add_argument('-n', '--projection_name', required=True,
-                        help='Name of a projection to start (required).')
+                              help='Name of a projection to start (required).')
 
     parser_stop = subparsers.add_parser('stop', help='Stop projection.')
     parser_stop.add_argument('-n', '--projection_name', required=True,
-                        help='Name of a projection to stop (required).')
+                             help='Name of a projection to stop (required).')
 
     parser_rm = subparsers.add_parser('remove_projection', aliases=['rm'], help='Remove projection.')
-    parser_rm.add_argument('-n', '--name', required=True,
-                        help='Name of projection to remove.')
+    parser_rm.add_argument('-n', '--projection_name', required=True,
+                           help='Name of projection to remove.')
 
     parser_rmp = subparsers.add_parser('remove_prototype', aliases=['rmp'], help='Remove projection prototype.')
-    parser_rmp.add_argument('-n', '--name', required=True,
-                        help='Name of prototype to remove.')
+    parser_rmp.add_argument('-n', '--projection_name', required=True,
+                            help='Name of prototype to remove.')
 
     parser_drivers = subparsers.add_parser('drivers',
-                                        help='List drivers for resources projection registered in the system.')
+                                           help='List drivers for resources projection registered in the system.')
 
     parser_search = subparsers.add_parser('search', help='Search projections metadata.')
-    parser_search.add_argument('-p', '--path', required=False, help='Limit search to specified path.')
+    parser_search.add_argument('-p', '--path', required=True, help='Limit search to specified path.')
     parser_search.add_argument('-q', '--query', required=True, help='Search objects conforming to the query.')
+    parser_search.add_argument('-n', '--projection_name', required=True,
+                               help='Name of a projection where to search.')
 
     return parser
+
 
 def _get_daemon_object():
     try:
@@ -114,6 +114,7 @@ def _get_daemon_object():
     except Exception as e:
         print('No Projections daemon could be located in the system. Command will be terminated.')
         return None
+
 
 if __name__ == '__main__':
     # Check whether projection daemon could be accessed
@@ -136,17 +137,21 @@ if __name__ == '__main__':
     # Remove 'command' from arguments dictionary
     del command_arguments['command']
 
-    print('Calling command {} with arguments: {}'.format(command, command_arguments))
+    # print('Calling command {} with arguments: {}'.format(command, command_arguments))
 
     # This is DEMO implementation that greatly reduces boilerplate code
     # It requires client calls to be strictly compatible with daemon methods.
     # Extra checks (e.g. syntactical checks) may be incorporated between client commands and daemon methods.
-
-    try:
-        daemon_command = getattr(projection_daemon, command)
-        result = daemon_command(**command_arguments)
-        print('Call result: ', result)
-    except CommunicationError as e:
-        print('FATAL: Error communicating with Projections daemon. Make sure that it is up and running!')
-    except Exception as e:
-        print('FATAL: Error occurred while trying to connect to daemon:', type(e))
+    if command is not None:
+        try:
+            daemon_command = getattr(projection_daemon, command)
+            result = daemon_command(**command_arguments)
+            if not isinstance(result, list):
+                result = [result]
+            for res in result:
+                print(res)
+        except CommunicationError as e:
+            print('FATAL: Error communicating with Projections daemon. Make sure that it is up and running! Error: %s',
+                  e)
+        except Exception as e:
+            print('FATAL: Error occurred while trying to connect to daemon:', e)

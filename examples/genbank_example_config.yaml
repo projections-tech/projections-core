@@ -1,25 +1,78 @@
+# Copyright 2016  Anton Bragin, Victor Svekolkin
+#
+# This file is part of Projections.
+#
+# Projections is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Projections is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Projections.  If not, see <http://www.gnu.org/licenses/>.
+
+
+# This is prototype file for Genbank data projection. File is readed from buttom to top, starting from root node.
 ---
-dialect: ObjectPath
+# Prototype microcode dialects are defined here, projections prototypes use ObjectPath (http://objectpath.org/) to
+# resolve projections hierarchy, and SQL to create data-metadata links between projections.
+dialect: ObjectPath, SQL
+# This is uri of resource which will be projected.
 resource_uri: http://eutils.ncbi.nlm.nih.gov
+# This is a path to projection drvier configuration file, it may content access credentials, driver-specific settings etc.
+driver_config_path: 'drivers/driver_configurations/genbank_config.yaml'
 
-root_projection_uri: 'search_query:escherichia[orgn] AND complete genome[title]:1'
+# This is root projection URI, it consists of three parts:
+# 1) 'search_query:' - suffix, which tells driver to process query as search query
+# 2) Search query as accepted by NCBI. All query parameters and operators as described here:
+# http://www.ncbi.nlm.nih.gov/books/NBK49540/
+# 3) Number of results to return, if no nuber specified driver will return one query result
+root_projection_uri: 'search_query:escherichia[orgn]:5'
 
+# Prototypes definition
+
+# This is FASTA file prototype, corresponding for result query, it`s created similarly to GB file prototype, by adding
+# ".fasta" extension to prototype URI. This prototype differs from GB prototype by extension, added to link.
 fasta_file_prototype: &fasta_file_prototype
   type: file
   children: None
-  name: "'sequence.fasta'"
-  uri: " $.fasta_files "
+  name: " $.content_uri "
+  # Here we define prototype metadata link. Metadata is defined using SQL microcode and is assigned to projection after
+  # projection tree is completed. Code describes single node on tree which abides query conditions.
+  # Here, code states that metadata node is a node where node name is equal to current projection name and it`s extension is
+  # ".gb". This effectively binds GB files to their corresponding FASTA files.
+  meta_link:
+  - " regexp_replace(nodes.node_name, '.gb', '') = regexp_replace(current_node.node_name, '.fasta', '') "
+  uri: " join([$.IdList[0], '.fasta'], '')"
 
+# This is GB file prototype, it`s link created by resolving environment which is avaliable by the URI resolved in
+# upper level. File extension is appended to complete prototype URI, driver will resolved accordingly. Name of prototype
+# is resolved using prototypes context, here it is setted as prototype uri, using field avaliable for every prototype -
+# "content_uri".
 gb_file_prototype: &gb_file_prototype
+  # This is a prototype of a file projection.
   type: file
+  # File nodes does not have children nodes, so this field is setted to None
   children: None
-  name: " 'sequence.gb' "
-  uri: " $.gb_files "
+  name: " $.content_uri "
+  uri: " join([$.IdList[0], '.gb'], '')"
 
+# This is root projection node definition. By convention, it must be named "root". By resolving it`s URI code we create
+# list of URI`s for associated Genbank entries.
 root:
+  # Type of root node. Directory contains other projections.
   type: directory
+  # This is a dictionary of children prototypes for current prototype. Children are inserted using children projection
+  # name and YAML anchor alias (http://yaml.org/spec/1.2/spec.html#id2785586).
   children:
+    # Here we add an lower level prototypes as a children.
     gb_file_prototype: *gb_file_prototype
     fasta_file_prototype: *fasta_file_prototype
-  name: " $.QueryTranslation "
-  uri: " 'search_query:escherichia[orgn] AND complete genome[title]:1' "
+  # This field encodes how node name is defined from node "content" field.
+  name: " join([$.environment.TranslationSet[0].From, $.content_uri], '_') "
+  # This field defines how URI is assigned to projections.
+  uri: " $.IdList"

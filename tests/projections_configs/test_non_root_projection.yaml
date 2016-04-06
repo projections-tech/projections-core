@@ -16,6 +16,21 @@
 #    along with Projections.  If not, see <http://www.gnu.org/licenses/>.
 
 ---
-# SRA driver configuration file
-email: "vsvekolkin@parseq.pro"
-samdump_path: "sratoolkit.2.5.7-ubuntu64/bin/sam-dump"
+dialect: python
+resource_uri: test.com
+driver_config_path: "drivers/driver_configurations/test_config.yaml"
+
+root_projection_uri: 'experiments/1'
+
+bam_file: &bam_file
+  type: file
+  children: None
+  name: "split($.environment.data, '/')[-1]"
+  uri: " $.data "
+
+root:
+  type: directory
+  children:
+    bam_file: *bam_file
+  name: "split($.filesystempath, '/')[-1]"
+  uri: "$.results"
